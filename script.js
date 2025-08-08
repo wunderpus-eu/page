@@ -130,15 +130,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 lineContainer.appendChild(span);
             }
             spellNameElement.appendChild(lineContainer);
-            // const offset = Math.max(
-            //     line_offsets_left[i],
-            //     lineContainer.firstChild.offsetLeft
-            // );
             const offset = Math.max(
                 line_offsets_left[i],
                 lineContainer.firstChild.offsetLeft
             );
-            console.log(offset);
             lineContainer.style.marginLeft = `${
                 offset - lineContainer.offsetLeft
             }px`;
@@ -181,6 +176,85 @@ document.addEventListener("DOMContentLoaded", () => {
         return castingTimeContainer;
     }
 
+    function render_range(spell) {
+        const rangeContainer = document.createElement("div");
+        rangeContainer.className = "spell-range";
+
+        const rangeType = spell.range.type;
+        const rangeDistType = spell.range.distance.type;
+        const rangeDistNumber = spell.range.distance.amount || "";
+
+        let rangeText = "";
+
+        if (["self", "touch"].includes(rangeDistType)) {
+            rangeText = rangeDistType[0].toUpperCase() + rangeDistType.slice(1);
+        } else {
+            const rangeDistAbbrev = {
+                feet: "ft",
+                miles: "mi",
+            };
+            rangeText = `${rangeDistNumber} ${rangeDistAbbrev[rangeDistType]}`;
+        }
+
+        rangeContainer.textContent = rangeText;
+
+        if (spell.school && schoolColorMap[spell.school]) {
+            const color = schoolColorMap[spell.school];
+            rangeContainer.style.backgroundColor = color;
+        }
+
+        return rangeContainer;
+    }
+
+    function render_duration(spell) {
+        const durationContainer = document.createElement("div");
+        durationContainer.className = "spell-duration";
+
+        const durationType = spell.duration[0].type;
+        const durationTimeType = spell.duration[0].duration?.type || "";
+        const durationTimeNumber = spell.duration[0].duration?.amount || "";
+
+        let durationText = "";
+
+        if (["instant", "special"].includes(durationType)) {
+            return durationContainer;
+        } else if (durationType === "timed") {
+            const durationUnitAbbrev = {
+                minute: "min",
+                hour: "h",
+                day: "d",
+                round: "Round",
+            };
+            durationText = `${durationTimeNumber} ${durationUnitAbbrev[durationTimeType]}`;
+        } else {
+            durationText = `Until ${spell.duration[0].ends.join(" or ")}`;
+        }
+        durationContainer.textContent = durationText;
+
+        if (spell.school && schoolColorMap[spell.school]) {
+            const color = schoolColorMap[spell.school];
+            durationContainer.style.backgroundColor = color;
+        }
+
+        return durationContainer;
+    }
+
+    function render_range_and_duration(spell) {
+        const rangeAndDurationContainer = document.createElement("div");
+        rangeAndDurationContainer.className = "spell-range-and-duration";
+
+        if (spell.range) {
+            const range = render_range(spell);
+            rangeAndDurationContainer.appendChild(range);
+        }
+        if (spell.duration) {
+            const duration = render_duration(spell);
+            rangeAndDurationContainer.appendChild(duration);
+        }
+
+        return rangeAndDurationContainer;
+    }
+
     // Function to create a spell card
     function make_spell_card(spell) {
         const card = document.createElement("div");
@@ -201,6 +275,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const castingTime = render_casting_time(spell);
         cardHeader.appendChild(castingTime);
+
+        const rangeAndDuration = render_range_and_duration(spell);
+        cardHeader.appendChild(rangeAndDuration);
 
         card.appendChild(front);
 

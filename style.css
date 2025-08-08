@@ -230,3 +230,40 @@ header {
     width: var(--casting-time-size);
     padding: 0;
 }
+
+.spell-range-and-duration {
+    margin-top: var(--casting-time-overlap);
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+
+.spell-range {
+    height: var(--casting-time-size);
+    padding: 0 3pt;
+    justify-self: center;
+    border: 1pt solid white;
+    border-radius: var(--casting-time-size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 8pt;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.spell-duration {
+    height: var(--casting-time-size);
+    padding: 0 3pt;
+    justify-self: center;
+    border: 1pt solid white;
+    border-radius: var(--casting-time-size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 8pt;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
