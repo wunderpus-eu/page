@@ -49,7 +49,6 @@ document.addEventListener("DOMContentLoaded", () => {
         T: "var(--transmutation-color)",
     };
 
-    // Spell level
     function render_spell_level(spell) {
         const outerCircle = document.createElement("div");
         outerCircle.className = "spell-level-outer-circle";
@@ -78,6 +77,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
         outerCircle.appendChild(innerCircle);
         return outerCircle;
+    }
+
+    function render_spell_name(spell) {
+        const spellNameElement = document.createElement("h3");
+        spellNameElement.classList.add("left-aligned");
+
+        // First, render the spell name in the available space to determine line breaks
+        const words = spell.name.split(" ");
+        words.forEach((word) => {
+            const span = document.createElement("span");
+            span.textContent = word + " ";
+            spellNameElement.appendChild(span);
+        });
+
+        return spellNameElement;
+    }
+
+    function adjust_spell_name(spellNameElement) {
+        // Run this after the spell name (and all its parents) have been added to the
+        // DOM.
+
+        // Record the line positions
+        const lines = [];
+        let currentLine = [];
+        let lastOffsetTop = -1;
+
+        spellNameElement.childNodes.forEach((span) => {
+            const offsetTop = span.offsetTop;
+            if (offsetTop > lastOffsetTop && lastOffsetTop !== -1) {
+                lines.push(currentLine);
+                currentLine = [];
+            }
+            currentLine.push(span);
+            lastOffsetTop = offsetTop;
+        });
+        lines.push(currentLine);
+        let line_offsets_left = lines.map((line) => line[0].offsetLeft);
+
+        // Clear the h3, change the size, re-append the lines, and measure their
+        spellNameElement.innerHTML = "";
+        spellNameElement.classList.remove("left-aligned");
+        spellNameElement.classList.add("centered");
+        const card = spellNameElement.closest(".spell-card");
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const lineContainer = document.createElement("span");
+            lineContainer.style.display = "block"; // Each line is a block
+            for (const word of line) {
+                const span = document.createElement("span");
+                span.textContent = word.textContent;
+                lineContainer.appendChild(span);
+            }
+            spellNameElement.appendChild(lineContainer);
+            // const offset = Math.max(
+            //     line_offsets_left[i],
+            //     lineContainer.firstChild.offsetLeft
+            // );
+            const offset = Math.max(
+                line_offsets_left[i],
+                lineContainer.firstChild.offsetLeft
+            );
+            console.log(offset);
+            lineContainer.style.marginLeft = `${
+                offset - lineContainer.offsetLeft
+            }px`;
+            lineContainer.style.textAlign = "left";
+        }
     }
 
     function render_casting_time(spell) {
@@ -130,8 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const spellLevel = render_spell_level(spell);
         cardHeader.appendChild(spellLevel);
 
-        const spellName = document.createElement("h3");
-        spellName.textContent = spell.name;
+        const spellName = render_spell_name(spell);
         cardHeader.appendChild(spellName);
 
         const castingTime = render_casting_time(spell);
@@ -143,6 +208,65 @@ document.addEventListener("DOMContentLoaded", () => {
         // This can be added later.
 
         return card;
+    }
+
+    function adjust_spell_name_alignment(spellNameElement) {
+        const words = spellNameElement.textContent.split(" ");
+        spellNameElement.innerHTML = ""; // Clear existing content
+
+        // Wrap each word in a span to measure its position
+        const wordSpans = words.map((word) => {
+            const span = document.createElement("span");
+            span.textContent = word + " ";
+            spellNameElement.appendChild(span);
+            return span;
+        });
+
+        // Group words into lines based on their vertical position
+        const lines = [];
+        let currentLine = [];
+        let lastOffsetTop = -1;
+
+        wordSpans.forEach((span) => {
+            const offsetTop = span.offsetTop;
+            if (offsetTop > lastOffsetTop && lastOffsetTop !== -1) {
+                lines.push(currentLine);
+                currentLine = [];
+            }
+            currentLine.push(span);
+            lastOffsetTop = offsetTop;
+        });
+        lines.push(currentLine);
+
+        // Clear the h3 and re-append the text as line-based spans
+        spellNameElement.innerHTML = "";
+
+        lines.forEach((lineSpans) => {
+            const lineContainer = document.createElement("span");
+            lineContainer.style.display = "block"; // Each line is a block
+            const lineText = lineSpans.map((s) => s.textContent).join("");
+            lineContainer.textContent = lineText;
+            spellNameElement.appendChild(lineContainer);
+        });
+
+        // Now, measure and shift each line
+        const h3 = spellNameElement;
+        const card = h3.closest(".spell-card");
+        const cardWidth = card.clientWidth;
+        const firstColWidth =
+            parseFloat(
+                getComputedStyle(card).getPropertyValue("--level-size")
+            ) *
+            (96 / 72); // Convert pt to px at standard DPI
+
+        h3.childNodes.forEach((lineSpan) => {
+            const lineWidth = lineSpan.offsetWidth;
+            const availableWidth = cardWidth - firstColWidth;
+            let desiredShift = (availableWidth - lineWidth) / 2;
+            desiredShift = Math.max(desiredShift, 0); // Don't shift left past the boundary
+            lineSpan.style.position = "relative";
+            lineSpan.style.left = `${desiredShift}px`;
+        });
     }
 
     // Main function to generate cards
@@ -174,13 +298,10 @@ document.addEventListener("DOMContentLoaded", () => {
             (pageHeight - pagePadding) / (cardHeight + 1)
         );
         const maxCardsPerPage = cardsPerRow * rowsPerPage;
-        console.log(cardWidth, cardHeight);
-        console.log(cardsPerRow, rowsPerPage, maxCardsPerPage);
 
         // 1mm gap between cards
         const containerWidth = cardsPerRow * (cardWidth + 1) - 1;
         const containerHeight = rowsPerPage * (cardHeight + 1) - 1;
-        console.log(containerWidth, containerHeight);
 
         let currentPage = createPage(pageSize, containerWidth, containerHeight);
         printableArea.appendChild(currentPage);
@@ -203,6 +324,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const spellCard = make_spell_card(spell);
             const cardContainer = currentPage.querySelector(".card-container");
             cardContainer.appendChild(spellCard);
+            const spellNameElement = spellCard.querySelector("h3");
+            adjust_spell_name(spellNameElement);
             cardCount++;
         });
     }

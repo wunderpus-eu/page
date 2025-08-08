@@ -146,7 +146,7 @@ header {
 
 .card-header {
     display: grid;
-    grid-template-columns: max-content 1fr;
+    grid-template-columns: var(--level-size) 1fr;
     align-items: center;
     justify-content: center;
     padding: var(--margin-size);
@@ -156,10 +156,21 @@ header {
     font-family: var(--main-font);
     font-weight: 900;
     font-size: 10pt;
-    text-align: center;
+    text-wrap: balance;
     line-height: 10pt;
-    margin: 0;
-    padding: 0 3pt 0 3pt;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 3pt;
+    padding-right: 3pt;
+}
+
+.spell-card h3.left-aligned {
+    text-align: left;
+}
+
+.spell-card h3.centered {
+    text-align: center;
+    margin-left: calc(-1 * var(--level-size));
 }
 
 .spell-level-outer-circle {
