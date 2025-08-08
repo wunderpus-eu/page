@@ -37,6 +37,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    const schoolColorMap = {
+        A: "var(--abjuration-color)",
+        C: "var(--conjuration-color)",
+        D: "var(--divination-color)",
+        E: "var(--enchantment-color)",
+        V: "var(--evocation-color)",
+        I: "var(--illusion-color)",
+        N: "var(--necromancy-color)",
+        T: "var(--transmutation-color)",
+    };
+
     // Function to create a spell card
     function make_spell_card(spell) {
         const card = document.createElement("div");
@@ -44,7 +55,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const front = document.createElement("div");
         front.className = "spell-card-front";
-        front.innerHTML = `<h3>${spell.name}</h3>`;
+
+        const spellLevelContainer = document.createElement("div");
+        spellLevelContainer.className = "spell-level-container";
+
+        const outerCircle = document.createElement("div");
+        outerCircle.className = "spell-level-outer-circle";
+
+        const innerCircle = document.createElement("div");
+        innerCircle.className = "spell-level-inner-circle";
+
+        const spellLevel = spell.level;
+        if (spellLevel === 0) {
+            const cantripCircle = document.createElement("div");
+            cantripCircle.className = "cantrip-circle";
+            innerCircle.appendChild(cantripCircle);
+        } else {
+            const spellLevelText = document.createElement("span");
+            spellLevelText.className = "spell-level-text";
+            spellLevelText.textContent = spellLevel;
+            innerCircle.appendChild(spellLevelText);
+        }
+
+        if (spell.school && schoolColorMap[spell.school]) {
+            const color = schoolColorMap[spell.school];
+            outerCircle.style.borderColor = color;
+            innerCircle.style.borderColor = color;
+            innerCircle.style.backgroundColor = color;
+        }
+
+        outerCircle.appendChild(innerCircle);
+        spellLevelContainer.appendChild(outerCircle);
+
+        const spellName = document.createElement("h3");
+        spellName.textContent = spell.name;
+
+        front.appendChild(spellLevelContainer);
+        front.appendChild(spellName);
         card.appendChild(front);
 
         // For now, we are not creating a back for the card.
