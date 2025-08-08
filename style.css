@@ -11,6 +11,7 @@
     --illusion-color: #4c72b0;
     --necromancy-color: #8172b3;
     --transmutation-color: #ccb974;
+    --casting-time-size: 15pt;
 }
 
 body.grayscale {
@@ -187,4 +188,26 @@ header {
     height: 5pt;
     background-color: white;
     border-radius: 50%;
+}
+
+.spell-casting-time {
+    position: absolute;
+    bottom: -10pt;
+    left: 50%;
+    transform: translateX(-50%);
+    height: var(--casting-time-size);
+    padding: 0 4pt;
+    border: 1pt solid white;
+    border-radius: var(--casting-time-size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.spell-casting-time.is-circular {
+    width: var(--casting-time-size);
+    padding: 0;
 }

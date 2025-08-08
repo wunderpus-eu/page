@@ -49,14 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
         T: "var(--transmutation-color)",
     };
 
-    // Function to create a spell card
-    function make_spell_card(spell) {
-        const card = document.createElement("div");
-        card.className = "spell-card";
-
-        const front = document.createElement("div");
-        front.className = "spell-card-front";
-
+    // Spell level
+    function render_spell_level(spell) {
         const spellLevelContainer = document.createElement("div");
         spellLevelContainer.className = "spell-level-container";
 
@@ -87,11 +81,61 @@ document.addEventListener("DOMContentLoaded", () => {
 
         outerCircle.appendChild(innerCircle);
         spellLevelContainer.appendChild(outerCircle);
+        return spellLevelContainer;
+    }
+
+    function render_casting_time(spell) {
+        const castingTimeContainer = document.createElement("div");
+        castingTimeContainer.className = "spell-casting-time";
+
+        if (spell.time) {
+            const time = spell.time[0];
+            const number = time.number;
+            const unit = time.unit;
+            let castingTimeText = "";
+
+            if (["action", "bonus action", "reaction"].includes(unit)) {
+                castingTimeText = unit[0].toUpperCase();
+                castingTimeContainer.style.fontSize = "10pt";
+                castingTimeContainer.classList.add("is-circular");
+            } else {
+                let unitText = unit;
+                if (unit === "minute") {
+                    unitText = "min";
+                } else if (unit === "hour") {
+                    unitText = "h";
+                }
+                castingTimeText = `${number} ${unitText}`;
+                castingTimeContainer.style.fontSize = "8pt";
+            }
+            castingTimeContainer.textContent = castingTimeText;
+        }
+
+        if (spell.school && schoolColorMap[spell.school]) {
+            const color = schoolColorMap[spell.school];
+            castingTimeContainer.style.backgroundColor = color;
+        }
+
+        return castingTimeContainer;
+    }
+
+    // Function to create a spell card
+    function make_spell_card(spell) {
+        const card = document.createElement("div");
+        card.className = "spell-card";
+
+        const front = document.createElement("div");
+        front.className = "spell-card-front";
+
+        const spellLevelContainer = render_spell_level(spell);
+        front.appendChild(spellLevelContainer);
+
+        const castingTimeContainer = render_casting_time(spell);
+        spellLevelContainer.appendChild(castingTimeContainer);
 
         const spellName = document.createElement("h3");
         spellName.textContent = spell.name;
 
-        front.appendChild(spellLevelContainer);
         front.appendChild(spellName);
         card.appendChild(front);
 
