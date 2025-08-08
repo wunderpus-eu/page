@@ -11,7 +11,10 @@
     --illusion-color: #4c72b0;
     --necromancy-color: #8172b3;
     --transmutation-color: #ccb974;
+    --margin-size: 3mm;
+    --level-size: 30pt;
     --casting-time-size: 15pt;
+    --casting-time-overlap: 5pt;
 }
 
 body.grayscale {
@@ -30,13 +33,6 @@ body {
     margin: 0;
     background-color: #f0f0f0;
     color: var(--font-color);
-}
-
-.spell-card h3 {
-    font-family: var(--main-font);
-    font-weight: 900;
-    font-size: 10pt;
-    margin-top: 0;
 }
 
 header {
@@ -124,6 +120,7 @@ header {
     flex-wrap: wrap;
     justify-content: flex-start;
     align-content: flex-start;
+    gap: 1mm;
 }
 
 .page-letter {
@@ -135,9 +132,7 @@ header {
     width: 63mm;
     height: 88mm;
     border: 1px solid var(--card-border-color);
-    box-sizing: border-box;
-    padding: 3mm;
-    margin: 1mm;
+    box-sizing: content-box;
     float: left;
     overflow: hidden;
     position: relative;
@@ -149,15 +144,37 @@ header {
     height: 100%;
 }
 
+.spell-card h3 {
+    font-family: var(--main-font);
+    font-weight: 900;
+    font-size: 10pt;
+    text-align: center;
+    position: absolute;
+    top: var(--margin-size);
+    left: calc(
+        var(--level-size) + var(--margin-size)
+    ); /* Position it to the right of the level indicator */
+    right: var(--margin-size); /* Give it some padding on the right */
+    height: calc(
+        var(--level-size) - var(--casting-time-overlap)
+    ); /* Match the height of the level indicator */
+    margin: 0;
+    padding: 2pt 3pt 3pt 3pt;
+    line-height: 10pt;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .spell-level-container {
     position: absolute;
-    top: 3mm;
-    left: 3mm;
+    top: var(--margin-size);
+    left: var(--margin-size);
 }
 
 .spell-level-outer-circle {
-    width: 30pt;
-    height: 30pt;
+    width: var(--level-size);
+    height: var(--level-size);
     border: 1pt solid black;
     border-radius: 50%;
     display: flex;
@@ -166,8 +183,8 @@ header {
 }
 
 .spell-level-inner-circle {
-    width: 25pt;
-    height: 25pt;
+    width: calc(var(--level-size) - 5pt);
+    height: calc(var(--level-size) - 5pt);
     border: 1pt solid black;
     background-color: black;
     border-radius: 50%;
@@ -192,7 +209,7 @@ header {
 
 .spell-casting-time {
     position: absolute;
-    bottom: -10pt;
+    bottom: calc(var(--casting-time-overlap) - var(--casting-time-size));
     left: 50%;
     transform: translateX(-50%);
     height: var(--casting-time-size);

@@ -149,8 +149,14 @@ document.addEventListener("DOMContentLoaded", () => {
     function generateSpellCards(spellNames, pageSize) {
         printableArea.innerHTML = "";
 
-        const cardWidth = 63 + 2; // card width + margin in mm
-        const cardHeight = 88 + 2; // card height + margin in mm
+        // Create a temporary card to measure its dimensions
+        const tempCard = make_spell_card(spells[0]);
+        printableArea.appendChild(tempCard);
+        const pxPerMm = getPxPerMm();
+        const cardWidth = tempCard.offsetWidth / pxPerMm;
+        const cardHeight = tempCard.offsetHeight / pxPerMm;
+        printableArea.removeChild(tempCard);
+
         const pagePadding = 10 * 2; // 10mm padding on each side
 
         const pageDimensions = {
@@ -161,12 +167,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const { width: pageWidth, height: pageHeight } =
             pageDimensions[pageSize];
 
-        const cardsPerRow = Math.floor((pageWidth - pagePadding) / cardWidth);
-        const rowsPerPage = Math.floor((pageHeight - pagePadding) / cardHeight);
+        const cardsPerRow = Math.floor(
+            (pageWidth - pagePadding) / (cardWidth + 1)
+        );
+        const rowsPerPage = Math.floor(
+            (pageHeight - pagePadding) / (cardHeight + 1)
+        );
         const maxCardsPerPage = cardsPerRow * rowsPerPage;
+        console.log(cardWidth, cardHeight);
+        console.log(cardsPerRow, rowsPerPage, maxCardsPerPage);
 
-        const containerWidth = cardsPerRow * cardWidth;
-        const containerHeight = rowsPerPage * cardHeight;
+        // 1mm gap between cards
+        const containerWidth = cardsPerRow * (cardWidth + 1) - 1;
+        const containerHeight = rowsPerPage * (cardHeight + 1) - 1;
+        console.log(containerWidth, containerHeight);
 
         let currentPage = createPage(pageSize, containerWidth, containerHeight);
         printableArea.appendChild(currentPage);
@@ -279,3 +293,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initial call to set the header scale
     handleZoom();
 });
+
+function getPxPerMm() {
+    const div = document.createElement("div");
+    div.style.position = "absolute";
+    div.style.top = "-9999px";
+    div.style.left = "-9999px";
+    div.style.width = "1mm";
+    document.body.appendChild(div);
+    const pxPerMm = div.getBoundingClientRect().width;
+    document.body.removeChild(div);
+    return pxPerMm;
+}
