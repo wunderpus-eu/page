@@ -1,6 +1,7 @@
 :root {
     --main-font: "Source Sans 3", sans-serif;
     --font-color: #333;
+    --graphic-color: #333;
     --card-border-color: #ccc;
     --abjuration-color: #55a868;
     --conjuration-color: #dd8452;
@@ -10,6 +11,17 @@
     --illusion-color: #4c72b0;
     --necromancy-color: #8172b3;
     --transmutation-color: #ccb974;
+}
+
+body.grayscale {
+    --abjuration-color: var(--graphic-color);
+    --conjuration-color: var(--graphic-color);
+    --divination-color: var(--graphic-color);
+    --enchantment-color: var(--graphic-color);
+    --evocation-color: var(--graphic-color);
+    --illusion-color: var(--graphic-color);
+    --necromancy-color: var(--graphic-color);
+    --transmutation-color: var(--graphic-color);
 }
 
 body {
@@ -63,6 +75,13 @@ header {
 }
 
 #page-size-toggle {
+    padding: 8px 16px;
+    font-size: 16px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#color-toggle {
     padding: 8px 16px;
     font-size: 16px;
     cursor: pointer;

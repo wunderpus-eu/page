@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const printableArea = document.getElementById("printable-area");
     const spellNamesInput = document.getElementById("spell-names-input");
     const pageSizeToggle = document.getElementById("page-size-toggle");
+    const colorToggle = document.getElementById("color-toggle");
     const header = document.querySelector("header");
     const headerContent = document.getElementById("header-content");
 
@@ -171,6 +172,33 @@ document.addEventListener("DOMContentLoaded", () => {
         pageSizeToggle.dataset.size = newSize;
         pageSizeToggle.textContent =
             newSize.charAt(0).toUpperCase() + newSize.slice(1);
+        const spellNamesText = spellNamesInput.value;
+        if (!spellNamesText) {
+            return;
+        }
+        const spellNames = spellNamesText
+            .split(",")
+            .map((name) => name.trim())
+            .filter(Boolean);
+        const pageSize = pageSizeToggle.dataset.size || "letter";
+        generateSpellCards(spellNames, pageSize);
+    });
+
+    // Toggle between Color and Grayscale
+    colorToggle.addEventListener("click", () => {
+        document.body.classList.toggle("grayscale");
+        const isGrayscale = document.body.classList.contains("grayscale");
+        colorToggle.textContent = isGrayscale ? "Grayscale" : "Color";
+        const spellNamesText = spellNamesInput.value;
+        if (!spellNamesText) {
+            return;
+        }
+        const spellNames = spellNamesText
+            .split(",")
+            .map((name) => name.trim())
+            .filter(Boolean);
+        const pageSize = pageSizeToggle.dataset.size || "letter";
+        generateSpellCards(spellNames, pageSize);
     });
 
     // Generate spell cards when the button is clicked
