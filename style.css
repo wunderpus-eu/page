@@ -12,9 +12,9 @@
     --necromancy-color: #8172b3;
     --transmutation-color: #ccb974;
     --margin-size: 3mm;
-    --level-size: 32pt;
+    --level-size: 33pt;
     --casting-time-size: 17pt;
-    --casting-time-overlap: 7pt;
+    --casting-time-overlap: -7pt;
 }
 
 body.grayscale {
@@ -144,38 +144,28 @@ header {
     height: 100%;
 }
 
+.card-header {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    align-items: center;
+    justify-content: center;
+    padding: var(--margin-size);
+}
+
 .spell-card h3 {
     font-family: var(--main-font);
     font-weight: 900;
     font-size: 10pt;
     text-align: center;
-    position: absolute;
-    top: var(--margin-size);
-    left: calc(
-        var(--level-size) + var(--margin-size)
-    ); /* Position it to the right of the level indicator */
-    right: var(--margin-size); /* Give it some padding on the right */
-    height: calc(
-        var(--level-size) - var(--casting-time-overlap)
-    ); /* Match the height of the level indicator */
-    margin: 0;
-    padding: 3pt;
     line-height: 10pt;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-}
-
-.spell-level-container {
-    position: absolute;
-    top: var(--margin-size);
-    left: var(--margin-size);
+    margin: 0;
+    padding: 0 3pt 0 3pt;
 }
 
 .spell-level-outer-circle {
     width: var(--level-size);
     height: var(--level-size);
+    padding: 2pt;
     border: 1pt solid black;
     border-radius: 50%;
     display: flex;
@@ -185,9 +175,8 @@ header {
 }
 
 .spell-level-inner-circle {
-    width: calc(var(--level-size) - 5pt);
-    height: calc(var(--level-size) - 5pt);
-    border: 1pt solid black;
+    width: 100%;
+    height: 100%;
     background-color: black;
     border-radius: 50%;
     display: flex;
@@ -211,12 +200,10 @@ header {
 }
 
 .spell-casting-time {
-    position: absolute;
-    bottom: calc(var(--casting-time-overlap) - var(--casting-time-size));
-    left: 50%;
-    transform: translateX(-50%);
     height: var(--casting-time-size);
-    padding: 0 4pt;
+    margin-top: var(--casting-time-overlap);
+    padding: 0 3pt;
+    justify-self: center;
     border: 1pt solid white;
     border-radius: var(--casting-time-size);
     display: flex;

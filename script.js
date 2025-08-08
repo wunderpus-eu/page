@@ -51,9 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Spell level
     function render_spell_level(spell) {
-        const spellLevelContainer = document.createElement("div");
-        spellLevelContainer.className = "spell-level-container";
-
         const outerCircle = document.createElement("div");
         outerCircle.className = "spell-level-outer-circle";
 
@@ -80,8 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         outerCircle.appendChild(innerCircle);
-        spellLevelContainer.appendChild(outerCircle);
-        return spellLevelContainer;
+        return outerCircle;
     }
 
     function render_casting_time(spell) {
@@ -127,16 +123,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const front = document.createElement("div");
         front.className = "spell-card-front";
 
-        const spellLevelContainer = render_spell_level(spell);
-        front.appendChild(spellLevelContainer);
+        const cardHeader = document.createElement("div");
+        cardHeader.className = "card-header";
+        front.appendChild(cardHeader);
 
-        const castingTimeContainer = render_casting_time(spell);
-        spellLevelContainer.appendChild(castingTimeContainer);
+        const spellLevel = render_spell_level(spell);
+        cardHeader.appendChild(spellLevel);
 
         const spellName = document.createElement("h3");
         spellName.textContent = spell.name;
+        cardHeader.appendChild(spellName);
 
-        front.appendChild(spellName);
+        const castingTime = render_casting_time(spell);
+        cardHeader.appendChild(castingTime);
+
         card.appendChild(front);
 
         // For now, we are not creating a back for the card.
