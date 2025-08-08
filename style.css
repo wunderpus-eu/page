@@ -12,9 +12,9 @@
     --necromancy-color: #8172b3;
     --transmutation-color: #ccb974;
     --margin-size: 3mm;
-    --level-size: 30pt;
-    --casting-time-size: 15pt;
-    --casting-time-overlap: 5pt;
+    --level-size: 32pt;
+    --casting-time-size: 17pt;
+    --casting-time-overlap: 7pt;
 }
 
 body.grayscale {
@@ -159,11 +159,12 @@ header {
         var(--level-size) - var(--casting-time-overlap)
     ); /* Match the height of the level indicator */
     margin: 0;
-    padding: 2pt 3pt 3pt 3pt;
+    padding: 3pt;
     line-height: 10pt;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
 }
 
 .spell-level-container {
@@ -180,6 +181,7 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
+    box-sizing: border-box;
 }
 
 .spell-level-inner-circle {
@@ -191,6 +193,7 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
+    box-sizing: border-box;
 }
 
 .spell-level-text {
@@ -222,6 +225,7 @@ header {
     color: white;
     font-weight: bold;
     white-space: nowrap;
+    box-sizing: border-box;
 }
 
 .spell-casting-time.is-circular {
