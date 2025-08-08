@@ -57,11 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function generateSpellCards(spellNames, pageSize) {
         printableArea.innerHTML = "";
 
-        let currentPage = createPage(pageSize);
-        printableArea.appendChild(currentPage);
-
         const cardWidth = 63 + 2; // card width + margin in mm
         const cardHeight = 88 + 2; // card height + margin in mm
+        const pagePadding = 10 * 2; // 10mm padding on each side
 
         const pageDimensions = {
             a4: { width: 297, height: 210 },
@@ -71,9 +69,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const { width: pageWidth, height: pageHeight } =
             pageDimensions[pageSize];
 
-        const cardsPerRow = Math.floor(pageWidth / cardWidth);
-        const rowsPerPage = Math.floor(pageHeight / cardHeight);
+        const cardsPerRow = Math.floor((pageWidth - pagePadding) / cardWidth);
+        const rowsPerPage = Math.floor((pageHeight - pagePadding) / cardHeight);
         const maxCardsPerPage = cardsPerRow * rowsPerPage;
+
+        const containerWidth = cardsPerRow * cardWidth;
+        const containerHeight = rowsPerPage * cardHeight;
+
+        let currentPage = createPage(pageSize, containerWidth, containerHeight);
+        printableArea.appendChild(currentPage);
         let cardCount = 0;
 
         const spellsToRender = spellNames
@@ -82,22 +86,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
         spellsToRender.forEach((spell) => {
             if (cardCount >= maxCardsPerPage) {
-                currentPage = createPage(pageSize);
+                currentPage = createPage(
+                    pageSize,
+                    containerWidth,
+                    containerHeight
+                );
                 printableArea.appendChild(currentPage);
                 cardCount = 0;
             }
             const spellCard = make_spell_card(spell);
-            currentPage.appendChild(spellCard);
+            const cardContainer = currentPage.querySelector(".card-container");
+            cardContainer.appendChild(spellCard);
             cardCount++;
         });
     }
 
-    function createPage(pageSize) {
+    function createPage(pageSize, containerWidth, containerHeight) {
         const page = document.createElement("div");
         page.className = "page";
         if (pageSize === "letter") {
             page.classList.add("page-letter");
         }
+
+        const cardContainer = document.createElement("div");
+        cardContainer.className = "card-container";
+        cardContainer.style.width = `${containerWidth}mm`;
+        cardContainer.style.height = `${containerHeight}mm`;
+
+        page.appendChild(cardContainer);
         return page;
     }
 

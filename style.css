@@ -87,7 +87,14 @@ header {
     position: relative;
     page-break-after: always;
     display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-container {
+    display: flex;
     flex-wrap: wrap;
+    justify-content: flex-start;
     align-content: flex-start;
 }
 
@@ -100,8 +107,8 @@ header {
     width: 63mm;
     height: 88mm;
     border: 1px solid var(--card-border-color);
-    box-sizing: content-box;
-    padding: 5mm;
+    box-sizing: border-box;
+    padding: 3mm;
     margin: 1mm;
     float: left;
     overflow: hidden;
