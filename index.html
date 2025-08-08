@@ -4,20 +4,28 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Spell Card Generator</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;900&display=swap"
+            rel="stylesheet"
+        />
         <link rel="stylesheet" href="style.css" />
     </head>
     <body>
         <header>
-            <h1>Spell Card Generator</h1>
-            <div class="controls">
-                <input
-                    type="text"
-                    id="spell-names-input"
-                    placeholder="Fire Bolt; Burning Hands; Fireball"
-                    value="Detect Poison and Disease"
-                />
-                <button id="page-size-toggle">Letter</button>
-                <button id="generate-pdf">Generate Cards</button>
+            <div id="header-content">
+                <h1>Spell Card Generator</h1>
+                <div class="controls">
+                    <input
+                        type="text"
+                        id="spell-names-input"
+                        placeholder="Fire Bolt, Burning Hands, Fireball"
+                        value="Detect Poison and Disease, Symbol, Counterspell, True Strike"
+                    />
+                    <button id="page-size-toggle">Letter</button>
+                    <button id="generate-pdf">Generate Cards</button>
+                </div>
             </div>
         </header>
         <main id="printable-area">

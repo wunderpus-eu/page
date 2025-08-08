@@ -3,8 +3,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const printableArea = document.getElementById("printable-area");
     const spellNamesInput = document.getElementById("spell-names-input");
     const pageSizeToggle = document.getElementById("page-size-toggle");
+    const header = document.querySelector("header");
+    const headerContent = document.getElementById("header-content");
 
     let spells = [];
+    const baseDevicePixelRatio = window.devicePixelRatio;
+
+    // Counter-zoom logic
+    function handleZoom() {
+        const currentZoom = window.devicePixelRatio / baseDevicePixelRatio;
+        if (headerContent && header) {
+            headerContent.style.transform = `translateX(-50%) scale(${
+                1 / currentZoom
+            })`;
+            headerContent.style.width = `${100 * currentZoom}vw`;
+            document.body.style.paddingTop = `${
+                headerContent.getBoundingClientRect().height
+            }px`;
+        }
+    }
+
+    window.addEventListener("resize", handleZoom);
 
     // Fetch spell data
     async function loadSpells() {
@@ -45,8 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const cardHeight = 88 + 2; // card height + margin in mm
 
         const pageDimensions = {
-            a4: { width: 210, height: 297 },
-            letter: { width: 215.9, height: 279.4 }, // 8.5in x 11in in mm
+            a4: { width: 297, height: 210 },
+            letter: { width: 279.4, height: 215.9 }, // 11in x 8.5in in mm
         };
 
         const { width: pageWidth, height: pageHeight } =
@@ -99,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         const spellNames = spellNamesText
-            .split(";")
+            .split(",")
             .map((name) => name.trim())
             .filter(Boolean);
 
@@ -113,14 +132,15 @@ document.addEventListener("DOMContentLoaded", () => {
             filename: "spell-cards.pdf",
             image: { type: "jpeg", quality: 0.98 },
             html2canvas: { scale: 2 },
-            jsPDF: { unit: "mm", format: pageSize, orientation: "portrait" },
+            jsPDF: { unit: "mm", format: pageSize, orientation: "landscape" },
         };
 
-        // New Promise-based usage:
         // TODO: Enable again when I say so.
         // html2pdf().set(opt).from(element).save();
     });
 
     // Load spells when the page loads
     loadSpells();
+    // Initial call to set the header scale
+    handleZoom();
 });

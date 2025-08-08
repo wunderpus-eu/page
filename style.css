@@ -1,54 +1,85 @@
+:root {
+    --main-font: "Source Sans 3", sans-serif;
+    --font-color: #333;
+    --card-border-color: #ccc;
+}
+
 body {
-    font-family: sans-serif;
+    font-family: var(--main-font);
     margin: 0;
     background-color: #f0f0f0;
+    color: var(--font-color);
+}
+
+.spell-card h3 {
+    font-family: var(--main-font);
+    font-weight: 900;
+    font-size: 10pt;
+    margin-top: 0;
 }
 
 header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+}
+
+#header-content {
     background-color: #333;
     color: white;
-    padding: 1rem;
+    padding: 10px;
+    transform-origin: top center;
+    position: absolute;
+    left: 50%;
     text-align: center;
-}
-
-#generate-pdf {
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-    cursor: pointer;
-}
-
-#spell-names-input {
-    padding: 0.5rem;
-    font-size: 1rem;
-    width: 300px;
 }
 
 .controls {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 1rem;
-    margin-top: 1rem;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.controls h1 {
+    font-size: 24px;
+}
+
+#spell-names-input {
+    padding: 10px;
+    font-size: 20px;
+    width: 600px;
 }
 
 #page-size-toggle {
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
+    padding: 10px 20px;
+    font-size: 20px;
     cursor: pointer;
+    white-space: nowrap;
+}
+
+#generate-pdf {
+    padding: 10px 20px;
+    font-size: 20px;
+    cursor: pointer;
+    white-space: nowrap;
 }
 
 #printable-area {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     padding: 20px;
 }
 
 .page {
     background: white;
-    width: 210mm;
-    height: 297mm;
-    margin: 10px;
+    width: 297mm;
+    height: 210mm;
+    margin: 10px 0;
     padding: 10mm;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
@@ -61,15 +92,15 @@ header {
 }
 
 .page-letter {
-    width: 8.5in;
-    height: 11in;
+    width: 11in;
+    height: 8.5in;
 }
 
 .spell-card {
     width: 63mm;
     height: 88mm;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
+    border: 1px solid var(--card-border-color);
+    box-sizing: content-box;
     padding: 5mm;
     margin: 1mm;
     float: left;
