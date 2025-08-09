@@ -1,6 +1,7 @@
 :root {
     --main-font: "Source Sans 3", sans-serif;
     --font-color: #333;
+    --font-color-light: #666;
     --graphic-color: #333;
     --card-border-color: #ccc;
     --abjuration-color: #55a868;
@@ -308,5 +309,17 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 1pt;
+    margin-top: 2pt;
+    align-self: start;
+}
+
+.spell-component-text {
+    font-size: 7pt;
+    line-height: 7pt;
+    color: var(--font-color-light);
+    text-align: left;
+    padding-top: 4pt;
+    padding-left: 2pt;
+    padding-right: 4pt;
+    align-self: start;
 }

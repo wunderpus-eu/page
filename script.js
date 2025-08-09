@@ -74,6 +74,30 @@ document.addEventListener("DOMContentLoaded", () => {
         T: "var(--transmutation-color)",
     };
 
+    async function render_front_border(spell) {
+        const frontBorderContainer = document.createElement("div");
+        frontBorderContainer.className = "spell-card-front-border";
+
+        // Temporarily attach to DOM to compute style
+        frontBorderContainer.style.backgroundColor =
+            schoolColorMap[spell.school];
+        document.body.appendChild(frontBorderContainer);
+        const computedColor =
+            getComputedStyle(frontBorderContainer).backgroundColor;
+        document.body.removeChild(frontBorderContainer);
+        frontBorderContainer.style.backgroundColor = null;
+
+        const frontBorder = document.createElement("img");
+        frontBorder.src = await load_icon(
+            "border-front",
+            computedColor,
+            "white"
+        );
+        frontBorderContainer.appendChild(frontBorder);
+
+        return frontBorderContainer;
+    }
+
     function render_spell_level(spell) {
         const outerCircle = document.createElement("div");
         outerCircle.className = "spell-level-outer-circle";
@@ -391,28 +415,25 @@ document.addEventListener("DOMContentLoaded", () => {
         return componentIconsContainer;
     }
 
-    async function render_front_border(spell) {
-        const frontBorderContainer = document.createElement("div");
-        frontBorderContainer.className = "spell-card-front-border";
+    async function render_component_text(spell) {
+        const componentTextContainer = document.createElement("div");
+        componentTextContainer.className = "spell-component-text";
 
-        // Temporarily attach to DOM to compute style
-        frontBorderContainer.style.backgroundColor =
-            schoolColorMap[spell.school];
-        document.body.appendChild(frontBorderContainer);
-        const computedColor =
-            getComputedStyle(frontBorderContainer).backgroundColor;
-        document.body.removeChild(frontBorderContainer);
-        frontBorderContainer.style.backgroundColor = null;
+        const components = spell.components;
+        if (components.m) {
+            let materialText = "";
+            if (typeof components.m === "string") {
+                materialText = components.m;
+            } else {
+                materialText = components.m.text;
+            }
+            const materialTextElement = document.createElement("span");
+            materialTextElement.textContent =
+                materialText[0].toUpperCase() + materialText.slice(1) + ".";
+            componentTextContainer.appendChild(materialTextElement);
+        }
 
-        const frontBorder = document.createElement("img");
-        frontBorder.src = await load_icon(
-            "border-front",
-            computedColor,
-            "white"
-        );
-        frontBorderContainer.appendChild(frontBorder);
-
-        return frontBorderContainer;
+        return componentTextContainer;
     }
 
     // Function to create a spell card
@@ -444,6 +465,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const componentIcons = await render_component_icons(spell);
         cardHeader.appendChild(componentIcons);
+
+        const componentText = await render_component_text(spell);
+        cardHeader.appendChild(componentText);
 
         card.appendChild(front);
 
