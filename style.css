@@ -287,3 +287,11 @@ header {
     height: var(--icon-size);
     object-fit: contain;
 }
+
+.spell-component-icons {
+    height: 10pt;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1pt;
+}

@@ -346,6 +346,51 @@ document.addEventListener("DOMContentLoaded", () => {
         return rangeAndDurationContainer;
     }
 
+    async function render_component_icons(spell) {
+        const componentIconsContainer = document.createElement("div");
+        componentIconsContainer.className = "spell-component-icons";
+
+        // Temporarily set background color and attach to DOM to compute style
+        componentIconsContainer.style.backgroundColor =
+            schoolColorMap[spell.school];
+        document.body.appendChild(componentIconsContainer);
+        const computedColor = getComputedStyle(
+            componentIconsContainer
+        ).backgroundColor;
+        document.body.removeChild(componentIconsContainer);
+        componentIconsContainer.style.backgroundColor = null;
+
+        const components = spell.components;
+        if (components.v) {
+            const verbalIcon = document.createElement("img");
+            verbalIcon.src = await load_icon("chip-v", computedColor, "white");
+            componentIconsContainer.appendChild(verbalIcon);
+        }
+        if (components.s) {
+            const somaticIcon = document.createElement("img");
+            somaticIcon.src = await load_icon("chip-s", computedColor, "white");
+            componentIconsContainer.appendChild(somaticIcon);
+        }
+        if (components.m) {
+            const materialIcon = document.createElement("img");
+            let icon_name = "chip-m";
+            if (typeof components.m === "object") {
+                icon_name = "chip-m-req";
+                if (components.m.consume) {
+                    icon_name = "chip-m-cons";
+                }
+            }
+            materialIcon.src = await load_icon(
+                icon_name,
+                computedColor,
+                "white"
+            );
+            componentIconsContainer.appendChild(materialIcon);
+        }
+
+        return componentIconsContainer;
+    }
+
     // Function to create a spell card
     async function make_spell_card(spell) {
         const card = document.createElement("div");
@@ -369,6 +414,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const rangeAndDuration = await render_range_and_duration(spell);
         cardHeader.appendChild(rangeAndDuration);
+
+        const componentIcons = await render_component_icons(spell);
+        cardHeader.appendChild(componentIcons);
 
         card.appendChild(front);
 
