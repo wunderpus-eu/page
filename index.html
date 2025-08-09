@@ -10,7 +10,7 @@
             href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;900&display=swap"
             rel="stylesheet"
         />
-        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" id="main-css" href="style.css" />
     </head>
     <body>
         <header>
@@ -33,6 +33,10 @@
             <!-- Spell cards will be generated here -->
         </main>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+        <script>
+            document.getElementById("main-css").href =
+                "style.css?v=" + new Date().getTime();
+        </script>
         <script src="script.js"></script>
     </body>
 </html>

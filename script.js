@@ -74,18 +74,22 @@ document.addEventListener("DOMContentLoaded", () => {
         T: "var(--transmutation-color)",
     };
 
-    async function render_front_border(spell) {
+    function compute_color(spell) {
+        const colorVar = schoolColorMap[spell.school];
+        if (!colorVar) {
+            return "black"; // Default color
+        }
+        const tempDiv = document.createElement("div");
+        tempDiv.style.backgroundColor = colorVar;
+        document.body.appendChild(tempDiv);
+        const computedColor = getComputedStyle(tempDiv).backgroundColor;
+        document.body.removeChild(tempDiv);
+        return computedColor;
+    }
+
+    async function render_front_border(spell, computedColor) {
         const frontBorderContainer = document.createElement("div");
         frontBorderContainer.className = "spell-card-front-border";
-
-        // Temporarily attach to DOM to compute style
-        frontBorderContainer.style.backgroundColor =
-            schoolColorMap[spell.school];
-        document.body.appendChild(frontBorderContainer);
-        const computedColor =
-            getComputedStyle(frontBorderContainer).backgroundColor;
-        document.body.removeChild(frontBorderContainer);
-        frontBorderContainer.style.backgroundColor = null;
 
         const frontBorder = document.createElement("img");
         frontBorder.src = await load_icon(
@@ -98,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return frontBorderContainer;
     }
 
-    function render_spell_level(spell) {
+    function render_spell_level(spell, computedColor) {
         const outerCircle = document.createElement("div");
         outerCircle.className = "spell-level-outer-circle";
 
@@ -118,10 +122,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (spell.school && schoolColorMap[spell.school]) {
-            const color = schoolColorMap[spell.school];
-            outerCircle.style.borderColor = color;
-            innerCircle.style.borderColor = color;
-            innerCircle.style.backgroundColor = color;
+            outerCircle.style.borderColor = computedColor;
+            innerCircle.style.borderColor = computedColor;
+            innerCircle.style.backgroundColor = computedColor;
         }
 
         outerCircle.appendChild(innerCircle);
@@ -225,17 +228,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return castingTimeContainer;
     }
 
-    async function render_range(spell) {
+    async function render_range(spell, computedColor) {
         const rangeContainer = document.createElement("div");
         rangeContainer.className = "spell-range";
 
         // Set background color
-        rangeContainer.style.backgroundColor = schoolColorMap[spell.school];
-
-        // Temporarily attach to DOM to compute style
-        document.body.appendChild(rangeContainer);
-        const computedColor = getComputedStyle(rangeContainer).backgroundColor;
-        document.body.removeChild(rangeContainer);
+        rangeContainer.style.backgroundColor = computedColor;
 
         // Get relevant range information
         const rangeType = spell.range.type;
@@ -296,18 +294,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return rangeContainer;
     }
 
-    async function render_duration(spell) {
+    async function render_duration(spell, computedColor) {
         const durationContainer = document.createElement("div");
         durationContainer.className = "spell-duration";
 
         // Set background color
-        durationContainer.style.backgroundColor = schoolColorMap[spell.school];
-
-        // Temporarily attach to DOM to compute style
-        document.body.appendChild(durationContainer);
-        const computedColor =
-            getComputedStyle(durationContainer).backgroundColor;
-        document.body.removeChild(durationContainer);
+        durationContainer.style.backgroundColor = computedColor;
 
         // Get relevant duration information
         const durationType = spell.duration[0].type;
@@ -352,16 +344,16 @@ document.addEventListener("DOMContentLoaded", () => {
         return durationContainer;
     }
 
-    async function render_range_and_duration(spell) {
+    async function render_range_and_duration(spell, computedColor) {
         const rangeAndDurationContainer = document.createElement("div");
         rangeAndDurationContainer.className = "spell-range-and-duration";
 
         if (spell.range) {
-            const range = await render_range(spell);
+            const range = await render_range(spell, computedColor);
             rangeAndDurationContainer.appendChild(range);
         }
         if (spell.duration) {
-            const duration = await render_duration(spell);
+            const duration = await render_duration(spell, computedColor);
             if (duration) {
                 rangeAndDurationContainer.appendChild(duration);
             }
@@ -370,19 +362,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return rangeAndDurationContainer;
     }
 
-    async function render_component_icons(spell) {
+    async function render_component_icons(spell, computedColor) {
         const componentIconsContainer = document.createElement("div");
         componentIconsContainer.className = "spell-component-icons";
-
-        // Temporarily set background color and attach to DOM to compute style
-        componentIconsContainer.style.backgroundColor =
-            schoolColorMap[spell.school];
-        document.body.appendChild(componentIconsContainer);
-        const computedColor = getComputedStyle(
-            componentIconsContainer
-        ).backgroundColor;
-        document.body.removeChild(componentIconsContainer);
-        componentIconsContainer.style.backgroundColor = null;
 
         const components = spell.components;
         if (components.v) {
@@ -451,6 +433,52 @@ document.addEventListener("DOMContentLoaded", () => {
         return null;
     }
 
+    async function render_concentration_and_ritual(spell, computedColor) {
+        const concentrationAndRitualContainer = document.createElement("div");
+        concentrationAndRitualContainer.className =
+            "spell-concentration-and-ritual";
+
+        if (spell.duration[0].concentration) {
+            const concentrationIcon = document.createElement("img");
+            concentrationIcon.src = await load_icon(
+                "chip-c",
+                computedColor,
+                "white"
+            );
+            concentrationAndRitualContainer.appendChild(concentrationIcon);
+        }
+        if (spell.meta?.ritual) {
+            const ritualIcon = document.createElement("img");
+            ritualIcon.src = await load_icon("chip-r", computedColor, "white");
+            concentrationAndRitualContainer.appendChild(ritualIcon);
+        }
+
+        return concentrationAndRitualContainer;
+    }
+
+    function render_spell_school(spell, computedColor) {
+        const spellSchoolContainer = document.createElement("div");
+        spellSchoolContainer.className = "spell-school-container";
+
+        const spellSchool = document.createElement("div");
+        spellSchool.className = "spell-school";
+        spellSchool.style.color = computedColor;
+
+        const schoolNameMap = {
+            A: "abjuration",
+            C: "conjuration",
+            D: "divination",
+            E: "enchantment",
+            V: "evocation",
+            I: "illusion",
+            N: "necromancy",
+            T: "transmutation",
+        };
+        spellSchool.textContent = schoolNameMap[spell.school];
+        spellSchoolContainer.appendChild(spellSchool);
+        return spellSchoolContainer;
+    }
+
     // Function to create a spell card
     async function make_spell_card(spell) {
         const card = document.createElement("div");
@@ -459,14 +487,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const front = document.createElement("div");
         front.className = "spell-card-front";
 
-        const frontBorder = await render_front_border(spell);
+        const computedColor = compute_color(spell);
+
+        const frontBorder = await render_front_border(spell, computedColor);
         front.appendChild(frontBorder);
 
         const cardHeader = document.createElement("div");
         cardHeader.className = "card-header";
         front.appendChild(cardHeader);
 
-        const spellLevel = render_spell_level(spell);
+        const spellLevel = render_spell_level(spell, computedColor);
         cardHeader.appendChild(spellLevel);
 
         const spellName = render_spell_name(spell);
@@ -475,10 +505,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const castingTime = render_casting_time(spell);
         cardHeader.appendChild(castingTime);
 
-        const rangeAndDuration = await render_range_and_duration(spell);
+        const rangeAndDuration = await render_range_and_duration(
+            spell,
+            computedColor
+        );
         cardHeader.appendChild(rangeAndDuration);
 
-        const componentIcons = await render_component_icons(spell);
+        const componentIcons = await render_component_icons(
+            spell,
+            computedColor
+        );
         cardHeader.appendChild(componentIcons);
 
         const componentText = await render_component_text(spell);
@@ -488,6 +524,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (conditionText) {
             front.appendChild(conditionText);
         }
+
+        const concentrationAndRitual = await render_concentration_and_ritual(
+            spell,
+            computedColor
+        );
+        front.appendChild(concentrationAndRitual);
+
+        const spellSchool = render_spell_school(spell, computedColor);
+        front.appendChild(spellSchool);
 
         card.appendChild(front);
 

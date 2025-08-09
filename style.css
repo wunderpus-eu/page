@@ -17,6 +17,7 @@
     --casting-time-size: 17pt;
     --casting-time-overlap: -7pt;
     --icon-size: 8pt;
+    --chip-size: 10pt;
 }
 
 body.grayscale {
@@ -313,7 +314,7 @@ header {
 }
 
 .spell-component-icons {
-    height: 10pt;
+    height: var(--chip-size);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -342,5 +343,41 @@ header {
     text-align: justify;
     padding-top: 3pt;
     padding-left: calc(var(--margin-size) + 4pt);
-    padding-right: calc(var(--margin-size) + 6pt);
+    padding-right: calc(var(--margin-size) + 5pt);
+}
+
+.spell-concentration-and-ritual {
+    position: absolute;
+    top: calc(
+        var(--margin-size) + var(--level-size) + var(--casting-time-size) +
+            var(--casting-time-overlap) + var(--chip-size) + 10pt
+    );
+    left: calc(var(--margin-size) - 5pt);
+    width: var(--chip-size);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2pt;
+}
+
+.spell-school-container {
+    position: absolute;
+    top: calc(50% + var(--level-size) / 2);
+    left: calc(var(--margin-size) - 4.5pt);
+    width: 8pt;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.spell-school {
+    rotate: -90deg;
+    font-size: 8pt;
+    line-height: 8pt;
+    background-color: white;
+    padding-left: 1pt;
+    padding-right: 1pt;
+    font-variant: small-caps;
+    font-weight: bold;
 }
