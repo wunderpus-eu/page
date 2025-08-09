@@ -391,6 +391,30 @@ document.addEventListener("DOMContentLoaded", () => {
         return componentIconsContainer;
     }
 
+    async function render_front_border(spell) {
+        const frontBorderContainer = document.createElement("div");
+        frontBorderContainer.className = "spell-card-front-border";
+
+        // Temporarily attach to DOM to compute style
+        frontBorderContainer.style.backgroundColor =
+            schoolColorMap[spell.school];
+        document.body.appendChild(frontBorderContainer);
+        const computedColor =
+            getComputedStyle(frontBorderContainer).backgroundColor;
+        document.body.removeChild(frontBorderContainer);
+        frontBorderContainer.style.backgroundColor = null;
+
+        const frontBorder = document.createElement("img");
+        frontBorder.src = await load_icon(
+            "border-front",
+            computedColor,
+            "white"
+        );
+        frontBorderContainer.appendChild(frontBorder);
+
+        return frontBorderContainer;
+    }
+
     // Function to create a spell card
     async function make_spell_card(spell) {
         const card = document.createElement("div");
@@ -398,6 +422,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const front = document.createElement("div");
         front.className = "spell-card-front";
+
+        const frontBorder = await render_front_border(spell);
+        front.appendChild(frontBorder);
 
         const cardHeader = document.createElement("div");
         cardHeader.className = "card-header";

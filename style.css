@@ -141,11 +141,26 @@ header {
 
 .spell-card-front,
 .spell-card-back {
+    position: relative;
     width: 100%;
     height: 100%;
 }
 
+.spell-card-front-border {
+    position: absolute;
+    top: calc(
+        var(--margin-size) + var(--level-size) + 0.5 * var(--casting-time-size) +
+            var(--casting-time-overlap) - 0.5pt
+    );
+    right: calc(var(--margin-size) - 0.5pt);
+    bottom: calc(var(--margin-size) - 0.5pt);
+    left: calc(var(--margin-size) - 1.5pt);
+    /* border: 1pt solid black; */
+    /* background-color: #f0f0f0; */
+}
+
 .card-header {
+    position: relative;
     display: grid;
     grid-template-columns: var(--level-size) 1fr;
     align-items: center;
@@ -237,15 +252,15 @@ header {
     display: flex;
     justify-content: left;
     align-items: center;
-    gap: 2pt;
+    gap: 4pt;
 }
 
 .spell-range {
-    height: var(--casting-time-size);
+    height: calc(var(--casting-time-size) - 2pt);
     padding: 0 4pt;
     justify-self: center;
-    border: 1pt solid white;
-    border-radius: var(--casting-time-size);
+    /* border: 1pt solid white; */
+    border-radius: calc(var(--casting-time-size) - 2pt);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -265,11 +280,11 @@ header {
 }
 
 .spell-duration {
-    height: var(--casting-time-size);
+    height: calc(var(--casting-time-size) - 2pt);
     padding: 0 4pt;
     justify-self: center;
-    border: 1pt solid white;
-    border-radius: var(--casting-time-size);
+    /* border: 1pt solid white; */
+    border-radius: calc(var(--casting-time-size) - 2pt);
     display: flex;
     justify-content: center;
     align-items: center;
