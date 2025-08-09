@@ -15,6 +15,7 @@
     --level-size: 33pt;
     --casting-time-size: 17pt;
     --casting-time-overlap: -7pt;
+    --icon-size: 8pt;
 }
 
 body.grayscale {
@@ -236,34 +237,53 @@ header {
     display: flex;
     justify-content: left;
     align-items: center;
+    gap: 2pt;
 }
 
 .spell-range {
     height: var(--casting-time-size);
-    padding: 0 3pt;
+    padding: 0 4pt;
     justify-self: center;
     border: 1pt solid white;
     border-radius: var(--casting-time-size);
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 2pt;
     color: white;
     font-size: 8pt;
     white-space: nowrap;
     box-sizing: border-box;
 }
 
+.spell-range-icon {
+    max-width: var(--icon-size);
+    max-height: var(--icon-size);
+    width: var(--icon-size);
+    height: var(--icon-size);
+    object-fit: contain;
+}
+
 .spell-duration {
     height: var(--casting-time-size);
-    padding: 0 3pt;
+    padding: 0 4pt;
     justify-self: center;
     border: 1pt solid white;
     border-radius: var(--casting-time-size);
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 2pt;
     color: white;
     font-size: 8pt;
     white-space: nowrap;
     box-sizing: border-box;
+}
+
+.spell-duration-icon {
+    max-width: var(--icon-size);
+    max-height: var(--icon-size);
+    width: var(--icon-size);
+    height: var(--icon-size);
+    object-fit: contain;
 }

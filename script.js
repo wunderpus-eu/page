@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const headerContent = document.getElementById("header-content");
 
     let spells = [];
+    const iconCache = {};
     const baseDevicePixelRatio = window.devicePixelRatio;
 
     // Counter-zoom logic
@@ -25,6 +26,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     window.addEventListener("resize", handleZoom);
+
+    async function load_icon(
+        iconName,
+        foregroundColor = "#333333",
+        backgroundColor = "white"
+    ) {
+        const cacheKey = `${iconName}-${foregroundColor}-${backgroundColor}`;
+        if (iconCache[cacheKey]) {
+            return iconCache[cacheKey];
+        }
+
+        try {
+            const response = await fetch(`assets/${iconName}.svg`);
+            let svgText = await response.text();
+            svgText = svgText.replace(/#333333/g, foregroundColor);
+            svgText = svgText.replace(/#ffffff/g, backgroundColor);
+            const dataUrl = `data:image/svg+xml;base64,${btoa(svgText)}`;
+            iconCache[cacheKey] = dataUrl;
+            return dataUrl;
+        } catch (error) {
+            console.error(`Error loading icon: ${iconName}`, error);
+            return null;
+        }
+    }
 
     // Fetch spell data
     async function loadSpells() {
@@ -176,16 +201,38 @@ document.addEventListener("DOMContentLoaded", () => {
         return castingTimeContainer;
     }
 
-    function render_range(spell) {
+    async function render_range(spell) {
         const rangeContainer = document.createElement("div");
         rangeContainer.className = "spell-range";
 
+        // Set background color
+        rangeContainer.style.backgroundColor = schoolColorMap[spell.school];
+
+        // Temporarily attach to DOM to compute style
+        document.body.appendChild(rangeContainer);
+        const computedColor = getComputedStyle(rangeContainer).backgroundColor;
+        document.body.removeChild(rangeContainer);
+
+        // Get relevant range information
         const rangeType = spell.range.type;
         const rangeDistType = spell.range.distance.type;
         const rangeDistNumber = spell.range.distance.amount || "";
+        const tags = spell.miscTags || [];
 
+        // Add main icon
+        const iconName = tags.includes("SGT")
+            ? "icon-range-los-inv"
+            : "icon-range";
+        const iconUrl = await load_icon(iconName, "white", computedColor);
+        if (iconUrl) {
+            const icon = document.createElement("img");
+            icon.src = iconUrl;
+            icon.className = "spell-range-icon";
+            rangeContainer.appendChild(icon);
+        }
+
+        // Add range text
         let rangeText = "";
-
         if (["self", "touch"].includes(rangeDistType)) {
             rangeText = rangeDistType[0].toUpperCase() + rangeDistType.slice(1);
         } else {
@@ -195,68 +242,112 @@ document.addEventListener("DOMContentLoaded", () => {
             };
             rangeText = `${rangeDistNumber} ${rangeDistAbbrev[rangeDistType]}`;
         }
+        const rangeTextNode = document.createTextNode(rangeText);
+        rangeContainer.appendChild(rangeTextNode);
 
-        rangeContainer.textContent = rangeText;
-
-        if (spell.school && schoolColorMap[spell.school]) {
-            const color = schoolColorMap[spell.school];
-            rangeContainer.style.backgroundColor = color;
+        // Add area icon
+        if (
+            [
+                "line",
+                "cone",
+                "cube",
+                "cylinder",
+                "sphere",
+                "emanation",
+            ].includes(rangeType)
+        ) {
+            const areaIconURL = await load_icon(
+                `icon-${rangeType}`,
+                "white",
+                computedColor
+            );
+            if (areaIconURL) {
+                const areaIcon = document.createElement("img");
+                areaIcon.src = areaIconURL;
+                areaIcon.className = "spell-range-icon";
+                rangeContainer.appendChild(areaIcon);
+            }
         }
 
         return rangeContainer;
     }
 
-    function render_duration(spell) {
+    async function render_duration(spell) {
         const durationContainer = document.createElement("div");
         durationContainer.className = "spell-duration";
 
+        // Set background color
+        durationContainer.style.backgroundColor = schoolColorMap[spell.school];
+
+        // Temporarily attach to DOM to compute style
+        document.body.appendChild(durationContainer);
+        const computedColor =
+            getComputedStyle(durationContainer).backgroundColor;
+        document.body.removeChild(durationContainer);
+
+        // Get relevant duration information
         const durationType = spell.duration[0].type;
         const durationTimeType = spell.duration[0].duration?.type || "";
         const durationTimeNumber = spell.duration[0].duration?.amount || "";
 
-        let durationText = "";
-
         if (["instant", "special"].includes(durationType)) {
-            return durationContainer;
-        } else if (durationType === "timed") {
+            return null;
+        }
+
+        // Add main icon
+        const iconName =
+            durationType === "timed" ? "icon-duration" : "icon-permanent";
+        const iconUrl = await load_icon(iconName, "white", computedColor);
+        if (iconUrl) {
+            const icon = document.createElement("img");
+            icon.src = iconUrl;
+            icon.className = "spell-duration-icon";
+            durationContainer.appendChild(icon);
+        }
+
+        // Add duration text
+        if (durationType === "timed") {
             const durationUnitAbbrev = {
                 minute: "min",
                 hour: "h",
                 day: "d",
                 round: "Round",
             };
-            durationText = `${durationTimeNumber} ${durationUnitAbbrev[durationTimeType]}`;
+            let durationText = `${durationTimeNumber} ${durationUnitAbbrev[durationTimeType]}`;
+            const durationTextNode = document.createTextNode(durationText);
+            durationContainer.appendChild(durationTextNode);
         } else {
-            durationText = `Until ${spell.duration[0].ends.join(" or ")}`;
-        }
-        durationContainer.textContent = durationText;
-
-        if (spell.school && schoolColorMap[spell.school]) {
-            const color = schoolColorMap[spell.school];
-            durationContainer.style.backgroundColor = color;
+            const ends = spell.duration[0].ends;
+            if (ends.includes("trigger")) {
+                const durationText = "Until triggered";
+                const durationTextNode = document.createTextNode(durationText);
+                durationContainer.appendChild(durationTextNode);
+            }
         }
 
         return durationContainer;
     }
 
-    function render_range_and_duration(spell) {
+    async function render_range_and_duration(spell) {
         const rangeAndDurationContainer = document.createElement("div");
         rangeAndDurationContainer.className = "spell-range-and-duration";
 
         if (spell.range) {
-            const range = render_range(spell);
+            const range = await render_range(spell);
             rangeAndDurationContainer.appendChild(range);
         }
         if (spell.duration) {
-            const duration = render_duration(spell);
-            rangeAndDurationContainer.appendChild(duration);
+            const duration = await render_duration(spell);
+            if (duration) {
+                rangeAndDurationContainer.appendChild(duration);
+            }
         }
 
         return rangeAndDurationContainer;
     }
 
     // Function to create a spell card
-    function make_spell_card(spell) {
+    async function make_spell_card(spell) {
         const card = document.createElement("div");
         card.className = "spell-card";
 
@@ -276,7 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const castingTime = render_casting_time(spell);
         cardHeader.appendChild(castingTime);
 
-        const rangeAndDuration = render_range_and_duration(spell);
+        const rangeAndDuration = await render_range_and_duration(spell);
         cardHeader.appendChild(rangeAndDuration);
 
         card.appendChild(front);
@@ -287,71 +378,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return card;
     }
 
-    function adjust_spell_name_alignment(spellNameElement) {
-        const words = spellNameElement.textContent.split(" ");
-        spellNameElement.innerHTML = ""; // Clear existing content
-
-        // Wrap each word in a span to measure its position
-        const wordSpans = words.map((word) => {
-            const span = document.createElement("span");
-            span.textContent = word + " ";
-            spellNameElement.appendChild(span);
-            return span;
-        });
-
-        // Group words into lines based on their vertical position
-        const lines = [];
-        let currentLine = [];
-        let lastOffsetTop = -1;
-
-        wordSpans.forEach((span) => {
-            const offsetTop = span.offsetTop;
-            if (offsetTop > lastOffsetTop && lastOffsetTop !== -1) {
-                lines.push(currentLine);
-                currentLine = [];
-            }
-            currentLine.push(span);
-            lastOffsetTop = offsetTop;
-        });
-        lines.push(currentLine);
-
-        // Clear the h3 and re-append the text as line-based spans
-        spellNameElement.innerHTML = "";
-
-        lines.forEach((lineSpans) => {
-            const lineContainer = document.createElement("span");
-            lineContainer.style.display = "block"; // Each line is a block
-            const lineText = lineSpans.map((s) => s.textContent).join("");
-            lineContainer.textContent = lineText;
-            spellNameElement.appendChild(lineContainer);
-        });
-
-        // Now, measure and shift each line
-        const h3 = spellNameElement;
-        const card = h3.closest(".spell-card");
-        const cardWidth = card.clientWidth;
-        const firstColWidth =
-            parseFloat(
-                getComputedStyle(card).getPropertyValue("--level-size")
-            ) *
-            (96 / 72); // Convert pt to px at standard DPI
-
-        h3.childNodes.forEach((lineSpan) => {
-            const lineWidth = lineSpan.offsetWidth;
-            const availableWidth = cardWidth - firstColWidth;
-            let desiredShift = (availableWidth - lineWidth) / 2;
-            desiredShift = Math.max(desiredShift, 0); // Don't shift left past the boundary
-            lineSpan.style.position = "relative";
-            lineSpan.style.left = `${desiredShift}px`;
-        });
-    }
-
     // Main function to generate cards
-    function generateSpellCards(spellNames, pageSize) {
+    async function generateSpellCards(spellNames, pageSize) {
         printableArea.innerHTML = "";
 
         // Create a temporary card to measure its dimensions
-        const tempCard = make_spell_card(spells[0]);
+        const tempCard = await make_spell_card(spells[0]);
         printableArea.appendChild(tempCard);
         const pxPerMm = getPxPerMm();
         const cardWidth = tempCard.offsetWidth / pxPerMm;
@@ -388,7 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .map((name) => spells.find((s) => s.name === name))
             .filter(Boolean);
 
-        spellsToRender.forEach((spell) => {
+        for (const spell of spellsToRender) {
             if (cardCount >= maxCardsPerPage) {
                 currentPage = createPage(
                     pageSize,
@@ -398,13 +430,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 printableArea.appendChild(currentPage);
                 cardCount = 0;
             }
-            const spellCard = make_spell_card(spell);
+            const spellCard = await make_spell_card(spell);
             const cardContainer = currentPage.querySelector(".card-container");
             cardContainer.appendChild(spellCard);
             const spellNameElement = spellCard.querySelector("h3");
             adjust_spell_name(spellNameElement);
             cardCount++;
-        });
+        }
     }
 
     function createPage(pageSize, containerWidth, containerHeight) {
@@ -424,7 +456,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Toggle between A4 and Letter page sizes
-    pageSizeToggle.addEventListener("click", () => {
+    pageSizeToggle.addEventListener("click", async () => {
         const currentSize = pageSizeToggle.dataset.size || "letter";
         const newSize = currentSize === "letter" ? "a4" : "letter";
         pageSizeToggle.dataset.size = newSize;
@@ -439,11 +471,11 @@ document.addEventListener("DOMContentLoaded", () => {
             .map((name) => name.trim())
             .filter(Boolean);
         const pageSize = pageSizeToggle.dataset.size || "letter";
-        generateSpellCards(spellNames, pageSize);
+        await generateSpellCards(spellNames, pageSize);
     });
 
     // Toggle between Color and Grayscale
-    colorToggle.addEventListener("click", () => {
+    colorToggle.addEventListener("click", async () => {
         document.body.classList.toggle("grayscale");
         const isGrayscale = document.body.classList.contains("grayscale");
         colorToggle.textContent = isGrayscale ? "Grayscale" : "Color";
@@ -456,11 +488,11 @@ document.addEventListener("DOMContentLoaded", () => {
             .map((name) => name.trim())
             .filter(Boolean);
         const pageSize = pageSizeToggle.dataset.size || "letter";
-        generateSpellCards(spellNames, pageSize);
+        await generateSpellCards(spellNames, pageSize);
     });
 
     // Generate spell cards when the button is clicked
-    generatePdfButton.addEventListener("click", () => {
+    generatePdfButton.addEventListener("click", async () => {
         const spellNamesText = spellNamesInput.value;
         if (!spellNamesText) {
             alert("Please enter at least one spell name.");
@@ -473,7 +505,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const pageSize = pageSizeToggle.dataset.size || "letter";
 
-        generateSpellCards(spellNames, pageSize);
+        await generateSpellCards(spellNames, pageSize);
 
         const element = document.getElementById("printable-area");
         const opt = {
