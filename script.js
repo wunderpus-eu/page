@@ -288,7 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (areaIconURL) {
                 const areaIcon = document.createElement("img");
                 areaIcon.src = areaIconURL;
-                areaIcon.className = "spell-range-icon";
+                areaIcon.className = "spell-range-icon area";
                 rangeContainer.appendChild(areaIcon);
             }
         }
@@ -436,6 +436,21 @@ document.addEventListener("DOMContentLoaded", () => {
         return componentTextContainer;
     }
 
+    async function render_condition_text(spell) {
+        let conditionText = spell.time[0].condition;
+        if (conditionText) {
+            conditionText = conditionText.replace(/which you take/g, "").trim();
+            conditionText = conditionText.replace(/feet/g, "ft");
+            const conditionTextElement = document.createElement("span");
+            conditionTextElement.className = "spell-condition-text";
+            conditionTextElement.textContent =
+                conditionText[0].toUpperCase() + conditionText.slice(1) + ".";
+            return conditionTextElement;
+        }
+
+        return null;
+    }
+
     // Function to create a spell card
     async function make_spell_card(spell) {
         const card = document.createElement("div");
@@ -468,6 +483,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const componentText = await render_component_text(spell);
         cardHeader.appendChild(componentText);
+
+        const conditionText = await render_condition_text(spell);
+        if (conditionText) {
+            front.appendChild(conditionText);
+        }
 
         card.appendChild(front);
 

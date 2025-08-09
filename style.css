@@ -166,7 +166,10 @@ header {
     grid-template-columns: var(--level-size) 1fr;
     align-items: center;
     justify-content: center;
-    padding: var(--margin-size);
+    padding-top: var(--margin-size);
+    padding-left: var(--margin-size);
+    padding-right: var(--margin-size);
+    padding-bottom: 0;
 }
 
 .spell-card h3 {
@@ -254,18 +257,19 @@ header {
     justify-content: left;
     align-items: center;
     gap: 4pt;
+    padding-left: 2pt;
 }
 
 .spell-range {
     height: calc(var(--casting-time-size) - 2pt);
-    padding: 0 4pt;
+    padding: 0 5pt 0 4pt;
     justify-self: center;
     /* border: 1pt solid white; */
     border-radius: calc(var(--casting-time-size) - 2pt);
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 2pt;
+    gap: 3pt;
     color: white;
     font-size: 8pt;
     white-space: nowrap;
@@ -280,16 +284,20 @@ header {
     object-fit: contain;
 }
 
+.spell-range-icon.area {
+    margin-right: -1pt;
+}
+
 .spell-duration {
     height: calc(var(--casting-time-size) - 2pt);
-    padding: 0 4pt;
+    padding: 0 5pt 0 5pt;
     justify-self: center;
     /* border: 1pt solid white; */
     border-radius: calc(var(--casting-time-size) - 2pt);
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 2pt;
+    gap: 3pt;
     color: white;
     font-size: 8pt;
     white-space: nowrap;
@@ -317,9 +325,22 @@ header {
     font-size: 7pt;
     line-height: 7pt;
     color: var(--font-color-light);
+    font-style: italic;
     text-align: left;
     padding-top: 4pt;
     padding-left: 2pt;
-    padding-right: 4pt;
+    padding-right: 6pt;
     align-self: start;
+}
+
+.spell-condition-text {
+    display: flex;
+    font-size: 7pt;
+    line-height: 7pt;
+    color: var(--font-color);
+    font-style: italic;
+    text-align: justify;
+    padding-top: 3pt;
+    padding-left: calc(var(--margin-size) + 4pt);
+    padding-right: calc(var(--margin-size) + 6pt);
 }
