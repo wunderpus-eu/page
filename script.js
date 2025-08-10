@@ -11,6 +11,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const iconCache = {};
     const baseDevicePixelRatio = window.devicePixelRatio;
 
+    function get_color_from_css_variable(cssVar) {
+        const tempDiv = document.createElement("div");
+        tempDiv.style.color = cssVar;
+        document.body.appendChild(tempDiv);
+        const computedColor = getComputedStyle(tempDiv).color;
+        document.body.removeChild(tempDiv);
+        return computedColor;
+    }
+
     // Counter-zoom logic
     function handleZoom() {
         const currentZoom = window.devicePixelRatio / baseDevicePixelRatio;
@@ -260,9 +269,10 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             const rangeDistAbbrev = {
                 feet: "ft",
-                miles: "mi",
             };
-            rangeText = `${rangeDistNumber} ${rangeDistAbbrev[rangeDistType]}`;
+            rangeText = `${rangeDistNumber} ${
+                rangeDistAbbrev[rangeDistType] || rangeDistType
+            }`;
         }
         const rangeTextNode = document.createTextNode(rangeText);
         rangeContainer.appendChild(rangeTextNode);
@@ -397,6 +407,214 @@ document.addEventListener("DOMContentLoaded", () => {
         return componentIconsContainer;
     }
 
+    async function process_text_for_rendering(
+        text,
+        foregroundColorVar = "var(--font-color)"
+    ) {
+        const container = document.createDocumentFragment();
+        if (!text) return container;
+
+        const foregroundColor = get_color_from_css_variable(foregroundColorVar);
+
+        // Note: For now, these are hardcoded. In the future, we might want to
+        // load these from a configuration file.
+        const abbreviations = {
+            feet: "ft",
+            foot: "ft",
+            minute: "min",
+            minutes: "min",
+            hour: "h",
+            hours: "h",
+        };
+
+        const icons = {
+            action: "icon-a",
+            cp: "icon-copper",
+            sp: "icon-silver",
+            gp: "icon-gold",
+            "acid damage": "icon-acid",
+            "cold damage": "icon-cold",
+            "fire damage": "icon-fire",
+            "lightning damage": "icon-lightning",
+            "necrotic damage": "icon-necrotic",
+            "poison damage": "icon-poison",
+            "psychic damage": "icon-psychic",
+            "radiant damage": "icon-radiant",
+            "slashing damage": "icon-slashing",
+            "bludgeoning damage": "icon-bludgeoning",
+            "piercing damage": "icon-piercing",
+            "thunder damage": "icon-thunder",
+            "force damage": "icon-force",
+            "{@variantrule Emanation [Area of Effect]|XPHB|Emanation}":
+                "icon-emanation",
+            "{@variantrule Line [Area of Effect]|XPHB|Line}": "icon-line",
+            "{@variantrule Cone [Area of Effect]|XPHB|Cone}": "icon-cone",
+            "{@variantrule Cube [Area of Effect]|XPHB|Cube}": "icon-cube",
+            "{@variantrule Cylinder [Area of Effect]|XPHB|Cylinder}":
+                "icon-cylinder",
+            "{@variantrule Sphere [Area of Effect]|XPHB|Sphere}": "icon-sphere",
+            "{@variantrule Action|XPHB}": "icon-a",
+            "{@variantrule Bonus Action|XPHB}": "icon-b",
+            "{@variantrule Reaction|XPHB}": "icon-r",
+        };
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        }
+
+        const wordKeys = [...Object.keys(abbreviations)];
+        const tagKeys = [];
+
+        for (const key of Object.keys(icons)) {
+            if (key.startsWith("{@")) {
+                tagKeys.push(key);
+            } else {
+                wordKeys.push(key);
+            }
+        }
+
+        const diceTags = ["damage", "dice", "scaledamage", "scaledice"];
+        const chanceTag = "chance";
+        const actionTag = "action";
+
+        const wordRegexPart = `(?<!course of )\\b(${wordKeys.join("|")})\\b`;
+
+        const iconTagRegexPart =
+            tagKeys.length > 0
+                ? `|(${tagKeys.map(escapeRegExp).join("|")})`
+                : "";
+
+        const diceRegexPart = `|({@(?:${diceTags.join("|")})\\s[^}]+})`;
+        const chanceRegexPart = `|({@${chanceTag}\\s[^}]+})`;
+        const actionRegexPart = `|({@${actionTag}\\s[^}]+}(?:\\s*action)?)`;
+        const genericTagRegexPart = `|({@[^}]+})`;
+
+        const regex = new RegExp(
+            `${wordRegexPart}${iconTagRegexPart}${diceRegexPart}${chanceRegexPart}${actionRegexPart}${genericTagRegexPart}`,
+            "gi"
+        );
+
+        let lastIndex = 0;
+        let match;
+
+        while ((match = regex.exec(text)) !== null) {
+            // Add text before the match
+            if (match.index > lastIndex) {
+                container.appendChild(
+                    document.createTextNode(
+                        text.substring(lastIndex, match.index)
+                    )
+                );
+            }
+
+            const matchedText = match[0];
+
+            if (match[1]) {
+                // Word match (abbreviations or damage words)
+                const matchedWordLower = matchedText.toLowerCase();
+                if (abbreviations[matchedWordLower]) {
+                    container.appendChild(
+                        document.createTextNode(abbreviations[matchedWordLower])
+                    );
+                } else if (icons[matchedWordLower]) {
+                    const icon = document.createElement("img");
+                    icon.src = await load_icon(
+                        icons[matchedWordLower],
+                        foregroundColor
+                    );
+                    icon.className = "inline-icon";
+                    container.appendChild(icon);
+                }
+            } else if (match[2]) {
+                // Icon tag match
+                const icon = document.createElement("img");
+                icon.src = await load_icon(icons[matchedText], foregroundColor);
+                icon.className = "inline-icon";
+                container.appendChild(icon);
+            } else if (match[3]) {
+                // Dice tag match
+                const innerContent = matchedText.substring(
+                    2,
+                    matchedText.length - 1
+                );
+                const firstSpaceIndex = innerContent.indexOf(" ");
+                const formula = innerContent
+                    .substring(firstSpaceIndex + 1)
+                    .split("|")[0]
+                    .trim();
+                const span = document.createElement("span");
+                span.className = "dice-formula";
+                span.textContent = formula;
+                container.appendChild(span);
+            } else if (match[4]) {
+                // Chance tag match
+                const innerContent = matchedText.substring(
+                    2,
+                    matchedText.length - 1
+                );
+                const firstSpaceIndex = innerContent.indexOf(" ");
+                const value = innerContent
+                    .substring(firstSpaceIndex + 1)
+                    .split("|")[0]
+                    .trim();
+                container.appendChild(document.createTextNode(`${value}%`));
+            } else if (match[5]) {
+                // Action tag match
+                const actionTagMatch = matchedText.match(/{@action\s([^|}]+)/);
+                const actionText = actionTagMatch
+                    ? actionTagMatch[1].trim()
+                    : "";
+
+                if (actionText) {
+                    container.appendChild(
+                        document.createTextNode(actionText + " ")
+                    );
+                }
+
+                const icon = document.createElement("img");
+                icon.src = await load_icon("icon-a", foregroundColor);
+                icon.className = "inline-icon";
+                container.appendChild(icon);
+            } else if (match[6]) {
+                // Generic tag match
+                const innerContent = matchedText.substring(
+                    2,
+                    matchedText.length - 1
+                );
+                const parts = innerContent.split("|");
+                let textToRender;
+
+                if (parts.length >= 3) {
+                    textToRender = parts[parts.length - 1].trim();
+                } else if (parts.length === 2) {
+                    const firstPart = parts[0];
+                    const firstSpaceIndex = firstPart.indexOf(" ");
+                    textToRender = firstPart
+                        .substring(firstSpaceIndex + 1)
+                        .trim();
+                } else {
+                    const firstSpaceIndex = innerContent.indexOf(" ");
+                    textToRender =
+                        firstSpaceIndex !== -1
+                            ? innerContent.substring(firstSpaceIndex + 1).trim()
+                            : "";
+                }
+                container.appendChild(document.createTextNode(textToRender));
+            }
+
+            lastIndex = regex.lastIndex;
+        }
+
+        // Add any remaining text
+        if (lastIndex < text.length) {
+            container.appendChild(
+                document.createTextNode(text.substring(lastIndex))
+            );
+        }
+
+        return container;
+    }
+
     async function render_component_text(spell) {
         const componentTextContainer = document.createElement("div");
         componentTextContainer.className = "spell-component-text";
@@ -410,8 +628,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 materialText = components.m.text;
             }
             const materialTextElement = document.createElement("span");
-            materialTextElement.textContent =
-                materialText[0].toUpperCase() + materialText.slice(1) + ".";
+            materialTextElement.appendChild(
+                await process_text_for_rendering(
+                    materialText[0].toUpperCase() + materialText.slice(1) + ".",
+                    "var(--font-color-light)"
+                )
+            );
             componentTextContainer.appendChild(materialTextElement);
         }
 
@@ -468,11 +690,13 @@ document.addEventListener("DOMContentLoaded", () => {
         let conditionText = spell.time[0].condition;
         if (conditionText) {
             conditionText = conditionText.replace(/which you take/g, "").trim();
-            conditionText = conditionText.replace(/feet/g, "ft");
+            conditionText =
+                conditionText[0].toUpperCase() + conditionText.slice(1) + ".";
             const conditionTextElement = document.createElement("span");
             conditionTextElement.className = "spell-condition-text";
-            conditionTextElement.textContent =
-                conditionText[0].toUpperCase() + conditionText.slice(1) + ".";
+            conditionTextElement.appendChild(
+                await process_text_for_rendering(conditionText)
+            );
             return conditionTextElement;
         }
 
@@ -487,27 +711,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const higherLevelTextContainer = document.createElement("div");
         higherLevelTextContainer.className = "spell-higher-level-text";
-        higherLevelTextContainer.textContent = higherLevel[0].entries[0];
+        higherLevelTextContainer.appendChild(
+            await process_text_for_rendering(higherLevel[0].entries[0])
+        );
 
         return higherLevelTextContainer;
     }
 
-    function render_entries(entries) {
+    async function render_entries(entries) {
         const container = document.createElement("div");
 
         for (const entry of entries) {
             if (typeof entry === "string") {
                 const p = document.createElement("p");
-                p.textContent = entry;
+                p.appendChild(await process_text_for_rendering(entry));
                 container.appendChild(p);
             } else if (entry.type === "table") {
-                const table = render_table(entry);
+                const table = await render_table(entry);
                 container.appendChild(table);
             } else if (entry.type === "list") {
-                const list = render_list(entry);
+                const list = await render_list(entry);
                 container.appendChild(list);
             } else if (entry.type === "entries") {
-                const nestedEntries = render_entries(entry.entries);
+                const nestedEntries = await render_entries(entry.entries);
                 container.appendChild(nestedEntries);
             }
         }
@@ -515,7 +741,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return container;
     }
 
-    function render_table(tableData) {
+    async function render_table(tableData) {
         const table = document.createElement("table");
         table.className = "spell-table";
 
@@ -540,7 +766,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const tr = document.createElement("tr");
             for (const cellData of rowData) {
                 const td = document.createElement("td");
-                td.textContent = cellData;
+                td.appendChild(await process_text_for_rendering(cellData));
                 tr.appendChild(td);
             }
             tbody.appendChild(tr);
@@ -550,7 +776,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return table;
     }
 
-    function render_list(listData) {
+    async function render_list(listData) {
         if (listData.style === "list-hang-notitle") {
             const container = document.createElement("div");
             container.className = "spell-list-hang";
@@ -563,7 +789,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 p.appendChild(term);
 
                 const description = item.entries.join(" ");
-                p.appendChild(document.createTextNode(description));
+                p.appendChild(await process_text_for_rendering(description));
                 container.appendChild(p);
             }
             return container;
@@ -573,9 +799,9 @@ document.addEventListener("DOMContentLoaded", () => {
             for (const item of listData.items) {
                 const li = document.createElement("li");
                 if (typeof item === "string") {
-                    li.textContent = item;
+                    li.appendChild(await process_text_for_rendering(item));
                 } else {
-                    const nestedEntries = render_entries(item.entries);
+                    const nestedEntries = await render_entries(item.entries);
                     li.appendChild(nestedEntries);
                 }
                 ul.appendChild(li);
@@ -643,7 +869,7 @@ document.addEventListener("DOMContentLoaded", () => {
             spellDescriptionContainer.appendChild(conditionText);
         }
 
-        const spellDescription = render_entries(spell.entries);
+        const spellDescription = await render_entries(spell.entries);
         spellDescriptionContainer.appendChild(spellDescription);
 
         const higherLevelText = await render_higher_level_text(spell);

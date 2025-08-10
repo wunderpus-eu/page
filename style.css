@@ -388,23 +388,20 @@ header {
     padding-left: calc(var(--margin-size) + 7pt);
     padding-right: calc(var(--margin-size) + 5pt);
     padding-bottom: calc(var(--margin-size) + 3pt);
+    font-size: 7pt;
+    line-height: 7pt;
+    color: var(--font-color);
 }
 
 .spell-condition-text {
-    font-size: 7pt;
-    line-height: 7pt;
-    font-style: italic;
     text-align: justify;
-    color: var(--font-color);
+    font-style: italic;
     margin-top: 0em;
     margin-bottom: 0.5em;
 }
 
 .spell-description-container p {
-    font-size: 7pt;
-    line-height: 7pt;
     text-align: justify;
-    color: var(--font-color);
     margin-top: 0em;
     margin-bottom: 0.5em;
 }
@@ -414,9 +411,6 @@ header {
 }
 
 .spell-list {
-    font-size: 7pt;
-    line-height: 7pt;
-    color: var(--font-color);
     margin-top: 0em;
     margin-bottom: 0.5em;
     margin-left: 0.5em;
@@ -446,10 +440,7 @@ header {
 }
 
 .spell-list-hang {
-    font-size: 7pt;
-    line-height: 7pt;
     text-align: justify;
-    color: var(--font-color);
     margin-top: 0em;
     margin-bottom: 0.5em;
 }
@@ -473,10 +464,7 @@ header {
 }
 
 .spell-table {
-    font-size: 7pt;
-    line-height: 7pt;
     text-align: justify;
-    color: var(--font-color);
     margin-top: 0em;
     margin-bottom: 0.5em;
 }
@@ -486,6 +474,7 @@ header {
 }
 
 .spell-table caption {
+    color: var(--font-color-light);
     font-weight: bold;
     font-variant: all-small-caps;
     text-align: left;
@@ -493,9 +482,17 @@ header {
 }
 
 .spell-higher-level-text {
-    font-size: 7pt;
-    line-height: 7pt;
     text-align: justify;
-    color: var(--font-color);
     margin-top: auto;
+}
+
+.inline-icon {
+    height: 0.9em;
+    width: 0.9em;
+    translate: 0 0.1em;
+    vertical-align: baseline;
+}
+
+.dice-formula {
+    font-weight: bold;
 }
