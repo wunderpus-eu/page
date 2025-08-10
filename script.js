@@ -418,21 +418,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return componentTextContainer;
     }
 
-    async function render_condition_text(spell) {
-        let conditionText = spell.time[0].condition;
-        if (conditionText) {
-            conditionText = conditionText.replace(/which you take/g, "").trim();
-            conditionText = conditionText.replace(/feet/g, "ft");
-            const conditionTextElement = document.createElement("span");
-            conditionTextElement.className = "spell-condition-text";
-            conditionTextElement.textContent =
-                conditionText[0].toUpperCase() + conditionText.slice(1) + ".";
-            return conditionTextElement;
-        }
-
-        return null;
-    }
-
     async function render_concentration_and_ritual(spell, computedColor) {
         const concentrationAndRitualContainer = document.createElement("div");
         concentrationAndRitualContainer.className =
@@ -465,18 +450,138 @@ document.addEventListener("DOMContentLoaded", () => {
         spellSchool.style.color = computedColor;
 
         const schoolNameMap = {
-            A: "abjuration",
-            C: "conjuration",
-            D: "divination",
-            E: "enchantment",
-            V: "evocation",
-            I: "illusion",
-            N: "necromancy",
-            T: "transmutation",
+            A: "Abjuration",
+            C: "Conjuration",
+            D: "Divination",
+            E: "Enchantment",
+            V: "Evocation",
+            I: "Illusion",
+            N: "Necromancy",
+            T: "Transmutation",
         };
         spellSchool.textContent = schoolNameMap[spell.school];
         spellSchoolContainer.appendChild(spellSchool);
         return spellSchoolContainer;
+    }
+
+    async function render_condition_text(spell) {
+        let conditionText = spell.time[0].condition;
+        if (conditionText) {
+            conditionText = conditionText.replace(/which you take/g, "").trim();
+            conditionText = conditionText.replace(/feet/g, "ft");
+            const conditionTextElement = document.createElement("span");
+            conditionTextElement.className = "spell-condition-text";
+            conditionTextElement.textContent =
+                conditionText[0].toUpperCase() + conditionText.slice(1) + ".";
+            return conditionTextElement;
+        }
+
+        return null;
+    }
+
+    async function render_higher_level_text(spell) {
+        const higherLevel = spell.entriesHigherLevel;
+        if (!higherLevel) {
+            return null;
+        }
+
+        const higherLevelTextContainer = document.createElement("div");
+        higherLevelTextContainer.className = "spell-higher-level-text";
+        higherLevelTextContainer.textContent = higherLevel[0].entries[0];
+
+        return higherLevelTextContainer;
+    }
+
+    function render_entries(entries) {
+        const container = document.createElement("div");
+
+        for (const entry of entries) {
+            if (typeof entry === "string") {
+                const p = document.createElement("p");
+                p.textContent = entry;
+                container.appendChild(p);
+            } else if (entry.type === "table") {
+                const table = render_table(entry);
+                container.appendChild(table);
+            } else if (entry.type === "list") {
+                const list = render_list(entry);
+                container.appendChild(list);
+            } else if (entry.type === "entries") {
+                const nestedEntries = render_entries(entry.entries);
+                container.appendChild(nestedEntries);
+            }
+        }
+
+        return container;
+    }
+
+    function render_table(tableData) {
+        const table = document.createElement("table");
+        table.className = "spell-table";
+
+        if (tableData.caption) {
+            const caption = document.createElement("caption");
+            caption.textContent = tableData.caption;
+            table.appendChild(caption);
+        }
+
+        const thead = document.createElement("thead");
+        const tr = document.createElement("tr");
+        for (const colLabel of tableData.colLabels) {
+            const th = document.createElement("th");
+            th.textContent = colLabel;
+            tr.appendChild(th);
+        }
+        thead.appendChild(tr);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        for (const rowData of tableData.rows) {
+            const tr = document.createElement("tr");
+            for (const cellData of rowData) {
+                const td = document.createElement("td");
+                td.textContent = cellData;
+                tr.appendChild(td);
+            }
+            tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+
+        return table;
+    }
+
+    function render_list(listData) {
+        if (listData.style === "list-hang-notitle") {
+            const container = document.createElement("div");
+            container.className = "spell-list-hang";
+            for (const item of listData.items) {
+                const p = document.createElement("p");
+
+                const term = document.createElement("span");
+                term.className = "spell-list-hang-term";
+                term.textContent = item.name;
+                p.appendChild(term);
+
+                const description = item.entries.join(" ");
+                p.appendChild(document.createTextNode(description));
+                container.appendChild(p);
+            }
+            return container;
+        } else {
+            const ul = document.createElement("ul");
+            ul.className = "spell-list";
+            for (const item of listData.items) {
+                const li = document.createElement("li");
+                if (typeof item === "string") {
+                    li.textContent = item;
+                } else {
+                    const nestedEntries = render_entries(item.entries);
+                    li.appendChild(nestedEntries);
+                }
+                ul.appendChild(li);
+            }
+            return ul;
+        }
     }
 
     // Function to create a spell card
@@ -520,11 +625,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const componentText = await render_component_text(spell);
         cardHeader.appendChild(componentText);
 
-        const conditionText = await render_condition_text(spell);
-        if (conditionText) {
-            front.appendChild(conditionText);
-        }
-
         const concentrationAndRitual = await render_concentration_and_ritual(
             spell,
             computedColor
@@ -533,6 +633,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spellSchool = render_spell_school(spell, computedColor);
         front.appendChild(spellSchool);
+
+        const spellDescriptionContainer = document.createElement("div");
+        spellDescriptionContainer.className = "spell-description-container";
+        front.appendChild(spellDescriptionContainer);
+
+        const conditionText = await render_condition_text(spell);
+        if (conditionText) {
+            spellDescriptionContainer.appendChild(conditionText);
+        }
+
+        const spellDescription = render_entries(spell.entries);
+        spellDescriptionContainer.appendChild(spellDescription);
+
+        const higherLevelText = await render_higher_level_text(spell);
+        if (higherLevelText) {
+            spellDescriptionContainer.appendChild(higherLevelText);
+        }
 
         card.appendChild(front);
 

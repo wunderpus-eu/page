@@ -148,6 +148,14 @@ header {
     height: 100%;
 }
 
+.spell-card-front {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
 .spell-card-front-border {
     position: absolute;
     top: calc(
@@ -334,18 +342,6 @@ header {
     align-self: start;
 }
 
-.spell-condition-text {
-    display: flex;
-    font-size: 7pt;
-    line-height: 7pt;
-    color: var(--font-color);
-    font-style: italic;
-    text-align: justify;
-    padding-top: 3pt;
-    padding-left: calc(var(--margin-size) + 4pt);
-    padding-right: calc(var(--margin-size) + 5pt);
-}
-
 .spell-concentration-and-ritual {
     position: absolute;
     top: calc(
@@ -378,6 +374,128 @@ header {
     background-color: white;
     padding-left: 1pt;
     padding-right: 1pt;
-    font-variant: small-caps;
+    font-variant: all-small-caps;
     font-weight: bold;
+    letter-spacing: 0.5pt;
+    font-style: italic;
+}
+
+.spell-description-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding-top: 3pt;
+    padding-left: calc(var(--margin-size) + 7pt);
+    padding-right: calc(var(--margin-size) + 5pt);
+    padding-bottom: calc(var(--margin-size) + 3pt);
+}
+
+.spell-condition-text {
+    font-size: 7pt;
+    line-height: 7pt;
+    font-style: italic;
+    text-align: justify;
+    color: var(--font-color);
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+.spell-description-container p {
+    font-size: 7pt;
+    line-height: 7pt;
+    text-align: justify;
+    color: var(--font-color);
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+.spell-description-container p:last-child {
+    margin-bottom: 0;
+}
+
+.spell-list {
+    font-size: 7pt;
+    line-height: 7pt;
+    color: var(--font-color);
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+    margin-left: 0.5em;
+    padding-left: 0;
+    list-style-type: none;
+}
+
+.spell-list:last-child {
+    margin-bottom: 0;
+}
+
+.spell-list li {
+    position: relative;
+    padding-left: 0.5em; /* Creates space for the bullet. Adjust to move text. */
+    margin-bottom: 0.25em; /* Adjust to control vertical spacing between items */
+}
+
+.spell-list li:last-child {
+    margin-bottom: 0;
+}
+
+.spell-list li::before {
+    content: "•";
+    position: absolute;
+    left: -0.25em; /* Adjust to move the bullet. */
+    top: -0.05em;
+}
+
+.spell-list-hang {
+    font-size: 7pt;
+    line-height: 7pt;
+    text-align: justify;
+    color: var(--font-color);
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+.spell-list-hang:last-child {
+    margin-bottom: 0;
+}
+
+.spell-list-hang p {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+}
+
+.spell-list-hang p:last-child {
+    margin-bottom: 0;
+}
+
+.spell-list-hang-term {
+    font-weight: bold;
+    padding-right: 0.5em;
+}
+
+.spell-table {
+    font-size: 7pt;
+    line-height: 7pt;
+    text-align: justify;
+    color: var(--font-color);
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+.spell-table:last-child {
+    margin-bottom: 0;
+}
+
+.spell-table caption {
+    font-weight: bold;
+    font-variant: all-small-caps;
+    text-align: left;
+    margin-left: 0.3em;
+}
+
+.spell-higher-level-text {
+    font-size: 7pt;
+    line-height: 7pt;
+    text-align: justify;
+    color: var(--font-color);
+    margin-top: auto;
 }
