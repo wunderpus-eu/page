@@ -929,15 +929,68 @@ document.addEventListener("DOMContentLoaded", () => {
         const containerWidth = cardsPerRow * (cardWidth + 1) - 1;
         const containerHeight = rowsPerPage * (cardHeight + 1) - 1;
 
-        let currentPage = createPage(pageSize, containerWidth, containerHeight);
-        printableArea.appendChild(currentPage);
-        let cardCount = 0;
-
         const spellsToRender = spellNames
             .map((name) => spells.find((s) => s.name === name))
             .filter(Boolean);
 
+        const singleCardGroups = [];
+        const pairCardGroups = [];
+        const tempContainer = document.createElement("div");
+        tempContainer.style.position = "absolute";
+        tempContainer.style.left = "-9999px";
+        tempContainer.style.top = "-9999px";
+        printableArea.appendChild(tempContainer);
+
         for (const spell of spellsToRender) {
+            const spellCard = await make_spell_card(spell);
+            const spellNameElement = spellCard.querySelector("h3");
+            tempContainer.appendChild(spellCard);
+            adjust_spell_name(spellNameElement);
+            const backCard = await handle_overflow(spellCard, spell);
+            tempContainer.removeChild(spellCard);
+            if (backCard) {
+                pairCardGroups.push([spellCard, backCard]);
+            } else {
+                singleCardGroups.push([spellCard]);
+            }
+        }
+        printableArea.removeChild(tempContainer);
+
+        const layout = [];
+        let currentIndex = 0;
+
+        for (const pair of pairCardGroups) {
+            const column = currentIndex % cardsPerRow;
+            if (column + 2 > cardsPerRow) {
+                const gap = cardsPerRow - column;
+                for (let i = 0; i < gap; i++) {
+                    layout.push(null);
+                }
+                currentIndex += gap;
+            }
+            layout.push(pair[0]);
+            layout.push(pair[1]);
+            currentIndex += 2;
+        }
+
+        const singleCards = singleCardGroups.flat();
+        for (let i = 0; i < layout.length; i++) {
+            if (layout[i] === null) {
+                const card = singleCards.shift();
+                if (card) {
+                    layout[i] = card;
+                }
+            }
+        }
+        // Add remaining singles
+        layout.push(...singleCards);
+
+        printableArea.innerHTML = "";
+        let currentPage = createPage(pageSize, containerWidth, containerHeight);
+        printableArea.appendChild(currentPage);
+        let cardCount = 0;
+
+        for (const card of layout) {
             if (cardCount >= maxCardsPerPage) {
                 currentPage = createPage(
                     pageSize,
@@ -947,12 +1000,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 printableArea.appendChild(currentPage);
                 cardCount = 0;
             }
-            const spellCard = await make_spell_card(spell);
             const cardContainer = currentPage.querySelector(".card-container");
-            cardContainer.appendChild(spellCard);
-            const spellNameElement = spellCard.querySelector("h3");
-            adjust_spell_name(spellNameElement);
-            handle_overflow(spellCard, spell);
+            if (card) {
+                cardContainer.appendChild(card);
+            } else {
+                const placeholder = document.createElement("div");
+                placeholder.style.width = `${cardWidth}mm`;
+                placeholder.style.height = `${cardHeight}mm`;
+                cardContainer.appendChild(placeholder);
+            }
             cardCount++;
         }
     }
@@ -1103,8 +1159,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 backCardContainer.appendChild(back);
 
-                card.after(backCardContainer);
-
                 const descriptionElements = Array.from(
                     spellDescriptionContainer.children
                 ).filter(
@@ -1126,6 +1180,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (lastParagraph) {
                     lastParagraph.textContent += " →";
                 }
+
+                return backCardContainer;
             }
         }
 
@@ -1133,5 +1189,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (higherLevelText) {
             spellDescriptionContainer.appendChild(higherLevelText);
         }
+
+        return null;
     }
 });
