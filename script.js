@@ -965,7 +965,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const spellCard = await make_spell_card(spell);
             const spellNameElement = spellCard.querySelector("h3");
             tempContainer.appendChild(spellCard);
-            adjust_spell_name(spellNameElement);
+            // adjust_spell_name(spellNameElement);
             const backCard = await handle_overflow(
                 spellCard,
                 spell,
