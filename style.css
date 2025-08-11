@@ -400,8 +400,6 @@ header {
     margin: var(--margin-size);
     border: 1pt solid var(--card-border-color);
     padding: 2pt 4pt;
-    font-size: 7pt;
-    line-height: 7pt;
     color: var(--font-color);
 }
 

@@ -946,7 +946,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const spellNameElement = spellCard.querySelector("h3");
             tempContainer.appendChild(spellCard);
             adjust_spell_name(spellNameElement);
-            const backCard = await handle_overflow(spellCard, spell);
+            const backCard = await handle_overflow(
+                spellCard,
+                spell,
+                false,
+                tempContainer
+            );
             tempContainer.removeChild(spellCard);
             if (backCard) {
                 pairCardGroups.push([spellCard, backCard]);
@@ -1111,13 +1116,16 @@ document.addEventListener("DOMContentLoaded", () => {
         return pxPerMm;
     }
 
-    async function handle_overflow(card, spell) {
+    async function handle_overflow(card, spell, fontReduced, tempContainer) {
         const spellDescriptionContainer = card.querySelector(
             ".spell-description-container"
         );
         const componentText = card.querySelector(".spell-component-text");
         const higherLevelText = spellDescriptionContainer.querySelector(
             ".spell-higher-level-text"
+        );
+        const conditionText = spellDescriptionContainer.querySelector(
+            ".spell-condition-text"
         );
 
         // Temporarily remove the higher-level text so its auto-margin doesn't affect scrollHeight
@@ -1131,58 +1139,140 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (is_overflowing(spellDescriptionContainer)) {
             // First, try to fix the overflow by reducing the font size
-            spellDescriptionContainer.style.fontSize = "6pt";
-            spellDescriptionContainer.style.lineHeight = "6pt";
-            componentText.style.fontSize = "6pt";
-            componentText.style.lineHeight = "6pt";
-
-            if (is_overflowing(spellDescriptionContainer)) {
-                // If it still overflows, revert the font size and create a back
-                spellDescriptionContainer.style.fontSize = "";
-                spellDescriptionContainer.style.lineHeight = "";
-                componentText.style.fontSize = "";
-                componentText.style.lineHeight = "";
-
-                const computedColor = compute_color(spell);
-
-                const backCardContainer = document.createElement("div");
-                backCardContainer.className = "spell-card";
-
-                const back = document.createElement("div");
-                back.className = "spell-card-back";
-
-                const backDescriptionContainer = document.createElement("div");
-                backDescriptionContainer.className =
-                    "spell-description-container back";
-                backDescriptionContainer.style.borderColor = computedColor;
-                back.appendChild(backDescriptionContainer);
-
-                backCardContainer.appendChild(back);
-
-                const descriptionElements = Array.from(
-                    spellDescriptionContainer.children
-                ).filter(
-                    (el) =>
-                        !el.classList.contains("spell-condition-text") &&
-                        !el.classList.contains("spell-higher-level-text")
-                );
-
-                while (
-                    is_overflowing(spellDescriptionContainer) &&
-                    descriptionElements.length > 0
-                ) {
-                    const elementToMove = descriptionElements.pop();
-                    backDescriptionContainer.prepend(elementToMove);
+            if (!fontReduced) {
+                spellDescriptionContainer.style.fontSize = "6pt";
+                spellDescriptionContainer.style.lineHeight = "6pt";
+                componentText.style.fontSize = "6pt";
+                componentText.style.lineHeight = "6pt";
+                if (conditionText) {
+                    conditionText.style.fontSize = "6pt";
+                    conditionText.style.lineHeight = "6pt";
+                }
+                if (higherLevelText) {
+                    higherLevelText.style.fontSize = "6pt";
+                    higherLevelText.style.lineHeight = "6pt";
                 }
 
-                const lastParagraph =
-                    spellDescriptionContainer.querySelector("p:last-of-type");
-                if (lastParagraph) {
-                    lastParagraph.textContent += " →";
+                if (is_overflowing(spellDescriptionContainer)) {
+                    // If it still overflows, revert the font size and create a back
+                    spellDescriptionContainer.style.fontSize = "";
+                    spellDescriptionContainer.style.lineHeight = "";
+                    componentText.style.fontSize = "";
+                    componentText.style.lineHeight = "";
+                    if (conditionText) {
+                        conditionText.style.fontSize = "";
+                        conditionText.style.lineHeight = "";
+                    }
+                    if (higherLevelText) {
+                        higherLevelText.style.fontSize = "";
+                        higherLevelText.style.lineHeight = "";
+                    }
+                } else {
+                    if (higherLevelText) {
+                        spellDescriptionContainer.appendChild(higherLevelText);
+                    }
+                    return null;
                 }
-
-                return backCardContainer;
             }
+
+            const computedColor = compute_color(spell);
+
+            const backCardContainer = document.createElement("div");
+            backCardContainer.className = "spell-card";
+
+            const back = document.createElement("div");
+            back.className = "spell-card-back";
+
+            const backDescriptionContainer = document.createElement("div");
+            backDescriptionContainer.className =
+                "spell-description-container back";
+            backDescriptionContainer.style.borderColor = computedColor;
+            back.appendChild(backDescriptionContainer);
+
+            backCardContainer.appendChild(back);
+
+            if (tempContainer) {
+                tempContainer.appendChild(backCardContainer);
+            }
+
+            if (fontReduced) {
+                const frontDescriptionContainer = card.querySelector(
+                    ".spell-description-container"
+                );
+                frontDescriptionContainer.style.fontSize = "6pt";
+                frontDescriptionContainer.style.lineHeight = "6pt";
+                componentText.style.fontSize = "6pt";
+                componentText.style.lineHeight = "6pt";
+                backDescriptionContainer.style.fontSize = "6pt";
+                backDescriptionContainer.style.lineHeight = "6pt";
+                if (conditionText) {
+                    conditionText.style.fontSize = "6pt";
+                    conditionText.style.lineHeight = "6pt";
+                }
+                if (higherLevelText) {
+                    higherLevelText.style.fontSize = "6pt";
+                    higherLevelText.style.lineHeight = "6pt";
+                }
+            }
+
+            const descriptionElements = Array.from(
+                spellDescriptionContainer.children
+            ).filter(
+                (el) =>
+                    !el.classList.contains("spell-condition-text") &&
+                    !el.classList.contains("spell-higher-level-text")
+            );
+
+            if (higherLevelText) {
+                spellDescriptionContainer.appendChild(higherLevelText);
+            }
+
+            while (
+                is_overflowing(spellDescriptionContainer) &&
+                descriptionElements.length > 0
+            ) {
+                const elementToMove = descriptionElements.pop();
+                backDescriptionContainer.prepend(elementToMove);
+            }
+
+            if (is_overflowing(backDescriptionContainer) && !fontReduced) {
+                // Back is overflowing, and we haven't reduced font size yet.
+                // We need to restart the process with smaller fonts.
+
+                // 1. Restore the front card's description container by moving elements back from the back card.
+                const backElements = Array.from(
+                    backDescriptionContainer.children
+                );
+                for (const elementToMove of backElements) {
+                    spellDescriptionContainer.appendChild(elementToMove);
+                }
+
+                // 2. Remove the now-empty back card from the temp container.
+                if (tempContainer) {
+                    tempContainer.removeChild(backCardContainer);
+                }
+
+                // 3. Remove higher level text before recursive call, as the function expects it to be removed.
+                if (higherLevelText) {
+                    higherLevelText.remove();
+                }
+
+                // 4. Recursively call handle_overflow.
+                // It will now apply smaller fonts and re-distribute from a full front card.
+                return await handle_overflow(card, spell, true, tempContainer);
+            }
+
+            const lastParagraph =
+                spellDescriptionContainer.querySelector("p:last-of-type");
+            if (lastParagraph) {
+                lastParagraph.textContent += " →";
+            }
+
+            if (tempContainer) {
+                tempContainer.removeChild(backCardContainer);
+            }
+
+            return backCardContainer;
         }
 
         // Add the higher-level text back if it was removed
