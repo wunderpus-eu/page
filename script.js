@@ -11,6 +11,45 @@ document.addEventListener("DOMContentLoaded", () => {
     const iconCache = {};
     const baseDevicePixelRatio = window.devicePixelRatio;
 
+    const schoolColorMap = {
+        A: "var(--abjuration-color)",
+        C: "var(--conjuration-color)",
+        D: "var(--divination-color)",
+        E: "var(--enchantment-color)",
+        V: "var(--evocation-color)",
+        I: "var(--illusion-color)",
+        N: "var(--necromancy-color)",
+        T: "var(--transmutation-color)",
+    };
+
+    function compute_color(spell) {
+        const colorVar = schoolColorMap[spell.school];
+        if (!colorVar) {
+            return "black"; // Default color
+        }
+        const tempDiv = document.createElement("div");
+        tempDiv.style.backgroundColor = colorVar;
+        document.body.appendChild(tempDiv);
+        const computedColor = getComputedStyle(tempDiv).backgroundColor;
+        document.body.removeChild(tempDiv);
+        return computedColor;
+    }
+
+    async function render_front_border(spell, computedColor) {
+        const frontBorderContainer = document.createElement("div");
+        frontBorderContainer.className = "spell-card-front-border";
+
+        const frontBorder = document.createElement("img");
+        frontBorder.src = await load_icon(
+            "border-front",
+            computedColor,
+            "white"
+        );
+        frontBorderContainer.appendChild(frontBorder);
+
+        return frontBorderContainer;
+    }
+
     function get_color_from_css_variable(cssVar) {
         const tempDiv = document.createElement("div");
         tempDiv.style.color = cssVar;
@@ -70,45 +109,6 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error("Error loading spells:", error);
         }
-    }
-
-    const schoolColorMap = {
-        A: "var(--abjuration-color)",
-        C: "var(--conjuration-color)",
-        D: "var(--divination-color)",
-        E: "var(--enchantment-color)",
-        V: "var(--evocation-color)",
-        I: "var(--illusion-color)",
-        N: "var(--necromancy-color)",
-        T: "var(--transmutation-color)",
-    };
-
-    function compute_color(spell) {
-        const colorVar = schoolColorMap[spell.school];
-        if (!colorVar) {
-            return "black"; // Default color
-        }
-        const tempDiv = document.createElement("div");
-        tempDiv.style.backgroundColor = colorVar;
-        document.body.appendChild(tempDiv);
-        const computedColor = getComputedStyle(tempDiv).backgroundColor;
-        document.body.removeChild(tempDiv);
-        return computedColor;
-    }
-
-    async function render_front_border(spell, computedColor) {
-        const frontBorderContainer = document.createElement("div");
-        frontBorderContainer.className = "spell-card-front-border";
-
-        const frontBorder = document.createElement("img");
-        frontBorder.src = await load_icon(
-            "border-front",
-            computedColor,
-            "white"
-        );
-        frontBorderContainer.appendChild(frontBorder);
-
-        return frontBorderContainer;
     }
 
     function render_spell_level(spell, computedColor) {
@@ -718,12 +718,19 @@ document.addEventListener("DOMContentLoaded", () => {
         return higherLevelTextContainer;
     }
 
-    async function render_entries(entries) {
-        const container = document.createElement("div");
+    async function render_entries(entries, entryName = "") {
+        const container = document.createDocumentFragment();
 
         for (const entry of entries) {
             if (typeof entry === "string") {
                 const p = document.createElement("p");
+                if (entryName) {
+                    const nameSpan = document.createElement("span");
+                    nameSpan.className = "spell-entry-name";
+                    nameSpan.textContent = entryName;
+                    p.appendChild(nameSpan);
+                    entryName = "";
+                }
                 p.appendChild(await process_text_for_rendering(entry));
                 container.appendChild(p);
             } else if (entry.type === "table") {
@@ -733,7 +740,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 const list = await render_list(entry);
                 container.appendChild(list);
             } else if (entry.type === "entries") {
-                const nestedEntries = await render_entries(entry.entries);
+                const nestedEntries = await render_entries(
+                    entry.entries,
+                    entry.name || ""
+                );
                 container.appendChild(nestedEntries);
             }
         }
@@ -942,6 +952,7 @@ document.addEventListener("DOMContentLoaded", () => {
             cardContainer.appendChild(spellCard);
             const spellNameElement = spellCard.querySelector("h3");
             adjust_spell_name(spellNameElement);
+            handle_overflow(spellCard, spell);
             cardCount++;
         }
     }
@@ -1031,16 +1042,96 @@ document.addEventListener("DOMContentLoaded", () => {
     loadSpells();
     // Initial call to set the header scale
     handleZoom();
-});
 
-function getPxPerMm() {
-    const div = document.createElement("div");
-    div.style.position = "absolute";
-    div.style.top = "-9999px";
-    div.style.left = "-9999px";
-    div.style.width = "1mm";
-    document.body.appendChild(div);
-    const pxPerMm = div.getBoundingClientRect().width;
-    document.body.removeChild(div);
-    return pxPerMm;
-}
+    function getPxPerMm() {
+        const div = document.createElement("div");
+        div.style.position = "absolute";
+        div.style.top = "-9999px";
+        div.style.left = "-9999px";
+        div.style.width = "1mm";
+        document.body.appendChild(div);
+        const pxPerMm = div.getBoundingClientRect().width;
+        document.body.removeChild(div);
+        return pxPerMm;
+    }
+
+    async function handle_overflow(card, spell) {
+        const spellDescriptionContainer = card.querySelector(
+            ".spell-description-container"
+        );
+        const componentText = card.querySelector(".spell-component-text");
+        const higherLevelText = spellDescriptionContainer.querySelector(
+            ".spell-higher-level-text"
+        );
+
+        // Temporarily remove the higher-level text so its auto-margin doesn't affect scrollHeight
+        if (higherLevelText) {
+            higherLevelText.remove();
+        }
+
+        function is_overflowing(element) {
+            return element.scrollHeight > element.clientHeight;
+        }
+
+        if (is_overflowing(spellDescriptionContainer)) {
+            // First, try to fix the overflow by reducing the font size
+            spellDescriptionContainer.style.fontSize = "6pt";
+            spellDescriptionContainer.style.lineHeight = "6pt";
+            componentText.style.fontSize = "6pt";
+            componentText.style.lineHeight = "6pt";
+
+            if (is_overflowing(spellDescriptionContainer)) {
+                // If it still overflows, revert the font size and create a back
+                spellDescriptionContainer.style.fontSize = "";
+                spellDescriptionContainer.style.lineHeight = "";
+                componentText.style.fontSize = "";
+                componentText.style.lineHeight = "";
+
+                const computedColor = compute_color(spell);
+
+                const backCardContainer = document.createElement("div");
+                backCardContainer.className = "spell-card";
+
+                const back = document.createElement("div");
+                back.className = "spell-card-back";
+
+                const backDescriptionContainer = document.createElement("div");
+                backDescriptionContainer.className =
+                    "spell-description-container back";
+                backDescriptionContainer.style.borderColor = computedColor;
+                back.appendChild(backDescriptionContainer);
+
+                backCardContainer.appendChild(back);
+
+                card.after(backCardContainer);
+
+                const descriptionElements = Array.from(
+                    spellDescriptionContainer.children
+                ).filter(
+                    (el) =>
+                        !el.classList.contains("spell-condition-text") &&
+                        !el.classList.contains("spell-higher-level-text")
+                );
+
+                while (
+                    is_overflowing(spellDescriptionContainer) &&
+                    descriptionElements.length > 0
+                ) {
+                    const elementToMove = descriptionElements.pop();
+                    backDescriptionContainer.prepend(elementToMove);
+                }
+
+                const lastParagraph =
+                    spellDescriptionContainer.querySelector("p:last-of-type");
+                if (lastParagraph) {
+                    lastParagraph.textContent += " →";
+                }
+            }
+        }
+
+        // Add the higher-level text back if it was removed
+        if (higherLevelText) {
+            spellDescriptionContainer.appendChild(higherLevelText);
+        }
+    }
+});
