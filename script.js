@@ -703,7 +703,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return null;
     }
 
-    async function render_higher_level_text(spell) {
+    async function render_higher_level_text(spell, computedColor) {
         const higherLevel = spell.entriesHigherLevel;
         if (!higherLevel) {
             return null;
@@ -711,6 +711,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const higherLevelTextContainer = document.createElement("div");
         higherLevelTextContainer.className = "spell-higher-level-text";
+
+        const line = document.createElement("div");
+        line.className = "higher-level-line";
+        line.style.backgroundColor = computedColor;
+        higherLevelTextContainer.appendChild(line);
+
+        const circle = document.createElement("div");
+        circle.className = "higher-level-circle";
+        circle.style.borderColor = computedColor;
+        circle.style.color = computedColor;
+        higherLevelTextContainer.appendChild(circle);
+
+        const plus = document.createElement("span");
+        plus.className = "higher-level-plus";
+        plus.textContent = "+";
+        circle.appendChild(plus);
+
         higherLevelTextContainer.appendChild(
             await process_text_for_rendering(higherLevel[0].entries[0])
         );
@@ -882,7 +899,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const spellDescription = await render_entries(spell.entries);
         spellDescriptionContainer.appendChild(spellDescription);
 
-        const higherLevelText = await render_higher_level_text(spell);
+        const higherLevelText = await render_higher_level_text(
+            spell,
+            computedColor
+        );
         if (higherLevelText) {
             spellDescriptionContainer.appendChild(higherLevelText);
         }

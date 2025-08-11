@@ -399,7 +399,7 @@ header {
     border: 1pt solid;
     margin: var(--margin-size);
     border: 1pt solid var(--card-border-color);
-    padding: 2pt 4pt;
+    padding: 3pt 4pt;
     color: var(--font-color);
 }
 
@@ -499,6 +499,36 @@ header {
 .spell-higher-level-text {
     text-align: justify;
     margin-top: auto;
+    padding-top: 3pt;
+    position: relative;
+}
+
+.higher-level-line {
+    position: absolute;
+    top: -1pt;
+    left: -7pt;
+    right: -5pt;
+    height: 1pt;
+}
+
+.higher-level-circle {
+    position: absolute;
+    top: -5.5pt;
+    left: -12pt;
+    width: 8pt;
+    height: 8pt;
+    border-radius: 50%;
+    border: 1pt solid;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 8pt;
+    font-weight: bold;
+}
+
+.higher-level-plus {
+    padding-top: 0.5pt;
 }
 
 .inline-icon {
