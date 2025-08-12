@@ -1,0 +1,13 @@
+{
+    "name": "spell-card-generator",
+    "version": "1.0.0",
+    "description": "A web app to generate spell cards for D&D.",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "dependencies": {
+        "express": "^4.17.1",
+        "puppeteer": "^24.9.0"
+    }
+}

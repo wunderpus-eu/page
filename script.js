@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const generatePdfButton = document.getElementById("generate-pdf");
+    const generateCardsButton = document.getElementById("generate-cards");
+    const exportPdfButton = document.getElementById("export-pdf");
     const printableArea = document.getElementById("printable-area");
     const spellNamesInput = document.getElementById("spell-names-input");
     const pageSizeToggle = document.getElementById("page-size-toggle");
@@ -114,29 +115,21 @@ document.addEventListener("DOMContentLoaded", () => {
     function render_spell_level(spell, computedColor) {
         const outerCircle = document.createElement("div");
         outerCircle.className = "spell-level-outer-circle";
-
-        const innerCircle = document.createElement("div");
-        innerCircle.className = "spell-level-inner-circle";
+        outerCircle.style.borderColor = computedColor;
+        outerCircle.style.backgroundColor = computedColor;
 
         const spellLevel = spell.level;
         if (spellLevel === 0) {
             const cantripCircle = document.createElement("div");
             cantripCircle.className = "cantrip-circle";
-            innerCircle.appendChild(cantripCircle);
+            outerCircle.appendChild(cantripCircle);
         } else {
             const spellLevelText = document.createElement("span");
             spellLevelText.className = "spell-level-text";
             spellLevelText.textContent = spellLevel;
-            innerCircle.appendChild(spellLevelText);
+            outerCircle.appendChild(spellLevelText);
         }
 
-        if (spell.school && schoolColorMap[spell.school]) {
-            outerCircle.style.borderColor = computedColor;
-            innerCircle.style.borderColor = computedColor;
-            innerCircle.style.backgroundColor = computedColor;
-        }
-
-        outerCircle.appendChild(innerCircle);
         return outerCircle;
     }
 
@@ -212,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const unit = time.unit;
             let castingTimeText = "";
 
-            if (["action", "bonus action", "reaction"].includes(unit)) {
+            if (["action", "bonus", "reaction"].includes(unit)) {
                 castingTimeText = unit[0].toUpperCase();
                 castingTimeContainer.style.fontSize = "10pt";
                 castingTimeContainer.classList.add("is-circular");
@@ -523,14 +516,20 @@ document.addEventListener("DOMContentLoaded", () => {
                         foregroundColor
                     );
                     icon.className = "inline-icon";
-                    container.appendChild(icon);
+                    const iconWrapper = document.createElement("span");
+                    iconWrapper.className = "inline-icon-wrapper";
+                    iconWrapper.appendChild(icon);
+                    container.appendChild(iconWrapper);
                 }
             } else if (match[2]) {
                 // Icon tag match
                 const icon = document.createElement("img");
                 icon.src = await load_icon(icons[matchedText], foregroundColor);
                 icon.className = "inline-icon";
-                container.appendChild(icon);
+                const iconWrapper = document.createElement("span");
+                iconWrapper.className = "inline-icon-wrapper";
+                iconWrapper.appendChild(icon);
+                container.appendChild(iconWrapper);
             } else if (match[3]) {
                 // Dice tag match
                 const innerContent = matchedText.substring(
@@ -574,7 +573,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 const icon = document.createElement("img");
                 icon.src = await load_icon("icon-a", foregroundColor);
                 icon.className = "inline-icon";
-                container.appendChild(icon);
+                const iconWrapper = document.createElement("span");
+                iconWrapper.className = "inline-icon-wrapper";
+                iconWrapper.appendChild(icon);
+                container.appendChild(iconWrapper);
             } else if (match[6]) {
                 // Generic tag match
                 const innerContent = matchedText.substring(
@@ -681,7 +683,12 @@ document.addEventListener("DOMContentLoaded", () => {
             N: "Necromancy",
             T: "Transmutation",
         };
-        spellSchool.textContent = schoolNameMap[spell.school];
+        const schoolName = schoolNameMap[spell.school];
+        for (const char of schoolName) {
+            const span = document.createElement("span");
+            span.textContent = char;
+            spellSchool.appendChild(span);
+        }
         spellSchoolContainer.appendChild(spellSchool);
         return spellSchoolContainer;
     }
@@ -714,13 +721,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const line = document.createElement("div");
         line.className = "higher-level-line";
-        line.style.backgroundColor = computedColor;
+        line.style.borderColor = computedColor;
         higherLevelTextContainer.appendChild(line);
 
-        const circle = document.createElement("div");
+        const circle = document.createElement("img");
+        circle.src = await load_icon("chip-plus", computedColor, "white");
         circle.className = "higher-level-circle";
-        circle.style.borderColor = computedColor;
-        circle.style.color = computedColor;
         higherLevelTextContainer.appendChild(circle);
 
         const plus = document.createElement("span");
@@ -1091,7 +1097,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Generate spell cards when the button is clicked
-    generatePdfButton.addEventListener("click", async () => {
+    generateCardsButton.addEventListener("click", async () => {
         const spellNamesText = spellNamesInput.value;
         if (!spellNamesText) {
             alert("Please enter at least one spell name.");
@@ -1105,18 +1111,33 @@ document.addEventListener("DOMContentLoaded", () => {
         const pageSize = pageSizeToggle.dataset.size || "letter";
 
         await generateSpellCards(spellNames, pageSize);
+        updateIconSizes();
+    });
 
-        const element = document.getElementById("printable-area");
-        const opt = {
-            margin: 0,
-            filename: "spell-cards.pdf",
-            image: { type: "jpeg", quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: "mm", format: pageSize, orientation: "landscape" },
-        };
+    exportPdfButton.addEventListener("click", async () => {
+        const printableArea = document.getElementById("printable-area");
+        const html = printableArea.innerHTML;
+        const cssResponse = await fetch("style.css");
+        const css = await cssResponse.text();
+        const pageSize = pageSizeToggle.dataset.size || "letter";
 
-        // TODO: Enable again when I say so.
-        // html2pdf().set(opt).from(element).save();
+        const response = await fetch("/export-pdf", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ html, css, pageSize }),
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                window.location.href = "/get-pdf";
+            }
+        } else {
+            const error = await response.json();
+            alert(`Error generating PDF: ${error.error}`);
+        }
     });
 
     // Load spells when the page loads
@@ -1301,5 +1322,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         return null;
+    }
+
+    function updateIconSizes() {
+        const iconWrappers = document.querySelectorAll(".inline-icon-wrapper");
+        iconWrappers.forEach((wrapper) => {
+            const parentFontSize = parseFloat(
+                window.getComputedStyle(wrapper.parentElement).fontSize
+            );
+            const iconSize = parentFontSize * 0.9;
+            wrapper.style.height = `${iconSize}px`;
+            wrapper.style.width = `${iconSize}px`;
+        });
     }
 });

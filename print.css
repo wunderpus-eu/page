@@ -1,0 +1,17 @@
+body {
+    background-color: white !important;
+}
+
+header {
+    display: none !important;
+}
+
+#printable-area {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.page {
+    margin: 0 !important;
+    box-shadow: none !important;
+}

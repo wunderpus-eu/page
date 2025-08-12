@@ -2,3 +2,5 @@ custom.svg
 custom.svg.*
 *.zip
 dnd-icons/
+node_modules/
+*.pdf

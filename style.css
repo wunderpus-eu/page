@@ -88,7 +88,8 @@ header {
     white-space: nowrap;
 }
 
-#generate-pdf {
+#generate-cards,
+#export-pdf {
     padding: 8px 16px;
     font-size: 16px;
     cursor: pointer;
@@ -100,6 +101,10 @@ header {
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    /* background-color: white; Changed from #f0f0f0 */
+    /* width: 279.4mm; Letter width */
+    /* min-height: 215.9mm; Letter height */
+    /* box-sizing: border-box; */
 }
 
 .page {
@@ -207,23 +212,13 @@ header {
     width: var(--level-size);
     height: var(--level-size);
     padding: 2pt;
-    border: 1pt solid black;
+    border: 1pt solid;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     box-sizing: border-box;
-}
-
-.spell-level-inner-circle {
-    width: 100%;
-    height: 100%;
-    background-color: black;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-sizing: border-box;
+    background-clip: content-box;
 }
 
 .spell-level-text {
@@ -369,16 +364,19 @@ header {
 }
 
 .spell-school {
-    rotate: -90deg;
+    transform: rotate(-90deg);
     font-size: 8pt;
     line-height: 8pt;
     background-color: white;
     padding-left: 1pt;
-    padding-right: 1pt;
+    padding-right: 2pt;
     font-variant: all-small-caps;
     font-weight: bold;
-    letter-spacing: 0.5pt;
     font-style: italic;
+}
+
+.spell-school span {
+    padding: 0 0.25pt;
 }
 
 .spell-description-container {
@@ -508,34 +506,31 @@ header {
     top: -1pt;
     left: -7pt;
     right: -5pt;
-    height: 1pt;
+    border-top: 1pt solid;
 }
 
 .higher-level-circle {
     position: absolute;
     top: -5.5pt;
     left: -12pt;
-    width: 8pt;
-    height: 8pt;
-    border-radius: 50%;
-    border: 1pt solid;
-    background-color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 8pt;
-    font-weight: bold;
+    width: 10pt;
+    height: 10pt;
+    object-fit: contain;
 }
 
 .higher-level-plus {
     padding-top: 0.5pt;
 }
 
+.inline-icon-wrapper {
+    display: inline-block;
+    vertical-align: middle;
+    transform: translateY(-0.06rem);
+}
+
 .inline-icon {
-    height: 0.9em;
-    width: 0.9em;
-    translate: 0 0.1em;
-    vertical-align: baseline;
+    height: 100%;
+    width: 100%;
 }
 
 .dice-formula {
