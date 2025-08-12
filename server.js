@@ -19,6 +19,7 @@ app.post("/export-pdf", async (req, res) => {
         );
 
         const browser = await puppeteer.launch({
+            product: "firefox",
             headless: "new",
             args: ["--no-sandbox", "--disable-setuid-sandbox"],
         });
@@ -61,7 +62,7 @@ app.post("/export-pdf", async (req, res) => {
         await page.setViewport({
             width: 1920,
             height: 1080,
-            deviceScaleFactor: 2,
+            deviceScaleFactor: 4,
         });
 
         await page.pdf({
