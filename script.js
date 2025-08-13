@@ -219,7 +219,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 castingTimeText = `${number} ${unitText}`;
                 castingTimeContainer.style.fontSize = "8pt";
             }
-            castingTimeContainer.textContent = castingTimeText;
+            const castingTimeSpan = document.createElement("span");
+            castingTimeSpan.textContent = castingTimeText;
+            castingTimeContainer.appendChild(castingTimeSpan);
         }
 
         if (spell.school && schoolColorMap[spell.school]) {

@@ -1,7 +1,7 @@
 const express = require("express");
-const puppeteer = require("puppeteer");
 const path = require("path");
 const fs = require("fs").promises;
+const { spawn } = require("child_process");
 
 const app = express();
 const port = 3000;
@@ -10,7 +10,6 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.static(__dirname));
 
 app.post("/export-pdf", async (req, res) => {
-    let tempHtmlPath;
     try {
         const { html, css, pageSize } = req.body;
         const printCss = await fs.readFile(
@@ -18,19 +17,12 @@ app.post("/export-pdf", async (req, res) => {
             "utf8"
         );
 
-        const browser = await puppeteer.launch({
-            product: "firefox",
-            headless: "new",
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        });
-        const page = await browser.newPage();
-
-        const pageDimensions = {
-            a4: { width: "297mm", height: "210mm" },
-            letter: { width: "11in", height: "8.5in" },
-        };
-
-        const dimensions = pageDimensions[pageSize] || pageDimensions.letter;
+        const pageStyle = `
+            @page {
+                size: ${pageSize} landscape;
+                margin: 0;
+            }
+        `;
 
         const htmlContent = `
             <!DOCTYPE html>
@@ -42,6 +34,7 @@ app.post("/export-pdf", async (req, res) => {
                         rel="stylesheet"
                     />
                     <style>
+                        ${pageStyle}
                         ${css}
                         ${printCss}
                     </style>
@@ -49,38 +42,33 @@ app.post("/export-pdf", async (req, res) => {
                 <body>${html}</body>
             </html>`;
 
-        tempHtmlPath = path.join(__dirname, "temp-spell-page.html");
-        await fs.writeFile(tempHtmlPath, htmlContent);
+        const weasyprint = spawn("weasyprint", [
+            "-",
+            "spell-cards-generated.pdf",
+            "-e",
+            "utf8",
+        ]);
 
-        await page.goto(`file://${tempHtmlPath}`, {
-            waitUntil: "networkidle0",
+        weasyprint.stdin.write(htmlContent);
+        weasyprint.stdin.end();
+
+        weasyprint.stderr.on("data", (data) => {
+            console.error(`WeasyPrint stderr: ${data}`);
         });
 
-        // Wait for all fonts to be loaded
-        await page.evaluateHandle("document.fonts.ready");
-
-        await page.setViewport({
-            width: 1920,
-            height: 1080,
-            deviceScaleFactor: 4,
+        weasyprint.on("close", (code) => {
+            if (code === 0) {
+                res.json({
+                    success: true,
+                    message: "PDF generated successfully.",
+                });
+            } else {
+                res.status(500).json({
+                    success: false,
+                    message: `WeasyPrint process exited with code ${code}`,
+                });
+            }
         });
-
-        await page.pdf({
-            path: "spell-cards-generated.pdf",
-            width: dimensions.width,
-            height: dimensions.height,
-            printBackground: true,
-            margin: {
-                top: "0mm",
-                right: "0mm",
-                bottom: "0mm",
-                left: "0mm",
-            },
-        });
-
-        await browser.close();
-
-        res.json({ success: true, message: "PDF generated successfully." });
     } catch (error) {
         console.error("Error generating PDF:", error);
         res.status(500).json({
@@ -88,14 +76,6 @@ app.post("/export-pdf", async (req, res) => {
             message: "Error generating PDF",
             error: error.message,
         });
-    } finally {
-        if (tempHtmlPath) {
-            try {
-                await fs.unlink(tempHtmlPath);
-            } catch (cleanupError) {
-                console.error("Error cleaning up temp file:", cleanupError);
-            }
-        }
     }
 });
 

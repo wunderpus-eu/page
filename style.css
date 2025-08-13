@@ -101,10 +101,6 @@ header {
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    /* background-color: white; Changed from #f0f0f0 */
-    /* width: 279.4mm; Letter width */
-    /* min-height: 215.9mm; Letter height */
-    /* box-sizing: border-box; */
 }
 
 .page {
@@ -112,8 +108,6 @@ header {
     width: 297mm;
     height: 210mm;
     margin: 10px 0;
-    padding: 10mm;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
     overflow: hidden;
     position: relative;
@@ -164,15 +158,10 @@ header {
 
 .spell-card-front-border {
     position: absolute;
-    top: calc(
-        var(--margin-size) + var(--level-size) + 0.5 * var(--casting-time-size) +
-            var(--casting-time-overlap) - 0.5pt
-    );
-    right: calc(var(--margin-size) - 0.5pt);
-    bottom: calc(var(--margin-size) - 0.5pt);
-    left: calc(var(--margin-size) - 1.5pt);
-    /* border: 1pt solid black; */
-    /* background-color: #f0f0f0; */
+    top: 42.5pt; /* calc(3mm + 33pt + 0.5 * 17pt + -7pt - 0.5pt) */
+    right: 8.5pt; /* calc(3mm - 0.5pt) */
+    bottom: 8.5pt; /* calc(3mm - 0.5pt) */
+    left: 7.5pt; /* calc(3mm - 1.5pt) */
 }
 
 .card-header {
@@ -191,7 +180,7 @@ header {
     font-family: var(--main-font);
     font-weight: 900;
     font-size: 10pt;
-    text-wrap: balance;
+    /* text-wrap: balance; */
     line-height: 10pt;
     margin-top: 0;
     margin-bottom: 4pt;
@@ -242,88 +231,97 @@ header {
     justify-self: center;
     border: 1pt solid white;
     border-radius: var(--casting-time-size);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    text-align: center;
+    line-height: 15pt;
     color: white;
     font-weight: bold;
     white-space: nowrap;
     box-sizing: border-box;
+    background-clip: padding-box;
 }
 
 .spell-casting-time.is-circular {
     width: var(--casting-time-size);
-    padding: 0;
+    padding: 0.5pt 0 0 0;
+    line-height: 14pt;
 }
 
 .spell-range-and-duration {
     margin-top: var(--casting-time-overlap);
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    gap: 4pt;
     padding-left: 2pt;
 }
 
 .spell-range {
-    height: calc(var(--casting-time-size) - 2pt);
+    display: inline-block;
+    height: 15pt; /* calc(var(--casting-time-size) - 2pt) */
+    vertical-align: top;
+    margin-top: 1pt;
+    margin-right: 4pt;
     padding: 0 5pt 0 4pt;
     justify-self: center;
     /* border: 1pt solid white; */
-    border-radius: calc(var(--casting-time-size) - 2pt);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 3pt;
+    border-radius: 15pt; /* calc(var(--casting-time-size) - 2pt) */
     color: white;
     font-size: 8pt;
     white-space: nowrap;
     box-sizing: border-box;
+    line-height: 15pt;
 }
 
 .spell-range-icon {
-    max-width: var(--icon-size);
-    max-height: var(--icon-size);
     width: var(--icon-size);
     height: var(--icon-size);
     object-fit: contain;
+    vertical-align: middle;
+    margin-top: -1pt;
+    margin-right: 3pt;
 }
 
 .spell-range-icon.area {
+    margin-left: 3pt;
     margin-right: -1pt;
 }
 
 .spell-duration {
-    height: calc(var(--casting-time-size) - 2pt);
+    display: inline-block;
+    height: 15pt;
+    vertical-align: top;
+    margin-top: 1pt;
     padding: 0 5pt 0 5pt;
     justify-self: center;
     /* border: 1pt solid white; */
-    border-radius: calc(var(--casting-time-size) - 2pt);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 3pt;
+    border-radius: 15pt; /* calc(var(--casting-time-size) - 2pt) */
     color: white;
     font-size: 8pt;
     white-space: nowrap;
     box-sizing: border-box;
+    line-height: 15pt;
 }
 
 .spell-duration-icon {
-    max-width: var(--icon-size);
-    max-height: var(--icon-size);
     width: var(--icon-size);
     height: var(--icon-size);
     object-fit: contain;
+    vertical-align: middle;
+    margin-top: -1pt;
+    margin-right: 3pt;
+}
+
+.spell-range span,
+.spell-duration span {
+    vertical-align: middle;
 }
 
 .spell-component-icons {
     height: var(--chip-size);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    text-align: center;
     margin-top: 2pt;
     align-self: start;
+}
+
+.spell-component-icons img {
+    display: inline-block;
+    vertical-align: top;
 }
 
 .spell-component-text {
@@ -340,11 +338,8 @@ header {
 
 .spell-concentration-and-ritual {
     position: absolute;
-    top: calc(
-        var(--margin-size) + var(--level-size) + var(--casting-time-size) +
-            var(--casting-time-overlap) + var(--chip-size) + 10pt
-    );
-    left: calc(var(--margin-size) - 5pt);
+    top: 71.5pt;
+    left: 4pt;
     width: var(--chip-size);
     display: flex;
     flex-direction: column;
@@ -355,9 +350,9 @@ header {
 
 .spell-school-container {
     position: absolute;
-    top: calc(50% + var(--level-size) / 2);
-    left: calc(var(--margin-size) - 4.5pt);
-    width: 8pt;
+    top: 141pt;
+    left: 6.5pt;
+    width: 5pt;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -365,12 +360,12 @@ header {
 
 .spell-school {
     transform: rotate(-90deg);
-    font-size: 8pt;
-    line-height: 8pt;
+    font-size: 5pt;
+    line-height: 5pt;
     background-color: white;
     padding-left: 1pt;
-    padding-right: 2pt;
-    font-variant: all-small-caps;
+    padding-right: 1.5pt;
+    text-transform: uppercase;
     font-weight: bold;
     font-style: italic;
 }
@@ -383,10 +378,13 @@ header {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    margin-top: 0;
+    margin-left: 8.5pt;
+    margin-right: 8.5pt;
+    margin-bottom: 13pt;
     padding-top: 3pt;
-    padding-left: calc(var(--margin-size) + 7pt);
-    padding-right: calc(var(--margin-size) + 5pt);
-    margin-bottom: calc(var(--margin-size) + 3pt);
+    padding-left: 8pt;
+    padding-right: 5pt;
     font-size: 7pt;
     line-height: 7pt;
     color: var(--font-color);
@@ -397,7 +395,7 @@ header {
     border: 1pt solid;
     margin: var(--margin-size);
     border: 1pt solid var(--card-border-color);
-    padding: 3pt 4pt;
+    padding: 3.5pt 5pt;
     color: var(--font-color);
 }
 
@@ -489,9 +487,11 @@ header {
 .spell-table caption {
     color: var(--font-color-light);
     font-weight: bold;
-    font-variant: all-small-caps;
+    text-transform: uppercase;
     text-align: left;
-    margin-left: 0.3em;
+    margin-left: 0.4em;
+    font-size: 0.8em;
+    line-height: 0.8em;
 }
 
 .spell-higher-level-text {
@@ -512,7 +512,7 @@ header {
 .higher-level-circle {
     position: absolute;
     top: -5.5pt;
-    left: -12pt;
+    left: -12.5pt;
     width: 10pt;
     height: 10pt;
     object-fit: contain;
