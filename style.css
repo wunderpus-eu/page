@@ -145,13 +145,8 @@ header {
     position: relative;
     width: 100%;
     height: 100%;
-}
-
-.spell-card-front,
-.spell-card-back {
-    position: relative;
-    width: 100%;
-    height: 100%;
+    padding: 8.5pt;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
 }
@@ -166,14 +161,16 @@ header {
 
 .card-header {
     position: relative;
-    height: 70pt;
-    margin-top: 8.5pt;
-    margin-left: 8.5pt;
-    margin-right: 8.5pt;
+    padding-right: 1pt;
+}
+
+.header-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 4pt;
 }
 
 .spell-level-outer-circle {
-    position: absolute;
     width: 33pt;
     height: 33pt;
     box-sizing: border-box;
@@ -184,6 +181,7 @@ header {
     justify-content: center;
     align-items: center;
     background-clip: content-box;
+    flex-shrink: 0;
 }
 
 .spell-level-text {
@@ -201,17 +199,13 @@ header {
 }
 
 .spell-name-container {
-    position: absolute;
-    left: 33pt;
-    height: 26pt;
-    margin-left: 3pt;
-    margin-right: 1pt;
     padding-left: 1pt; /* for visual balance */
     padding-top: 3pt;
     padding-bottom: 3pt;
     display: flex;
     align-items: center;
     box-sizing: border-box;
+    min-height: 26pt;
 }
 
 .spell-card h3 {
@@ -226,20 +220,19 @@ header {
 }
 
 .casting-time-container {
-    position: absolute;
-    top: 26pt;
     width: 33pt;
-    text-align: center;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .spell-casting-time {
-    display: inline-block;
     height: 17pt;
     line-height: 15pt;
     padding: 0 4pt;
     border: 1pt solid white;
     border-radius: var(--casting-time-size);
-    vertical-align: middle;
     color: white;
     font-weight: bold;
     white-space: nowrap;
@@ -254,27 +247,17 @@ header {
 }
 
 .spell-range-and-duration {
-    position: absolute;
-    top: 26pt;
-    left: 33pt;
-    right: 0;
-    margin-left: 3pt;
-    margin-right: 1pt;
-    padding-top: 1pt;
-    padding-bottom: 1pt;
-    padding-right: 1pt;
-    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .spell-range {
-    display: inline-block;
-    height: 15pt; /* calc(var(--casting-time-size) - 2pt) */
-    vertical-align: top;
+    height: 15pt;
     margin-right: 4pt;
     padding: 0 5pt 0 4pt;
     justify-self: center;
-    /* border: 1pt solid white; */
-    border-radius: 15pt; /* calc(var(--casting-time-size) - 2pt) */
+    border-radius: 15pt;
     color: white;
     font-size: 8pt;
     white-space: nowrap;
@@ -297,13 +280,10 @@ header {
 }
 
 .spell-duration {
-    display: inline-block;
     height: 15pt;
-    vertical-align: top;
     padding: 0 5pt 0 5pt;
     justify-self: center;
-    /* border: 1pt solid white; */
-    border-radius: 15pt; /* calc(var(--casting-time-size) - 2pt) */
+    border-radius: 15pt;
     color: white;
     font-size: 8pt;
     white-space: nowrap;
@@ -320,18 +300,20 @@ header {
     margin-right: 3pt;
 }
 
+.spell-duration-icon:last-child {
+    margin-right: 0;
+}
+
 .spell-range span,
 .spell-duration span {
     vertical-align: middle;
 }
 
 .spell-component-icons {
-    position: absolute;
-    top: 43pt;
     height: var(--chip-size);
     width: 33pt;
-    margin-top: 2pt;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .spell-component-icons img {
@@ -340,13 +322,6 @@ header {
 }
 
 .spell-component-text {
-    position: absolute;
-    top: 43pt;
-    left: 33pt;
-    right: 0;
-    margin-top: 2pt;
-    margin-left: 3pt;
-    margin-right: 1pt;
     font-size: 7pt;
     line-height: 7pt;
     color: var(--font-color-light);
@@ -398,13 +373,10 @@ header {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    margin-top: 0;
-    margin-left: 8.5pt;
-    margin-right: 8.5pt;
-    margin-bottom: 13pt;
-    padding-top: 3pt;
+    padding-top: 3.5pt;
     padding-left: 8pt;
     padding-right: 5pt;
+    padding-bottom: 3.5pt;
     font-size: 7pt;
     line-height: 7pt;
     color: var(--font-color);
@@ -413,7 +385,6 @@ header {
 
 .spell-description-container.back {
     border: 1pt solid;
-    margin: var(--margin-size);
     border: 1pt solid var(--card-border-color);
     padding: 3.5pt 5pt;
     color: var(--font-color);

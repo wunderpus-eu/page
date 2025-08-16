@@ -814,29 +814,41 @@ document.addEventListener("DOMContentLoaded", () => {
         cardHeader.className = "card-header";
         front.appendChild(cardHeader);
 
+        // Row 1
+        const row1 = document.createElement("div");
+        row1.className = "header-row";
         const spellLevel = render_spell_level(spell, computedColor);
-        cardHeader.appendChild(spellLevel);
-
         const spellName = render_spell_name(spell);
-        cardHeader.appendChild(spellName);
+        row1.appendChild(spellLevel);
+        row1.appendChild(spellName);
+        cardHeader.appendChild(row1);
 
+        // Row 2
+        const row2 = document.createElement("div");
+        row2.className = "header-row";
+        row2.style.marginTop = "-7pt"; // Overlap
+        row2.style.marginBottom = "2pt";
+        row2.style.alignItems = "center";
         const castingTime = render_casting_time(spell);
-        cardHeader.appendChild(castingTime);
-
         const rangeAndDuration = await render_range_and_duration(
             spell,
             computedColor
         );
-        cardHeader.appendChild(rangeAndDuration);
+        row2.appendChild(castingTime);
+        row2.appendChild(rangeAndDuration);
+        cardHeader.appendChild(row2);
 
+        // Row 3
+        const row3 = document.createElement("div");
+        row3.className = "header-row";
         const componentIcons = await render_component_icons(
             spell,
             computedColor
         );
-        cardHeader.appendChild(componentIcons);
-
         const componentText = await render_component_text(spell);
-        cardHeader.appendChild(componentText);
+        row3.appendChild(componentIcons);
+        row3.appendChild(componentText);
+        cardHeader.appendChild(row3);
 
         const concentrationAndRitual = await render_concentration_and_ritual(
             spell,
