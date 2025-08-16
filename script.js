@@ -1,13 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
     const generateCardsButton = document.getElementById("generate-cards");
-    const exportPdfButton = document.getElementById("export-pdf");
+    const exportPdfButton = document.getElementById("export-pdf-fab");
     const printableArea = document.getElementById("printable-area");
-    const spellNamesInput = document.getElementById("spell-names-input");
-    const pageSizeToggle = document.getElementById("page-size-toggle");
+    const spellSelect = document.getElementById("spell-select");
+    const pageSizeSelect = document.getElementById("page-size-select");
     const colorToggle = document.getElementById("color-toggle");
+    const glossaryToggle = document.getElementById("glossary-toggle");
     const header = document.querySelector("header");
     const headerContent = document.getElementById("header-content");
-    const glossaryToggle = document.getElementById("glossary-toggle");
 
     let spells = [];
     const iconCache = {};
@@ -73,6 +73,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 headerContent.getBoundingClientRect().height
             }px`;
         }
+        if (exportPdfButton) {
+            exportPdfButton.style.transform = `scale(${1 / currentZoom})`;
+            exportPdfButton.style.right = `${150 / currentZoom}px`;
+            exportPdfButton.style.bottom = `${90 / currentZoom}px`;
+        }
     }
 
     window.addEventListener("resize", handleZoom);
@@ -108,6 +113,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
             spells = data.spell;
             console.log("Spells loaded:", spells);
+
+            // Populate the sl-select
+            spells.forEach((spell, index) => {
+                const option = document.createElement("sl-option");
+                option.value = index;
+                option.textContent = spell.name;
+                spellSelect.appendChild(option);
+            });
         } catch (error) {
             console.error("Error loading spells:", error);
         }
@@ -1040,7 +1053,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Main function to generate cards
-    async function generateSpellCards(spellNames, pageSize, addGlossary) {
+    async function generateSpellCards(spellIndices, pageSize, addGlossary) {
         printableArea.innerHTML = "";
 
         // Create a temporary card to measure its dimensions
@@ -1079,8 +1092,8 @@ document.addEventListener("DOMContentLoaded", () => {
             allCards.push(...glossaryCards);
         }
 
-        const spellsToRender = spellNames
-            .map((name) => spells.find((s) => s.name === name))
+        const spellsToRender = spellIndices
+            .map((index) => spells[parseInt(index, 10)])
             .filter(Boolean);
 
         const singleCardGroups = [];
@@ -1186,92 +1199,41 @@ document.addEventListener("DOMContentLoaded", () => {
         return page;
     }
 
-    // Toggle between A4 and Letter page sizes
-    pageSizeToggle.addEventListener("click", async () => {
-        const currentSize = pageSizeToggle.dataset.size || "letter";
-        const newSize = currentSize === "letter" ? "a4" : "letter";
-        pageSizeToggle.dataset.size = newSize;
-        pageSizeToggle.textContent =
-            newSize.charAt(0).toUpperCase() + newSize.slice(1);
-        const spellNamesText = spellNamesInput.value;
-        if (!spellNamesText) {
+    async function regenerateCards(selectedSpells = null) {
+        if (selectedSpells === null) {
+            selectedSpells = spellSelect.value;
+        }
+
+        if (!selectedSpells || selectedSpells.length === 0) {
+            printableArea.innerHTML = ""; // Clear the area if no spells are selected
             return;
         }
-        const spellNames = spellNamesText
-            .split(",")
-            .map((name) => name.trim())
-            .filter(Boolean);
-        const pageSize = pageSizeToggle.dataset.size || "letter";
-        const addGlossary =
-            (glossaryToggle.dataset.include || "false") === "true";
-        await generateSpellCards(spellNames, pageSize, addGlossary);
-    });
 
-    // Toggle between Color and Grayscale
-    colorToggle.addEventListener("click", async () => {
-        document.body.classList.toggle("grayscale");
-        const isGrayscale = document.body.classList.contains("grayscale");
-        colorToggle.textContent = isGrayscale ? "Grayscale" : "Color";
-        const spellNamesText = spellNamesInput.value;
-        if (!spellNamesText) {
-            return;
-        }
-        const spellNames = spellNamesText
-            .split(",")
-            .map((name) => name.trim())
-            .filter(Boolean);
-        const pageSize = pageSizeToggle.dataset.size || "letter";
-        const addGlossary =
-            (glossaryToggle.dataset.include || "false") === "true";
-        await generateSpellCards(spellNames, pageSize, addGlossary);
-    });
+        const pageSize = pageSizeSelect.value;
+        const addGlossary = glossaryToggle.checked;
 
-    glossaryToggle.addEventListener("click", async () => {
-        const include = (glossaryToggle.dataset.include || "false") === "true";
-        const newInclude = !include;
-        glossaryToggle.dataset.include = newInclude;
-        glossaryToggle.textContent = newInclude ? "Glossary" : "No Glossary";
+        document.body.classList.toggle("grayscale", colorToggle.checked);
 
-        const spellNamesText = spellNamesInput.value;
-        if (!spellNamesText) {
-            return;
-        }
-        const spellNames = spellNamesText
-            .split(",")
-            .map((name) => name.trim())
-            .filter(Boolean);
-
-        const pageSize = pageSizeToggle.dataset.size || "letter";
-
-        await generateSpellCards(spellNames, pageSize, newInclude);
-    });
-
-    // Generate spell cards when the button is clicked
-    generateCardsButton.addEventListener("click", async () => {
-        const spellNamesText = spellNamesInput.value;
-        if (!spellNamesText) {
-            alert("Please enter at least one spell name.");
-            return;
-        }
-        const spellNames = spellNamesText
-            .split(",")
-            .map((name) => name.trim())
-            .filter(Boolean);
-
-        const pageSize = pageSizeToggle.dataset.size || "letter";
-        const addGlossary =
-            (glossaryToggle.dataset.include || "false") === "true";
-
-        await generateSpellCards(spellNames, pageSize, addGlossary);
+        await generateSpellCards(selectedSpells, pageSize, addGlossary);
         updateIconSizes();
+    }
+
+    pageSizeSelect.addEventListener("sl-change", () => regenerateCards());
+
+    spellSelect.addEventListener("sl-change", (event) => {
+        const selectedSpells = event.target.value;
+        regenerateCards(selectedSpells);
     });
+    colorToggle.addEventListener("sl-change", () => regenerateCards());
+    glossaryToggle.addEventListener("sl-change", () => regenerateCards());
 
     exportPdfButton.addEventListener("click", async () => {
+        exportPdfButton.loading = true;
         const printableArea = document.getElementById("printable-area");
         const html = printableArea.innerHTML;
         const cssResponse = await fetch("style.css");
         const css = await cssResponse.text();
-        const pageSize = pageSizeToggle.dataset.size || "letter";
+        const pageSize = pageSizeSelect.value;
 
         try {
             const response = await fetch("/export-pdf", {
@@ -1293,12 +1255,12 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error("Error during PDF export:", error);
             alert(`Error generating PDF: An unexpected error occurred.`);
+        } finally {
+            exportPdfButton.loading = false;
         }
     });
 
-    // Load spells when the page loads
     loadSpells();
-    // Initial call to set the header scale
     handleZoom();
 
     function getPxPerMm() {

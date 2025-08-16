@@ -4,37 +4,47 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Spell Card Generator</title>
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/cdn/themes/light.css"
+        />
+        <script
+            type="module"
+            src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/cdn/shoelace.js"
+        ></script>
         <link rel="stylesheet" id="main-css" href="style.css" />
     </head>
     <body>
         <header>
             <div id="header-content">
-                <h1>Spell Card Generator</h1>
                 <div class="controls">
-                    <input
-                        type="text"
-                        id="spell-names-input"
-                        placeholder="Fire Bolt, Burning Hands, Fireball"
-                        value="Detect Poison and Disease, Create Undead, Modify Memory, Astral Projection, Clone, Symbol, Counterspell, True Strike, Mordenkainen's Magnificent Mansion, Control Weather, Guiding Bolt, Lightning Bolt, Augury, Conjure Celestial, Control Water, Mordenkainen's Private Sanctum, Clone"
-                    />
-                    <button id="page-size-toggle">Letter</button>
-                    <button id="color-toggle">Color</button>
-                    <button id="glossary-toggle" data-include="true">
-                        Glossary
-                    </button>
-                    <button id="generate-cards">Generate Cards</button>
-                    <button id="export-pdf">Export to PDF</button>
+                    <sl-select
+                        id="spell-select"
+                        multiple
+                        clearable
+                        filterable
+                        placeholder="Select spells..."
+                        style="width: 400px"
+                    ></sl-select>
+                    <sl-select id="page-size-select" value="letter">
+                        <sl-option value="letter">Letter</sl-option>
+                        <sl-option value="a4">A4</sl-option>
+                    </sl-select>
+                    <div class="switch-group">
+                        <sl-switch id="glossary-toggle" checked
+                            >Add Glossary Card</sl-switch
+                        >
+                        <sl-switch id="color-toggle">Grayscale</sl-switch>
+                    </div>
                 </div>
             </div>
         </header>
         <main id="printable-area">
             <!-- Spell cards will be generated here -->
         </main>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-        <script>
-            document.getElementById("main-css").href =
-                "style.css?v=" + new Date().getTime();
-        </script>
+        <sl-button id="export-pdf-fab" variant="primary" pill>
+            <sl-icon name="download" label="Export to PDF"></sl-icon>
+        </sl-button>
         <script src="script.js"></script>
     </body>
 </html>
