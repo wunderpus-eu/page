@@ -204,8 +204,9 @@ header {
     position: absolute;
     left: 33pt;
     height: 26pt;
-    padding-left: 4pt; /* increased for visual balance */
-    padding-right: 1pt;
+    margin-left: 3pt;
+    margin-right: 1pt;
+    padding-left: 1pt; /* for visual balance */
     padding-top: 3pt;
     padding-bottom: 3pt;
     display: flex;
@@ -224,11 +225,16 @@ header {
     vertical-align: middle;
 }
 
-.spell-casting-time {
+.casting-time-container {
     position: absolute;
     top: 26pt;
-    height: 17pt;
+    width: 33pt;
+    text-align: center;
+}
+
+.spell-casting-time {
     display: inline-block;
+    height: 17pt;
     line-height: 15pt;
     padding: 0 4pt;
     border: 1pt solid white;
@@ -252,10 +258,11 @@ header {
     top: 26pt;
     left: 33pt;
     right: 0;
-    margin-top: 1pt;
-    margin-bottom: 1pt;
     margin-left: 3pt;
     margin-right: 1pt;
+    padding-top: 1pt;
+    padding-bottom: 1pt;
+    padding-right: 1pt;
     text-align: left;
 }
 
@@ -322,6 +329,7 @@ header {
     position: absolute;
     top: 43pt;
     height: var(--chip-size);
+    width: 33pt;
     margin-top: 2pt;
     text-align: center;
 }

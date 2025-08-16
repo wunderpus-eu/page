@@ -146,8 +146,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function render_casting_time(spell) {
+        const castingTimeWrapper = document.createElement("div");
+        castingTimeWrapper.className = "casting-time-container";
+
         const castingTimeContainer = document.createElement("div");
         castingTimeContainer.className = "spell-casting-time";
+        castingTimeWrapper.appendChild(castingTimeContainer);
 
         if (spell.time) {
             const time = spell.time[0];
@@ -177,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
             castingTimeContainer.style.backgroundColor = color;
         }
 
-        return castingTimeContainer;
+        return castingTimeWrapper;
     }
 
     async function render_range(spell, computedColor) {
