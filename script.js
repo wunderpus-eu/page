@@ -134,19 +134,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function render_spell_name(spell) {
+        const spellNameContainer = document.createElement("div");
+        spellNameContainer.className = "spell-name-container";
+
         const spellNameElement = document.createElement("h3");
-        spellNameElement.classList.add("spell-name");
+        spellNameElement.className = "spell-name";
         spellNameElement.textContent = spell.name;
+        spellNameContainer.appendChild(spellNameElement);
 
-        // First, render the spell name in the available space to determine line breaks
-        // const words = spell.name.split(" ");
-        // words.forEach((word) => {
-        //     const span = document.createElement("span");
-        //     span.textContent = word + " ";
-        //     spellNameElement.appendChild(span);
-        // });
-
-        return spellNameElement;
+        return spellNameContainer;
     }
 
     function render_casting_time(spell) {

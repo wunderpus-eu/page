@@ -200,14 +200,22 @@ header {
     border-radius: 50%;
 }
 
-.spell-card h3 {
+.spell-name-container {
     position: absolute;
     left: 33pt;
     height: 26pt;
+    padding-left: 4pt; /* increased for visual balance */
+    padding-right: 1pt;
+    padding-top: 3pt;
+    padding-bottom: 3pt;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.spell-card h3 {
     margin-top: 0;
     margin-bottom: 0;
-    margin-left: 3pt;
-    margin-right: 1pt;
     font-family: var(--main-font);
     font-weight: 900;
     font-size: 10pt;
