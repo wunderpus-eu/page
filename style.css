@@ -574,6 +574,10 @@ header {
     margin-bottom: 0.5em;
 }
 
+.spell-table thead {
+    vertical-align: bottom;
+}
+
 .spell-table:last-child {
     margin-bottom: 0;
 }
