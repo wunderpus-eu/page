@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const generateCardsButton = document.getElementById("generate-cards");
-    const exportPdfButton = document.getElementById("export-pdf-fab");
+    const exportPdfButton = document.getElementById("export-pdf-button");
     const printableArea = document.getElementById("printable-area");
     const spellSelect = document.getElementById("spell-select");
     const pageSizeSelect = document.getElementById("page-size-select");
@@ -8,8 +8,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const glossaryToggle = document.getElementById("glossary-toggle");
     const header = document.querySelector("header");
     const headerContent = document.getElementById("header-content");
+    const classFilter = document.getElementById("class-filter");
+    const levelFilter = document.getElementById("level-filter");
+    const addFilteredButton = document.getElementById("add-filtered-button");
+    const filteredCount = document.getElementById("filtered-count");
 
     let spells = [];
+    let spellSources = {};
+    let spellClassMap = {};
     const iconCache = {};
     const baseDevicePixelRatio = window.devicePixelRatio;
 
@@ -73,11 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 headerContent.getBoundingClientRect().height
             }px`;
         }
-        if (exportPdfButton) {
-            exportPdfButton.style.transform = `scale(${1 / currentZoom})`;
-            exportPdfButton.style.right = `${150 / currentZoom}px`;
-            exportPdfButton.style.bottom = `${90 / currentZoom}px`;
-        }
 
         if (printableArea) {
             if (currentZoom > 1) {
@@ -124,22 +125,150 @@ document.addEventListener("DOMContentLoaded", () => {
     // Fetch spell data
     async function loadSpells() {
         try {
-            const response = await fetch("spells-xphb.json");
-            const data = await response.json();
-            spells = data.spell;
-            console.log("Spells loaded:", spells);
+            const [spellsResponse, sourcesResponse] = await Promise.all([
+                fetch("spells-xphb.json"),
+                fetch("sources.json"),
+            ]);
+            const spellsData = await spellsResponse.json();
+            const sourcesData = await sourcesResponse.json();
+            spells = spellsData.spell;
+            spellSources = sourcesData.XPHB;
 
-            // Populate the sl-select
+            buildSpellClassMap();
+
+            // Populate the main spell select
             spells.forEach((spell, index) => {
                 const option = document.createElement("sl-option");
                 option.value = index;
                 option.textContent = spell.name;
                 spellSelect.appendChild(option);
             });
+
+            populateFilters();
         } catch (error) {
-            console.error("Error loading spells:", error);
+            console.error("Error loading spell data:", error);
         }
     }
+
+    function buildSpellClassMap() {
+        spells.forEach((spell, index) => {
+            const sourceInfo = spellSources[spell.name];
+            if (sourceInfo && sourceInfo.class) {
+                const validClasses = sourceInfo.class
+                    .filter((c) => c.source === "XPHB" || c.source === "TCE")
+                    .map((c) => c.name);
+                if (validClasses.length > 0) {
+                    spellClassMap[index] = validClasses;
+                }
+            }
+        });
+    }
+
+    function populateFilters() {
+        const allClasses = new Set();
+        const allLevels = new Set();
+
+        spells.forEach((spell, index) => {
+            if (spellClassMap[index]) {
+                spellClassMap[index].forEach((className) =>
+                    allClasses.add(className)
+                );
+            }
+            allLevels.add(
+                spell.level === 0 ? "Cantrip" : spell.level.toString()
+            );
+        });
+
+        const sortedClasses = [...allClasses].sort();
+        const sortedLevels = [...allLevels].sort((a, b) => {
+            if (a === "Cantrip") return -1;
+            if (b === "Cantrip") return 1;
+            return parseInt(a) - parseInt(b);
+        });
+
+        sortedClasses.forEach((className) => {
+            const option = document.createElement("sl-option");
+            option.value = className;
+            option.textContent = className;
+            classFilter.appendChild(option);
+        });
+
+        sortedLevels.forEach((level) => {
+            const option = document.createElement("sl-option");
+            option.value = level;
+            option.textContent = level;
+            levelFilter.appendChild(option);
+        });
+    }
+
+    function updateFilteredCount() {
+        const selectedClasses = classFilter.value;
+        const selectedLevels = levelFilter.value.map((l) =>
+            l === "Cantrip" ? 0 : parseInt(l)
+        );
+
+        if (selectedClasses.length === 0 && selectedLevels.length === 0) {
+            filteredCount.textContent = "";
+            return;
+        }
+
+        let count = 0;
+        spells.forEach((spell, index) => {
+            const spellClasses = spellClassMap[index] || [];
+            const spellLevel = spell.level;
+
+            const classMatch =
+                selectedClasses.length === 0 ||
+                selectedClasses.some((c) => spellClasses.includes(c));
+            const levelMatch =
+                selectedLevels.length === 0 ||
+                selectedLevels.includes(spellLevel);
+
+            if (classMatch && levelMatch) {
+                count++;
+            }
+        });
+
+        filteredCount.textContent = `${count} matching spells`;
+    }
+
+    function addFilteredSpells() {
+        const selectedClasses = classFilter.value;
+        const selectedLevels = levelFilter.value.map((l) =>
+            l === "Cantrip" ? 0 : parseInt(l)
+        );
+
+        if (selectedClasses.length === 0 && selectedLevels.length === 0) {
+            return; // Don't add all spells if no filters are selected
+        }
+
+        const spellsToAdd = [];
+        spells.forEach((spell, index) => {
+            const spellClasses = spellClassMap[index] || [];
+            const spellLevel = spell.level;
+
+            const classMatch =
+                selectedClasses.length === 0 ||
+                selectedClasses.some((c) => spellClasses.includes(c));
+            const levelMatch =
+                selectedLevels.length === 0 ||
+                selectedLevels.includes(spellLevel);
+
+            if (classMatch && levelMatch) {
+                spellsToAdd.push(index.toString());
+            }
+        });
+
+        // Add to current selection without removing existing ones
+        const currentSelection = new Set(spellSelect.value);
+        spellsToAdd.forEach((spellIndex) => currentSelection.add(spellIndex));
+        spellSelect.value = [...currentSelection];
+        regenerateCards();
+    }
+
+    classFilter.addEventListener("sl-change", updateFilteredCount);
+    levelFilter.addEventListener("sl-change", updateFilteredCount);
+    addFilteredButton.addEventListener("click", addFilteredSpells);
 
     function render_spell_level(spell, computedColor) {
         const outerCircle = document.createElement("div");
@@ -1268,7 +1397,7 @@ document.addEventListener("DOMContentLoaded", () => {
         exportPdfButton.loading = true;
         const printableArea = document.getElementById("printable-area");
         const html = printableArea.innerHTML;
-        const cssResponse = await fetch("style.css");
+        const cssResponse = await fetch("content.css");
         const css = await cssResponse.text();
         const pageSize = pageSizeSelect.value;
 

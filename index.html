@@ -12,29 +12,73 @@
             type="module"
             src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/cdn/shoelace.js"
         ></script>
-        <link rel="stylesheet" id="main-css" href="style.css" />
+        <link rel="stylesheet" href="ui.css" />
+        <link rel="stylesheet" id="main-css" href="content.css" />
     </head>
     <body>
         <header>
             <div id="header-content">
                 <div class="controls">
-                    <sl-select
-                        id="spell-select"
-                        multiple
-                        clearable
-                        filterable
-                        placeholder="Select spells..."
-                        style="width: 400px"
-                    ></sl-select>
-                    <sl-select id="page-size-select" value="letter">
-                        <sl-option value="letter">Letter</sl-option>
-                        <sl-option value="a4">A4</sl-option>
-                    </sl-select>
-                    <div class="switch-group">
-                        <sl-switch id="glossary-toggle" checked
-                            >Glossary Card</sl-switch
-                        >
-                        <sl-switch id="color-toggle">Grayscale</sl-switch>
+                    <div id="selection-group">
+                        <sl-select
+                            id="spell-select"
+                            multiple
+                            clearable
+                            max-options-visible="2"
+                            filterable
+                            placeholder="Select spells..."
+                            pill
+                        ></sl-select>
+                        <div id="filter-controls">
+                            <div id="filters">
+                                <sl-select
+                                    id="class-filter"
+                                    placeholder="Filter by class..."
+                                    multiple
+                                    clearable
+                                    max-options-visible="1"
+                                ></sl-select>
+                                <sl-select
+                                    id="level-filter"
+                                    placeholder="Filter by level..."
+                                    multiple
+                                    clearable
+                                    max-options-visible="1"
+                                ></sl-select>
+                            </div>
+                            <div>
+                                <span id="filtered-count"></span>
+                                <sl-button id="add-filtered-button"
+                                    >Add Filtered</sl-button
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div id="right-controls">
+                        <div id="switch-group">
+                            <sl-switch id="glossary-toggle" checked
+                                >Glossary Card</sl-switch
+                            >
+                            <sl-switch id="color-toggle">Grayscale</sl-switch>
+                        </div>
+                        <div class="vertical-separator"></div>
+                        <div id="export-controls">
+                            <sl-select id="page-size-select" value="letter">
+                                <sl-icon
+                                    slot="prefix"
+                                    name="file-earmark"
+                                ></sl-icon>
+                                <sl-option value="letter">Letter</sl-option>
+                                <sl-option value="a4">A4</sl-option>
+                            </sl-select>
+                            <sl-button id="export-pdf-button" variant="primary">
+                                <sl-icon
+                                    slot="prefix"
+                                    name="download"
+                                ></sl-icon>
+                                Download PDF
+                            </sl-button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -42,9 +86,6 @@
         <main id="printable-area">
             <!-- Spell cards will be generated here -->
         </main>
-        <sl-button id="export-pdf-fab" variant="primary" pill>
-            <sl-icon name="download" label="Export to PDF"></sl-icon>
-        </sl-button>
         <script src="script.js"></script>
     </body>
 </html>

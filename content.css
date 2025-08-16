@@ -76,6 +76,19 @@
     --chip-size: 10pt;
 }
 
+#printable-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+body {
+    font-family: var(--main-font);
+    margin: 0;
+    background-color: #f0f0f0;
+    color: var(--font-color);
+}
+
 body.grayscale {
     --abjuration-color: var(--graphic-color);
     --conjuration-color: var(--graphic-color);
@@ -85,104 +98,6 @@ body.grayscale {
     --illusion-color: var(--graphic-color);
     --necromancy-color: var(--graphic-color);
     --transmutation-color: var(--graphic-color);
-}
-
-#export-pdf-fab {
-    position: fixed;
-    --size: 96px;
-    width: var(--size);
-    height: var(--size);
-    display: block;
-    transform-origin: bottom right;
-}
-
-#export-pdf-fab::part(base) {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#export-pdf-fab sl-icon {
-    font-size: 32px;
-    display: block;
-}
-
-#page-size-select {
-    width: 100px;
-}
-
-#page-size-select::part(display-input) {
-    text-align: center;
-    color: white;
-}
-
-#page-size-select::part(form-control),
-#page-size-select::part(combobox) {
-    background-color: transparent;
-    border: none;
-}
-
-#page-size-select::part(icon) {
-    color: white;
-}
-
-.switch-group {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-
-sl-button::part(base) {
-    border-radius: var(--sl-border-radius-pill);
-}
-
-body {
-    font-family: var(--main-font);
-    margin: 0;
-    background-color: #f0f0f0;
-    color: var(--font-color);
-}
-
-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 10;
-}
-
-#header-content {
-    background-color: #333;
-    color: white;
-    padding: 10px;
-    transform-origin: top center;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%); /* This will be managed by JS */
-    text-align: center;
-}
-
-.controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.controls h1 {
-    font-size: 24px;
-}
-
-#printable-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
 }
 
 .page {

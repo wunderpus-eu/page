@@ -1,0 +1,115 @@
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+}
+
+#header-content {
+    background-color: #333;
+    padding: 10px;
+    transform-origin: top center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%); /* This will be managed by JS */
+}
+
+.controls {
+    display: flex;
+    justify-content: center; /* Center the main selection group */
+    align-items: center;
+    width: 100%;
+    position: relative; /* Positioning context for the right controls */
+}
+
+#selection-group {
+    display: flex;
+    flex-direction: column;
+    width: 800px;
+    gap: 10px;
+    /* margin: 0 auto; no longer needed */
+}
+
+#right-controls {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.vertical-separator {
+    width: 1px;
+    height: 70px; /* Adjust height as needed */
+    background-color: white;
+}
+
+#spell-select {
+    color: var(--font-color);
+}
+#filter-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+#filters {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    color: white;
+}
+
+#class-filter,
+#level-filter {
+    width: 250px;
+}
+
+#filtered-count {
+    color: white;
+    min-width: 150px;
+    text-align: right;
+    margin-right: 10px;
+}
+
+#class-filter::part(form-control),
+#class-filter::part(combobox),
+#level-filter::part(form-control),
+#level-filter::part(combobox) {
+    background-color: transparent;
+    border: none;
+}
+
+#switch-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+    color: white;
+}
+
+#export-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+#page-size-select {
+    width: 150px;
+    color: white;
+}
+
+#page-size-select::part(display-input) {
+    color: white;
+}
+
+#page-size-select::part(form-control),
+#page-size-select::part(combobox) {
+    background-color: transparent;
+    border: none;
+}
