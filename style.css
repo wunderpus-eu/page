@@ -569,7 +569,7 @@ header {
 }
 
 .spell-table {
-    text-align: justify;
+    text-align: left;
     margin-top: 0em;
     margin-bottom: 0.5em;
 }
