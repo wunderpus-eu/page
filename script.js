@@ -135,64 +135,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function render_spell_name(spell) {
         const spellNameElement = document.createElement("h3");
-        spellNameElement.classList.add("left-aligned");
+        spellNameElement.classList.add("spell-name");
+        spellNameElement.textContent = spell.name;
 
         // First, render the spell name in the available space to determine line breaks
-        const words = spell.name.split(" ");
-        words.forEach((word) => {
-            const span = document.createElement("span");
-            span.textContent = word + " ";
-            spellNameElement.appendChild(span);
-        });
+        // const words = spell.name.split(" ");
+        // words.forEach((word) => {
+        //     const span = document.createElement("span");
+        //     span.textContent = word + " ";
+        //     spellNameElement.appendChild(span);
+        // });
 
         return spellNameElement;
-    }
-
-    function adjust_spell_name(spellNameElement) {
-        // Run this after the spell name (and all its parents) have been added to the
-        // DOM.
-
-        // Record the line positions
-        const lines = [];
-        let currentLine = [];
-        let lastOffsetTop = -1;
-
-        spellNameElement.childNodes.forEach((span) => {
-            const offsetTop = span.offsetTop;
-            if (offsetTop > lastOffsetTop && lastOffsetTop !== -1) {
-                lines.push(currentLine);
-                currentLine = [];
-            }
-            currentLine.push(span);
-            lastOffsetTop = offsetTop;
-        });
-        lines.push(currentLine);
-        let line_offsets_left = lines.map((line) => line[0].offsetLeft);
-
-        // Clear the h3, change the size, re-append the lines, and measure their
-        spellNameElement.innerHTML = "";
-        spellNameElement.classList.remove("left-aligned");
-        spellNameElement.classList.add("centered");
-        const card = spellNameElement.closest(".spell-card");
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const lineContainer = document.createElement("span");
-            lineContainer.style.display = "block"; // Each line is a block
-            for (const word of line) {
-                const span = document.createElement("span");
-                span.textContent = word.textContent;
-                lineContainer.appendChild(span);
-            }
-            spellNameElement.appendChild(lineContainer);
-            const offset = Math.max(
-                line_offsets_left[i],
-                lineContainer.firstChild.offsetLeft
-            );
-            lineContainer.style.marginLeft = `${
-                offset - lineContainer.offsetLeft
-            }px`;
-            lineContainer.style.textAlign = "left";
-        }
     }
 
     function render_casting_time(spell) {
@@ -219,9 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 castingTimeText = `${number} ${unitText}`;
                 castingTimeContainer.style.fontSize = "8pt";
             }
-            const castingTimeSpan = document.createElement("span");
-            castingTimeSpan.textContent = castingTimeText;
-            castingTimeContainer.appendChild(castingTimeSpan);
+            castingTimeContainer.textContent = castingTimeText;
         }
 
         if (spell.school && schoolColorMap[spell.school]) {
@@ -1123,22 +1075,26 @@ document.addEventListener("DOMContentLoaded", () => {
         const css = await cssResponse.text();
         const pageSize = pageSizeToggle.dataset.size || "letter";
 
-        const response = await fetch("/export-pdf", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ html, css, pageSize }),
-        });
-
-        if (response.ok) {
-            const result = await response.json();
-            if (result.success) {
-                window.location.href = "/get-pdf";
+        try {
+            const response = await fetch("/export-pdf", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    html: html,
+                    css: css,
+                    pageSize: pageSize,
+                }),
+            });
+            if (response.ok) {
+                window.open("/get-pdf", "_blank");
+            } else {
+                console.error("Failed to export PDF");
             }
-        } else {
-            const error = await response.json();
-            alert(`Error generating PDF: ${error.error}`);
+        } catch (error) {
+            console.error("Error during PDF export:", error);
+            alert(`Error generating PDF: An unexpected error occurred.`);
         }
     });
 

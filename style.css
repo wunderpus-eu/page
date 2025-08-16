@@ -166,47 +166,23 @@ header {
 
 .card-header {
     position: relative;
-    display: grid;
-    grid-template-columns: var(--level-size) 1fr;
-    align-items: center;
-    justify-content: center;
-    padding-top: var(--margin-size);
-    padding-left: var(--margin-size);
-    padding-right: var(--margin-size);
-    padding-bottom: 0;
-}
-
-.spell-card h3 {
-    font-family: var(--main-font);
-    font-weight: 900;
-    font-size: 10pt;
-    /* text-wrap: balance; */
-    line-height: 10pt;
-    margin-top: 0;
-    margin-bottom: 4pt;
-    padding-left: 4pt;
-    padding-right: 3pt;
-}
-
-.spell-card h3.left-aligned {
-    text-align: left;
-}
-
-.spell-card h3.centered {
-    text-align: center;
-    margin-left: calc(-1 * var(--level-size));
+    height: 70pt;
+    margin-top: 8.5pt;
+    margin-left: 8.5pt;
+    margin-right: 8.5pt;
 }
 
 .spell-level-outer-circle {
-    width: var(--level-size);
-    height: var(--level-size);
-    padding: 2pt;
+    position: absolute;
+    width: 33pt;
+    height: 33pt;
+    box-sizing: border-box;
     border: 1pt solid;
     border-radius: 50%;
+    padding: 2pt;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-sizing: border-box;
     background-clip: content-box;
 }
 
@@ -224,38 +200,61 @@ header {
     border-radius: 50%;
 }
 
+.spell-card h3 {
+    position: absolute;
+    left: 33pt;
+    height: 26pt;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 3pt;
+    margin-right: 1pt;
+    font-family: var(--main-font);
+    font-weight: 900;
+    font-size: 10pt;
+    line-height: 10pt;
+    text-align: left;
+    vertical-align: middle;
+}
+
 .spell-casting-time {
-    height: var(--casting-time-size);
-    margin-top: var(--casting-time-overlap);
-    padding: 0 3pt;
-    justify-self: center;
+    position: absolute;
+    top: 26pt;
+    height: 17pt;
+    display: inline-block;
+    line-height: 15pt;
+    padding: 0 4pt;
     border: 1pt solid white;
     border-radius: var(--casting-time-size);
-    text-align: center;
-    line-height: 15pt;
+    vertical-align: middle;
     color: white;
     font-weight: bold;
     white-space: nowrap;
     box-sizing: border-box;
     background-clip: padding-box;
+    text-align: center;
 }
 
 .spell-casting-time.is-circular {
-    width: var(--casting-time-size);
-    padding: 0.5pt 0 0 0;
-    line-height: 14pt;
+    width: 17pt;
+    padding: 0;
 }
 
 .spell-range-and-duration {
-    margin-top: var(--casting-time-overlap);
-    padding-left: 2pt;
+    position: absolute;
+    top: 26pt;
+    left: 33pt;
+    right: 0;
+    margin-top: 1pt;
+    margin-bottom: 1pt;
+    margin-left: 3pt;
+    margin-right: 1pt;
+    text-align: left;
 }
 
 .spell-range {
     display: inline-block;
     height: 15pt; /* calc(var(--casting-time-size) - 2pt) */
     vertical-align: top;
-    margin-top: 1pt;
     margin-right: 4pt;
     padding: 0 5pt 0 4pt;
     justify-self: center;
@@ -286,7 +285,6 @@ header {
     display: inline-block;
     height: 15pt;
     vertical-align: top;
-    margin-top: 1pt;
     padding: 0 5pt 0 5pt;
     justify-self: center;
     /* border: 1pt solid white; */
@@ -313,10 +311,11 @@ header {
 }
 
 .spell-component-icons {
+    position: absolute;
+    top: 43pt;
     height: var(--chip-size);
-    text-align: center;
     margin-top: 2pt;
-    align-self: start;
+    text-align: center;
 }
 
 .spell-component-icons img {
@@ -325,15 +324,20 @@ header {
 }
 
 .spell-component-text {
+    position: absolute;
+    top: 43pt;
+    left: 33pt;
+    right: 0;
+    margin-top: 2pt;
+    margin-left: 3pt;
+    margin-right: 1pt;
     font-size: 7pt;
     line-height: 7pt;
     color: var(--font-color-light);
     font-style: italic;
-    text-align: left;
-    padding-top: 4pt;
-    padding-left: 2pt;
-    padding-right: 6pt;
-    align-self: start;
+    text-align: justify;
+    padding-top: 2pt;
+    padding-right: 4pt;
 }
 
 .spell-concentration-and-ritual {
