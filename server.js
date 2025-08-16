@@ -29,10 +29,6 @@ app.post("/export-pdf", async (req, res) => {
             <html>
                 <head>
                     <meta charset="UTF-8">
-                    <link
-                        href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;900&display=swap"
-                        rel="stylesheet"
-                    />
                     <style>
                         ${pageStyle}
                         ${css}
