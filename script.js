@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const colorToggle = document.getElementById("color-toggle");
     const header = document.querySelector("header");
     const headerContent = document.getElementById("header-content");
+    const glossaryToggle = document.getElementById("glossary-toggle");
 
     let spells = [];
     const iconCache = {};
@@ -283,7 +284,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 round: "Round",
             };
             let durationText = `${durationTimeNumber} ${durationUnitAbbrev[durationTimeType]}`;
-            const durationTextNode = document.createTextNode(durationText);
+            const durationTextNode = document.createElement("span");
+            durationTextNode.textContent = durationText;
             durationContainer.appendChild(durationTextNode);
         } else {
             const ends = spell.duration[0].ends;
@@ -886,8 +888,159 @@ document.addEventListener("DOMContentLoaded", () => {
         return card;
     }
 
+    async function make_glossary_card() {
+        const glossaryData = [
+            {
+                category: "Casting Time",
+                items: [
+                    { icon: "icon-a", text: "Action" },
+                    { icon: "icon-b", text: "Bonus Action" },
+                    { icon: "icon-r", text: "Reaction" },
+                ],
+            },
+            {
+                category: "Target & Range",
+                items: [
+                    { icon: "icon-range", text: "Generic Target" },
+                    { icon: "icon-range-los", text: "Target You Can See" },
+                    { icon: "icon-line", text: "Line" },
+                    { icon: "icon-cone", text: "Cone" },
+                    { icon: "icon-cube", text: "Cube" },
+                    { icon: "icon-cylinder", text: "Cylinder" },
+                    { icon: "icon-sphere", text: "Sphere" },
+                    { icon: "icon-emanation", text: "Emanation" },
+                ],
+            },
+            {
+                category: "Duration",
+                items: [
+                    { icon: "icon-duration", text: "Timed" },
+                    { icon: "icon-permanent", text: "Until Dispelled" },
+                ],
+            },
+            {
+                category: "Tags",
+                items: [
+                    { icon: "chip-c", text: "Concentration" },
+                    { icon: "chip-r", text: "Ritual" },
+                    { icon: "chip-plus", text: "At Higher Levels" },
+                ],
+            },
+            {
+                category: "Components",
+                items: [
+                    { icon: "chip-v", text: "Verbal" },
+                    { icon: "chip-s", text: "Somatic" },
+                    { icon: "chip-m", text: "Material" },
+                    { icon: "chip-m-req", text: "Material with Cost" },
+                    { icon: "chip-m-cons", text: "Material Consumed" },
+                    { icon: "icon-gold", text: "Gold Pieces" },
+                    { icon: "icon-silver", text: "Silver Pieces" },
+                    { icon: "icon-copper", text: "Copper Pieces" },
+                ],
+            },
+            {
+                category: "Damage Types",
+                items: [
+                    { icon: "icon-acid", text: "Acid" },
+                    { icon: "icon-bludgeoning", text: "Bludgeoning" },
+                    { icon: "icon-cold", text: "Cold" },
+                    { icon: "icon-fire", text: "Fire" },
+                    { icon: "icon-force", text: "Force" },
+                    { icon: "icon-lightning", text: "Lightning" },
+                    { icon: "icon-necrotic", text: "Necrotic" },
+                    { icon: "icon-piercing", text: "Piercing" },
+                    { icon: "icon-poison", text: "Poison" },
+                    { icon: "icon-psychic", text: "Psychic" },
+                    { icon: "icon-radiant", text: "Radiant" },
+                    { icon: "icon-slashing", text: "Slashing" },
+                    { icon: "icon-thunder", text: "Thunder" },
+                ],
+            },
+        ];
+
+        const frontCard = document.createElement("div");
+        frontCard.className = "spell-card glossary-card";
+        const front = document.createElement("div");
+        front.className = "spell-card-front";
+        frontCard.appendChild(front);
+
+        const backCard = document.createElement("div");
+        backCard.className = "spell-card glossary-card";
+        const back = document.createElement("div");
+        back.className = "spell-card-back";
+        backCard.appendChild(back);
+
+        const frontColumns = [
+            document.createElement("div"),
+            document.createElement("div"),
+        ];
+        frontColumns[0].className = "glossary-column";
+        frontColumns[1].className = "glossary-column";
+        front.appendChild(frontColumns[0]);
+        front.appendChild(frontColumns[1]);
+
+        const backColumns = [
+            document.createElement("div"),
+            document.createElement("div"),
+        ];
+        backColumns[0].className = "glossary-column";
+        backColumns[1].className = "glossary-column";
+        back.appendChild(backColumns[0]);
+        back.appendChild(backColumns[1]);
+
+        const iconColor = get_color_from_css_variable("var(--font-color)");
+
+        // Fixed layout definition
+        const columnLayout = {
+            0: [glossaryData[0], glossaryData[1], glossaryData[2]], // Front Col 1
+            1: [glossaryData[3], glossaryData[4]], // Front Col 2
+            2: [glossaryData[5]], // Back Col 1
+            3: [], // Back Col 2
+        };
+
+        const allColumns = [...frontColumns, ...backColumns];
+
+        for (let i = 0; i < allColumns.length; i++) {
+            const column = allColumns[i];
+            const sections = columnLayout[i];
+
+            if (sections) {
+                for (const section of sections) {
+                    const sectionDiv = document.createElement("div");
+                    sectionDiv.className = "glossary-section";
+
+                    const title = document.createElement("h4");
+                    title.textContent = section.category;
+                    sectionDiv.appendChild(title);
+
+                    for (const item of section.items) {
+                        const itemDiv = document.createElement("div");
+                        itemDiv.className = "glossary-item";
+
+                        const icon = document.createElement("img");
+                        icon.src = await load_icon(
+                            item.icon,
+                            iconColor,
+                            "white"
+                        );
+                        itemDiv.appendChild(icon);
+
+                        const text = document.createElement("span");
+                        text.textContent = item.text;
+                        itemDiv.appendChild(text);
+                        sectionDiv.appendChild(itemDiv);
+                    }
+                    column.appendChild(sectionDiv);
+                }
+            }
+        }
+
+        return [frontCard, backCard];
+    }
+
     // Main function to generate cards
-    async function generateSpellCards(spellNames, pageSize) {
+    async function generateSpellCards(spellNames, pageSize, addGlossary) {
         printableArea.innerHTML = "";
 
         // Create a temporary card to measure its dimensions
@@ -919,6 +1072,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // 1mm gap between cards
         const containerWidth = cardsPerRow * (cardWidth + 1) - 1;
         const containerHeight = rowsPerPage * (cardHeight + 1) - 1;
+
+        const allCards = [];
+        if (addGlossary) {
+            const glossaryCards = await make_glossary_card();
+            allCards.push(...glossaryCards);
+        }
 
         const spellsToRender = spellNames
             .map((name) => spells.find((s) => s.name === name))
@@ -986,7 +1145,9 @@ document.addEventListener("DOMContentLoaded", () => {
         printableArea.appendChild(currentPage);
         let cardCount = 0;
 
-        for (const card of layout) {
+        const finalLayout = [...allCards, ...layout];
+
+        for (const card of finalLayout) {
             if (cardCount >= maxCardsPerPage) {
                 currentPage = createPage(
                     pageSize,
@@ -1041,7 +1202,9 @@ document.addEventListener("DOMContentLoaded", () => {
             .map((name) => name.trim())
             .filter(Boolean);
         const pageSize = pageSizeToggle.dataset.size || "letter";
-        await generateSpellCards(spellNames, pageSize);
+        const addGlossary =
+            (glossaryToggle.dataset.include || "false") === "true";
+        await generateSpellCards(spellNames, pageSize, addGlossary);
     });
 
     // Toggle between Color and Grayscale
@@ -1058,7 +1221,29 @@ document.addEventListener("DOMContentLoaded", () => {
             .map((name) => name.trim())
             .filter(Boolean);
         const pageSize = pageSizeToggle.dataset.size || "letter";
-        await generateSpellCards(spellNames, pageSize);
+        const addGlossary =
+            (glossaryToggle.dataset.include || "false") === "true";
+        await generateSpellCards(spellNames, pageSize, addGlossary);
+    });
+
+    glossaryToggle.addEventListener("click", async () => {
+        const include = (glossaryToggle.dataset.include || "false") === "true";
+        const newInclude = !include;
+        glossaryToggle.dataset.include = newInclude;
+        glossaryToggle.textContent = newInclude ? "Glossary" : "No Glossary";
+
+        const spellNamesText = spellNamesInput.value;
+        if (!spellNamesText) {
+            return;
+        }
+        const spellNames = spellNamesText
+            .split(",")
+            .map((name) => name.trim())
+            .filter(Boolean);
+
+        const pageSize = pageSizeToggle.dataset.size || "letter";
+
+        await generateSpellCards(spellNames, pageSize, newInclude);
     });
 
     // Generate spell cards when the button is clicked
@@ -1074,8 +1259,10 @@ document.addEventListener("DOMContentLoaded", () => {
             .filter(Boolean);
 
         const pageSize = pageSizeToggle.dataset.size || "letter";
+        const addGlossary =
+            (glossaryToggle.dataset.include || "false") === "true";
 
-        await generateSpellCards(spellNames, pageSize);
+        await generateSpellCards(spellNames, pageSize, addGlossary);
         updateIconSizes();
     });
 
