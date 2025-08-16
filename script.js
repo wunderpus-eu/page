@@ -78,6 +78,21 @@ document.addEventListener("DOMContentLoaded", () => {
             exportPdfButton.style.right = `${150 / currentZoom}px`;
             exportPdfButton.style.bottom = `${90 / currentZoom}px`;
         }
+
+        if (printableArea) {
+            if (currentZoom > 1) {
+                document.body.style.minWidth = `${
+                    printableArea.getBoundingClientRect().width
+                }px`;
+            } else {
+                document.body.style.minWidth = "";
+            }
+        }
+
+        const scrollable = document.documentElement;
+        const newScrollX =
+            (scrollable.scrollWidth - scrollable.clientWidth) / 2;
+        scrollable.scrollLeft = newScrollX;
     }
 
     window.addEventListener("resize", handleZoom);
@@ -1082,7 +1097,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         const maxCardsPerPage = cardsPerRow * rowsPerPage;
 
-        // 1mm gap between cards
+        // 1mm gap between cards.
         const containerWidth = cardsPerRow * (cardWidth + 1) - 1;
         const containerHeight = rowsPerPage * (cardHeight + 1) - 1;
 
@@ -1181,6 +1196,26 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             cardCount++;
         }
+
+        // On every page, add enough spacer elements to ensure there are at least two full rows.
+        const allPages = printableArea.querySelectorAll(".page");
+        const minElementsPerPage = 2 * cardsPerRow;
+
+        allPages.forEach((page) => {
+            const cardContainer = page.querySelector(".card-container");
+            const numElements = cardContainer.children.length;
+
+            if (numElements > 0 && numElements < minElementsPerPage) {
+                const spacersNeeded = minElementsPerPage - numElements;
+                for (let i = 0; i < spacersNeeded; i++) {
+                    const spacer = document.createElement("div");
+                    spacer.className = "spell-card-spacer";
+                    spacer.style.width = `${cardWidth}mm`;
+                    spacer.style.height = `${cardHeight}mm`;
+                    cardContainer.appendChild(spacer);
+                }
+            }
+        });
     }
 
     function createPage(pageSize, containerWidth, containerHeight) {
@@ -1190,12 +1225,14 @@ document.addEventListener("DOMContentLoaded", () => {
             page.classList.add("page-letter");
         }
 
+        const pageContent = document.createElement("div");
+        pageContent.className = "page-content";
+        page.appendChild(pageContent);
+
         const cardContainer = document.createElement("div");
         cardContainer.className = "card-container";
-        cardContainer.style.width = `${containerWidth}mm`;
-        cardContainer.style.height = `${containerHeight}mm`;
 
-        page.appendChild(cardContainer);
+        pageContent.appendChild(cardContainer);
         return page;
     }
 
