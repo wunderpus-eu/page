@@ -161,7 +161,7 @@ header {
 
 .card-header {
     position: relative;
-    padding-right: 1pt;
+    margin-right: 1pt;
 }
 
 .header-row {
@@ -369,41 +369,48 @@ header {
     padding: 0 0.25pt;
 }
 
-.spell-description-container {
+.card-body {
+    margin-left: 4pt;
+    margin-right: 1pt;
+    margin-bottom: 1pt;
+    padding: 3.5pt 4pt;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    padding-top: 3.5pt;
-    padding-left: 8pt;
-    padding-right: 5pt;
-    padding-bottom: 3.5pt;
     font-size: 7pt;
     line-height: 7pt;
     color: var(--font-color);
     min-height: 0;
 }
 
-.spell-description-container.back {
+.card-body.back {
+    margin: 0;
     border: 1pt solid;
     border: 1pt solid var(--card-border-color);
-    padding: 3.5pt 5pt;
     color: var(--font-color);
 }
 
 .spell-condition-text {
     text-align: justify;
     font-style: italic;
-    margin-top: 0em;
+    margin-top: 0;
     margin-bottom: 0.5em;
 }
 
-.spell-description-container p {
+.description-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.description-text p {
     text-align: justify;
     margin-top: 0em;
     margin-bottom: 0.5em;
 }
 
-.spell-description-container p:last-child {
+.description-text p:last-child {
     margin-bottom: 0;
 }
 
@@ -487,14 +494,14 @@ header {
 
 .spell-higher-level-text {
     text-align: justify;
-    margin-top: auto;
-    padding-top: 3pt;
+    margin-top: 3.5pt;
+    padding-top: 4.5pt;
     position: relative;
 }
 
 .higher-level-line {
     position: absolute;
-    top: -1pt;
+    top: 0;
     left: -7pt;
     right: -5pt;
     border-top: 1pt solid;
@@ -502,7 +509,7 @@ header {
 
 .higher-level-circle {
     position: absolute;
-    top: -5.5pt;
+    top: -4.5pt;
     left: -12.5pt;
     width: 10pt;
     height: 10pt;

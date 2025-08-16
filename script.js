@@ -859,24 +859,27 @@ document.addEventListener("DOMContentLoaded", () => {
         const spellSchool = render_spell_school(spell, computedColor);
         front.appendChild(spellSchool);
 
-        const spellDescriptionContainer = document.createElement("div");
-        spellDescriptionContainer.className = "spell-description-container";
-        front.appendChild(spellDescriptionContainer);
+        const cardBody = document.createElement("div");
+        cardBody.className = "card-body";
+        front.appendChild(cardBody);
 
         const conditionText = await render_condition_text(spell);
         if (conditionText) {
-            spellDescriptionContainer.appendChild(conditionText);
+            cardBody.appendChild(conditionText);
         }
 
+        const descriptionText = document.createElement("div");
+        descriptionText.className = "description-text";
         const spellDescription = await render_entries(spell.entries);
-        spellDescriptionContainer.appendChild(spellDescription);
+        descriptionText.appendChild(spellDescription);
+        cardBody.appendChild(descriptionText);
 
         const higherLevelText = await render_higher_level_text(
             spell,
             computedColor
         );
         if (higherLevelText) {
-            spellDescriptionContainer.appendChild(higherLevelText);
+            cardBody.appendChild(higherLevelText);
         }
 
         card.appendChild(front);
@@ -1128,60 +1131,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function handle_overflow(card, spell, fontReduced, tempContainer) {
-        const spellDescriptionContainer = card.querySelector(
-            ".spell-description-container"
-        );
-        const componentText = card.querySelector(".spell-component-text");
-        const higherLevelText = spellDescriptionContainer.querySelector(
-            ".spell-higher-level-text"
-        );
-        const conditionText = spellDescriptionContainer.querySelector(
-            ".spell-condition-text"
-        );
+        const cardBody = card.querySelector(".card-body");
+        const descriptionText = card.querySelector(".description-text");
 
-        // Temporarily remove the higher-level text so its auto-margin doesn't affect scrollHeight
-        if (higherLevelText) {
-            higherLevelText.remove();
+        if (!cardBody || !descriptionText) {
+            // Card is in a temporary state for measurement, no overflow handling needed yet.
+            return null;
         }
+
+        const componentText = card.querySelector(".spell-component-text");
 
         function is_overflowing(element) {
             return element.scrollHeight > element.clientHeight;
         }
 
-        if (is_overflowing(spellDescriptionContainer)) {
+        if (is_overflowing(descriptionText)) {
             // First, try to fix the overflow by reducing the font size
             if (!fontReduced) {
-                spellDescriptionContainer.style.fontSize = "6pt";
-                spellDescriptionContainer.style.lineHeight = "6pt";
+                cardBody.style.fontSize = "6pt";
+                cardBody.style.lineHeight = "6pt";
                 componentText.style.fontSize = "6pt";
                 componentText.style.lineHeight = "6pt";
-                if (conditionText) {
-                    conditionText.style.fontSize = "6pt";
-                    conditionText.style.lineHeight = "6pt";
-                }
-                if (higherLevelText) {
-                    higherLevelText.style.fontSize = "6pt";
-                    higherLevelText.style.lineHeight = "6pt";
-                }
 
-                if (is_overflowing(spellDescriptionContainer)) {
+                if (is_overflowing(descriptionText)) {
                     // If it still overflows, revert the font size and create a back
-                    spellDescriptionContainer.style.fontSize = "";
-                    spellDescriptionContainer.style.lineHeight = "";
+                    cardBody.style.fontSize = "";
+                    cardBody.style.lineHeight = "";
                     componentText.style.fontSize = "";
                     componentText.style.lineHeight = "";
-                    if (conditionText) {
-                        conditionText.style.fontSize = "";
-                        conditionText.style.lineHeight = "";
-                    }
-                    if (higherLevelText) {
-                        higherLevelText.style.fontSize = "";
-                        higherLevelText.style.lineHeight = "";
-                    }
                 } else {
-                    if (higherLevelText) {
-                        spellDescriptionContainer.appendChild(higherLevelText);
-                    }
                     return null;
                 }
             }
@@ -1194,11 +1172,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const back = document.createElement("div");
             back.className = "spell-card-back";
 
-            const backDescriptionContainer = document.createElement("div");
-            backDescriptionContainer.className =
-                "spell-description-container back";
-            backDescriptionContainer.style.borderColor = computedColor;
-            back.appendChild(backDescriptionContainer);
+            const backCardBody = document.createElement("div");
+            backCardBody.className = "card-body back";
+            backCardBody.style.borderColor = computedColor;
+            back.appendChild(backCardBody);
+
+            const backDescriptionText = document.createElement("div");
+            backDescriptionText.className = "description-text";
+            backCardBody.appendChild(backDescriptionText);
 
             backCardContainer.appendChild(back);
 
@@ -1207,65 +1188,38 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (fontReduced) {
-                const frontDescriptionContainer = card.querySelector(
-                    ".spell-description-container"
-                );
-                frontDescriptionContainer.style.fontSize = "6pt";
-                frontDescriptionContainer.style.lineHeight = "6pt";
+                const frontCardBody = card.querySelector(".card-body");
+                frontCardBody.style.fontSize = "6pt";
+                frontCardBody.style.lineHeight = "6pt";
                 componentText.style.fontSize = "6pt";
                 componentText.style.lineHeight = "6pt";
-                backDescriptionContainer.style.fontSize = "6pt";
-                backDescriptionContainer.style.lineHeight = "6pt";
-                if (conditionText) {
-                    conditionText.style.fontSize = "6pt";
-                    conditionText.style.lineHeight = "6pt";
-                }
-                if (higherLevelText) {
-                    higherLevelText.style.fontSize = "6pt";
-                    higherLevelText.style.lineHeight = "6pt";
-                }
+                backCardBody.style.fontSize = "6pt";
+                backCardBody.style.lineHeight = "6pt";
             }
 
-            const descriptionElements = Array.from(
-                spellDescriptionContainer.children
-            ).filter(
-                (el) =>
-                    !el.classList.contains("spell-condition-text") &&
-                    !el.classList.contains("spell-higher-level-text")
-            );
-
-            if (higherLevelText) {
-                spellDescriptionContainer.appendChild(higherLevelText);
-            }
+            const descriptionElements = Array.from(descriptionText.children);
 
             while (
-                is_overflowing(spellDescriptionContainer) &&
+                is_overflowing(descriptionText) &&
                 descriptionElements.length > 0
             ) {
                 const elementToMove = descriptionElements.pop();
-                backDescriptionContainer.prepend(elementToMove);
+                backDescriptionText.prepend(elementToMove);
             }
 
-            if (is_overflowing(backDescriptionContainer) && !fontReduced) {
+            if (is_overflowing(backCardBody) && !fontReduced) {
                 // Back is overflowing, and we haven't reduced font size yet.
                 // We need to restart the process with smaller fonts.
 
                 // 1. Restore the front card's description container by moving elements back from the back card.
-                const backElements = Array.from(
-                    backDescriptionContainer.children
-                );
+                const backElements = Array.from(backDescriptionText.children);
                 for (const elementToMove of backElements) {
-                    spellDescriptionContainer.appendChild(elementToMove);
+                    descriptionText.appendChild(elementToMove);
                 }
 
                 // 2. Remove the now-empty back card from the temp container.
                 if (tempContainer) {
                     tempContainer.removeChild(backCardContainer);
-                }
-
-                // 3. Remove higher level text before recursive call, as the function expects it to be removed.
-                if (higherLevelText) {
-                    higherLevelText.remove();
                 }
 
                 // 4. Recursively call handle_overflow.
@@ -1274,7 +1228,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const lastParagraph =
-                spellDescriptionContainer.querySelector("p:last-of-type");
+                descriptionText.querySelector("p:last-of-type");
             if (lastParagraph) {
                 lastParagraph.textContent += " →";
             }
@@ -1284,11 +1238,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             return backCardContainer;
-        }
-
-        // Add the higher-level text back if it was removed
-        if (higherLevelText) {
-            spellDescriptionContainer.appendChild(higherLevelText);
         }
 
         return null;
