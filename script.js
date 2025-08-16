@@ -145,12 +145,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return spellNameContainer;
     }
 
-    function render_casting_time(spell) {
+    function render_casting_time(spell, computedColor) {
         const castingTimeWrapper = document.createElement("div");
         castingTimeWrapper.className = "casting-time-container";
 
         const castingTimeContainer = document.createElement("div");
         castingTimeContainer.className = "spell-casting-time";
+        castingTimeContainer.style.backgroundColor = computedColor;
         castingTimeWrapper.appendChild(castingTimeContainer);
 
         if (spell.time) {
@@ -174,11 +175,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 castingTimeContainer.style.fontSize = "8pt";
             }
             castingTimeContainer.textContent = castingTimeText;
-        }
-
-        if (spell.school && schoolColorMap[spell.school]) {
-            const color = schoolColorMap[spell.school];
-            castingTimeContainer.style.backgroundColor = color;
         }
 
         return castingTimeWrapper;
@@ -829,7 +825,7 @@ document.addEventListener("DOMContentLoaded", () => {
         row2.style.marginTop = "-7pt"; // Overlap
         row2.style.marginBottom = "2pt";
         row2.style.alignItems = "center";
-        const castingTime = render_casting_time(spell);
+        const castingTime = render_casting_time(spell, computedColor);
         const rangeAndDuration = await render_range_and_duration(
             spell,
             computedColor
