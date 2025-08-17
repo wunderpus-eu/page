@@ -539,6 +539,8 @@ body.grayscale {
     display: inline-block;
     vertical-align: middle;
     transform: translateY(-0.1em);
+    width: 0.8em;
+    height: 0.8em;
 }
 
 .inline-icon {

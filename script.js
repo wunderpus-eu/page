@@ -441,15 +441,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 round: "Round",
             };
             let durationText = `${durationTimeNumber} ${durationUnitAbbrev[durationTimeType]}`;
-            const durationTextNode = document.createElement("span");
-            durationTextNode.textContent = durationText;
-            durationContainer.appendChild(durationTextNode);
+            const durationSpan = document.createElement("span");
+            durationSpan.textContent = durationText;
+            durationContainer.appendChild(durationSpan);
         } else {
             const ends = spell.duration[0].ends;
             if (ends.includes("trigger")) {
-                const durationText = "Until triggered";
-                const durationTextNode = document.createTextNode(durationText);
-                durationContainer.appendChild(durationTextNode);
+                const durationSpan = document.createElement("span");
+                durationSpan.textContent = "or Triggered";
+                durationContainer.appendChild(durationSpan);
             }
         }
 
@@ -578,6 +578,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const diceTags = ["damage", "dice", "scaledamage", "scaledice"];
         const chanceTag = "chance";
         const actionTag = "action";
+        const filterTag = "filter";
 
         const wordRegexPart = `(?<!course of )\\b(${wordKeys.join("|")})\\b`;
 
@@ -589,10 +590,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const diceRegexPart = `|({@(?:${diceTags.join("|")})\\s[^}]+})`;
         const chanceRegexPart = `|({@${chanceTag}\\s[^}]+})`;
         const actionRegexPart = `|({@${actionTag}\\s[^}]+}(?:\\s*action)?)`;
+        const filterRegexPart = `|({@${filterTag}\\s[^}]+})`;
         const genericTagRegexPart = `|({@[^}]+})`;
 
         const regex = new RegExp(
-            `${wordRegexPart}${iconTagRegexPart}${diceRegexPart}${chanceRegexPart}${actionRegexPart}${genericTagRegexPart}`,
+            `${wordRegexPart}${iconTagRegexPart}${diceRegexPart}${chanceRegexPart}${actionRegexPart}${filterRegexPart}${genericTagRegexPart}`,
             "gi"
         );
 
@@ -687,6 +689,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 iconWrapper.appendChild(icon);
                 container.appendChild(iconWrapper);
             } else if (match[6]) {
+                // filter tag match
+                const innerContent = matchedText.substring(
+                    2,
+                    matchedText.length - 1
+                );
+                const firstSpaceIndex = innerContent.indexOf(" ");
+                const contentAfterTag = innerContent.substring(
+                    firstSpaceIndex + 1
+                );
+                const textToRender = contentAfterTag.split("|")[0].trim();
+                container.appendChild(document.createTextNode(textToRender));
+            } else if (match[7]) {
                 // Generic tag match
                 const innerContent = matchedText.substring(
                     2,
@@ -1381,7 +1395,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.toggle("grayscale", colorToggle.checked);
 
         await generateSpellCards(selectedSpells, pageSize, addGlossary);
-        updateIconSizes();
+        // updateIconSizes();
     }
 
     pageSizeSelect.addEventListener("sl-change", () => regenerateCards());
