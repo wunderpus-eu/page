@@ -650,7 +650,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const firstSpaceIndex = innerContent.indexOf(" ");
                 const formula = innerContent
                     .substring(firstSpaceIndex + 1)
-                    .split("|")[0]
+                    .split("|")
+                    .pop() // Take the part after the last |
                     .trim();
                 const span = document.createElement("span");
                 span.className = "dice-formula";
