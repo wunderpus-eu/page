@@ -789,6 +789,33 @@ document.addEventListener("DOMContentLoaded", () => {
         return concentrationAndRitualContainer;
     }
 
+    async function render_class_icons(spell, computedColor) {
+        const classIconsContainer = document.createElement("div");
+        classIconsContainer.className = "spell-class-icons";
+
+        const sourceInfo = spellSources[spell.name];
+        if (sourceInfo && sourceInfo.class) {
+            const validClasses = sourceInfo.class
+                .filter((c) => c.source === "XPHB" || c.source === "TCE")
+                .map((c) => c.name);
+
+            const uniqueClasses = [...new Set(validClasses)];
+
+            uniqueClasses.sort();
+            for (const className of uniqueClasses) {
+                const classIcon = document.createElement("img");
+                classIcon.src = await load_icon(
+                    `icon-${className.toLowerCase()}`,
+                    computedColor,
+                    "white"
+                );
+                classIconsContainer.appendChild(classIcon);
+            }
+        }
+
+        return classIconsContainer;
+    }
+
     function render_spell_school(spell, computedColor) {
         const spellSchoolContainer = document.createElement("div");
         spellSchoolContainer.className = "spell-school-container";
@@ -1020,15 +1047,6 @@ document.addEventListener("DOMContentLoaded", () => {
         row3.appendChild(componentText);
         cardHeader.appendChild(row3);
 
-        const concentrationAndRitual = await render_concentration_and_ritual(
-            spell,
-            computedColor
-        );
-        front.appendChild(concentrationAndRitual);
-
-        const spellSchool = render_spell_school(spell, computedColor);
-        front.appendChild(spellSchool);
-
         const cardBody = document.createElement("div");
         cardBody.className = "card-body";
         front.appendChild(cardBody);
@@ -1051,6 +1069,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (higherLevelText) {
             cardBody.appendChild(higherLevelText);
         }
+
+        const concentrationAndRitual = await render_concentration_and_ritual(
+            spell,
+            computedColor
+        );
+        front.appendChild(concentrationAndRitual);
+
+        const classIcons = await render_class_icons(spell, computedColor);
+        front.appendChild(classIcons);
+
+        const spellSchool = render_spell_school(spell, computedColor);
+        front.appendChild(spellSchool);
 
         card.appendChild(front);
 
@@ -1129,6 +1159,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     { icon: "icon-thunder", text: "Thunder" },
                 ],
             },
+            {
+                category: "Classes",
+                items: [
+                    { icon: "icon-artificer", text: "Artificer" },
+                    { icon: "icon-bard", text: "Bard" },
+                    { icon: "icon-cleric", text: "Cleric" },
+                    { icon: "icon-druid", text: "Druid" },
+                    { icon: "icon-paladin", text: "Paladin" },
+                    { icon: "icon-ranger", text: "Ranger" },
+                    { icon: "icon-sorcerer", text: "Sorcerer" },
+                    { icon: "icon-warlock", text: "Warlock" },
+                    { icon: "icon-wizard", text: "Wizard" },
+                ],
+            },
         ];
 
         const frontCard = document.createElement("div");
@@ -1168,7 +1212,7 @@ document.addEventListener("DOMContentLoaded", () => {
             0: [glossaryData[0], glossaryData[1], glossaryData[2]], // Front Col 1
             1: [glossaryData[3], glossaryData[4]], // Front Col 2
             2: [glossaryData[5]], // Back Col 1
-            3: [], // Back Col 2
+            3: [glossaryData[6]], // Back Col 2
         };
 
         const allColumns = [...frontColumns, ...backColumns];

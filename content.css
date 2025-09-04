@@ -380,10 +380,22 @@ body.grayscale {
     padding: 0 0.25pt;
 }
 
+.spell-class-icons {
+    position: absolute;
+    bottom: 5pt;
+    left: 11pt;
+    height: var(--icon-size);
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 2pt;
+}
+
 .card-body {
     margin-left: 4pt;
     margin-right: 1pt;
-    margin-bottom: 1pt;
+    margin-bottom: 3pt;
     padding: 3.5pt 4pt;
     display: flex;
     flex-direction: column;
