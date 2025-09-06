@@ -830,6 +830,15 @@ document.addEventListener("DOMContentLoaded", () => {
         return classIconsContainer;
     }
 
+    function render_spell_source(spell, computedColor) {
+        const sourceText = document.createElement("div");
+        sourceText.className = "spell-source-text";
+        sourceText.textContent =
+            spell.source === "XPHB" ? "PHB'24" : spell.source;
+        sourceText.style.color = computedColor;
+        return sourceText;
+    }
+
     function render_spell_school(spell, computedColor) {
         const spellSchoolContainer = document.createElement("div");
         spellSchoolContainer.className = "spell-school-container";
@@ -1095,6 +1104,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spellSchool = render_spell_school(spell, computedColor);
         front.appendChild(spellSchool);
+
+        const spellSource = render_spell_source(spell, computedColor);
+        front.appendChild(spellSource);
 
         card.appendChild(front);
 

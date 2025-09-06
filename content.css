@@ -57,7 +57,7 @@
 :root {
     --main-font: "Source Sans 3", sans-serif;
     --font-color: #333;
-    --font-color-light: #666;
+    --font-color-light: #7f7f7f;
     --graphic-color: #333;
     --card-border-color: #ccc;
     --abjuration-color: #55a868;
@@ -74,6 +74,15 @@
     --casting-time-overlap: -7pt;
     --icon-size: 8pt;
     --chip-size: 10pt;
+}
+
+.spell-source-text {
+    position: absolute;
+    bottom: 5pt;
+    right: 9.5pt;
+    font-size: 5pt;
+    color: var(--font-color-light);
+    text-align: right;
 }
 
 #printable-area {
