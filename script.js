@@ -13,6 +13,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const addFilteredButton = document.getElementById("add-filtered-button");
     const filteredCount = document.getElementById("filtered-count");
 
+    const ALL_CLASSES = [
+        "Artificer",
+        "Bard",
+        "Cleric",
+        "Druid",
+        "Paladin",
+        "Ranger",
+        "Sorcerer",
+        "Warlock",
+        "Wizard",
+    ];
+
     let spells = [];
     let spellSources = {};
     let spellClassMap = {};
@@ -794,23 +806,25 @@ document.addEventListener("DOMContentLoaded", () => {
         classIconsContainer.className = "spell-class-icons";
 
         const sourceInfo = spellSources[spell.name];
+        let uniqueClasses = [];
         if (sourceInfo && sourceInfo.class) {
             const validClasses = sourceInfo.class
                 .filter((c) => c.source === "XPHB" || c.source === "TCE")
                 .map((c) => c.name);
 
-            const uniqueClasses = [...new Set(validClasses)];
+            uniqueClasses = [...new Set(validClasses)];
+        }
 
-            uniqueClasses.sort();
-            for (const className of uniqueClasses) {
-                const classIcon = document.createElement("img");
-                classIcon.src = await load_icon(
-                    `icon-${className.toLowerCase()}`,
-                    computedColor,
-                    "white"
-                );
-                classIconsContainer.appendChild(classIcon);
-            }
+        for (const className of ALL_CLASSES) {
+            const classIcon = document.createElement("img");
+            const isPresent = uniqueClasses.includes(className);
+            const color = isPresent ? computedColor : "#d4d4d4";
+            classIcon.src = await load_icon(
+                `icon-${className.toLowerCase()}`,
+                color,
+                "white"
+            );
+            classIconsContainer.appendChild(classIcon);
         }
 
         return classIconsContainer;
@@ -1161,17 +1175,10 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             {
                 category: "Classes",
-                items: [
-                    { icon: "icon-artificer", text: "Artificer" },
-                    { icon: "icon-bard", text: "Bard" },
-                    { icon: "icon-cleric", text: "Cleric" },
-                    { icon: "icon-druid", text: "Druid" },
-                    { icon: "icon-paladin", text: "Paladin" },
-                    { icon: "icon-ranger", text: "Ranger" },
-                    { icon: "icon-sorcerer", text: "Sorcerer" },
-                    { icon: "icon-warlock", text: "Warlock" },
-                    { icon: "icon-wizard", text: "Wizard" },
-                ],
+                items: ALL_CLASSES.map((c) => ({
+                    icon: `icon-${c.toLowerCase()}`,
+                    text: c,
+                })),
             },
         ];
 
