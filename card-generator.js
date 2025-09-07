@@ -1,3 +1,5 @@
+import { colord } from "colord";
+
 export const ALL_CLASSES = [
     "Artificer",
     "Bard",
@@ -14,6 +16,9 @@ let spells = [];
 let spellSources = {};
 let spellClassMap = {};
 const iconCache = {};
+const spellCardInstances = new Map();
+
+export { spellCardInstances };
 
 export const schoolColorMap = {
     A: "var(--abjuration-color)",
@@ -26,37 +31,36 @@ export const schoolColorMap = {
     T: "var(--transmutation-color)",
 };
 
-export function compute_color(spell) {
-    const colorVar = schoolColorMap[spell.school];
-    if (!colorVar) {
-        return "black"; // Default color
-    }
-    const tempDiv = document.createElement("div");
-    tempDiv.style.backgroundColor = colorVar;
-    document.body.appendChild(tempDiv);
-    const computedColor = getComputedStyle(tempDiv).backgroundColor;
-    document.body.removeChild(tempDiv);
-    return computedColor;
-}
-
-async function render_front_border(spell, computedColor) {
-    const frontBorderContainer = document.createElement("div");
-    frontBorderContainer.className = "spell-card-front-border";
-
-    const frontBorder = document.createElement("img");
-    frontBorder.src = await load_icon("border-front", computedColor, "white");
-    frontBorderContainer.appendChild(frontBorder);
-
-    return frontBorderContainer;
-}
-
-export function get_color_from_css_variable(cssVar) {
+function resolveCssVariable(cssVar) {
     const tempDiv = document.createElement("div");
     tempDiv.style.color = cssVar;
     document.body.appendChild(tempDiv);
     const computedColor = getComputedStyle(tempDiv).color;
     document.body.removeChild(tempDiv);
     return computedColor;
+}
+
+export function getSpellSchoolColor(spell) {
+    const colorVar = schoolColorMap[spell.school];
+    if (!colorVar) {
+        return "black"; // Default color
+    }
+    return resolveCssVariable(colorVar);
+}
+
+async function render_front_border(spell, foregroundColor, backgroundColor) {
+    const frontBorderContainer = document.createElement("div");
+    frontBorderContainer.className = "spell-card-front-border";
+
+    const frontBorder = document.createElement("img");
+    frontBorder.src = await load_icon(
+        "border-front",
+        foregroundColor,
+        backgroundColor
+    );
+    frontBorderContainer.appendChild(frontBorder);
+
+    return frontBorderContainer;
 }
 
 export async function load_icon(
@@ -150,13 +154,14 @@ function render_spell_name(spell) {
     return spellNameContainer;
 }
 
-function render_casting_time(spell, computedColor) {
+function render_casting_time(spell, foregroundColor, backgroundColor) {
     const castingTimeWrapper = document.createElement("div");
     castingTimeWrapper.className = "casting-time-container";
 
     const castingTimeContainer = document.createElement("div");
     castingTimeContainer.className = "spell-casting-time";
-    castingTimeContainer.style.backgroundColor = computedColor;
+    castingTimeContainer.style.backgroundColor = foregroundColor;
+    castingTimeContainer.style.borderColor = backgroundColor;
     castingTimeWrapper.appendChild(castingTimeContainer);
 
     if (spell.time) {
@@ -185,11 +190,11 @@ function render_casting_time(spell, computedColor) {
     return castingTimeWrapper;
 }
 
-async function render_range(spell, computedColor) {
+async function render_range(spell, foregroundColor, backgroundColor) {
     const rangeContainer = document.createElement("div");
     rangeContainer.className = "spell-range";
 
-    rangeContainer.style.backgroundColor = computedColor;
+    rangeContainer.style.backgroundColor = foregroundColor;
 
     const rangeType = spell.range.type;
     const rangeDistType = spell.range.distance.type;
@@ -197,7 +202,7 @@ async function render_range(spell, computedColor) {
     const tags = spell.miscTags || [];
 
     const iconName = tags.includes("SGT") ? "icon-range-los-inv" : "icon-range";
-    const iconUrl = await load_icon(iconName, "white", computedColor);
+    const iconUrl = await load_icon(iconName, "white", foregroundColor);
     if (iconUrl) {
         const icon = document.createElement("img");
         icon.src = iconUrl;
@@ -227,7 +232,7 @@ async function render_range(spell, computedColor) {
         const areaIconURL = await load_icon(
             `icon-${rangeType}`,
             "white",
-            computedColor
+            foregroundColor
         );
         if (areaIconURL) {
             const areaIcon = document.createElement("img");
@@ -240,11 +245,11 @@ async function render_range(spell, computedColor) {
     return rangeContainer;
 }
 
-async function render_duration(spell, computedColor) {
+async function render_duration(spell, foregroundColor, backgroundColor) {
     const durationContainer = document.createElement("div");
     durationContainer.className = "spell-duration";
 
-    durationContainer.style.backgroundColor = computedColor;
+    durationContainer.style.backgroundColor = foregroundColor;
 
     const durationType = spell.duration[0].type;
     const durationTimeType = spell.duration[0].duration?.type || "";
@@ -256,7 +261,7 @@ async function render_duration(spell, computedColor) {
 
     const iconName =
         durationType === "timed" ? "icon-duration" : "icon-permanent";
-    const iconUrl = await load_icon(iconName, "white", computedColor);
+    const iconUrl = await load_icon(iconName, "white", foregroundColor);
     if (iconUrl) {
         const icon = document.createElement("img");
         icon.src = iconUrl;
@@ -287,16 +292,28 @@ async function render_duration(spell, computedColor) {
     return durationContainer;
 }
 
-async function render_range_and_duration(spell, computedColor) {
+async function render_range_and_duration(
+    spell,
+    foregroundColor,
+    backgroundColor
+) {
     const rangeAndDurationContainer = document.createElement("div");
     rangeAndDurationContainer.className = "spell-range-and-duration";
 
     if (spell.range) {
-        const range = await render_range(spell, computedColor);
+        const range = await render_range(
+            spell,
+            foregroundColor,
+            backgroundColor
+        );
         rangeAndDurationContainer.appendChild(range);
     }
     if (spell.duration) {
-        const duration = await render_duration(spell, computedColor);
+        const duration = await render_duration(
+            spell,
+            foregroundColor,
+            backgroundColor
+        );
         if (duration) {
             rangeAndDurationContainer.appendChild(duration);
         }
@@ -305,19 +322,27 @@ async function render_range_and_duration(spell, computedColor) {
     return rangeAndDurationContainer;
 }
 
-async function render_component_icons(spell, computedColor) {
+async function render_component_icons(spell, foregroundColor, backgroundColor) {
     const componentIconsContainer = document.createElement("div");
     componentIconsContainer.className = "spell-component-icons";
 
     const components = spell.components;
     if (components.v) {
         const verbalIcon = document.createElement("img");
-        verbalIcon.src = await load_icon("chip-v", computedColor, "white");
+        verbalIcon.src = await load_icon(
+            "chip-v",
+            foregroundColor,
+            backgroundColor
+        );
         componentIconsContainer.appendChild(verbalIcon);
     }
     if (components.s) {
         const somaticIcon = document.createElement("img");
-        somaticIcon.src = await load_icon("chip-s", computedColor, "white");
+        somaticIcon.src = await load_icon(
+            "chip-s",
+            foregroundColor,
+            backgroundColor
+        );
         componentIconsContainer.appendChild(somaticIcon);
     }
     if (components.m) {
@@ -329,7 +354,11 @@ async function render_component_icons(spell, computedColor) {
                 icon_name = "chip-m-cons";
             }
         }
-        materialIcon.src = await load_icon(icon_name, computedColor, "white");
+        materialIcon.src = await load_icon(
+            icon_name,
+            foregroundColor,
+            backgroundColor
+        );
         componentIconsContainer.appendChild(materialIcon);
     }
 
@@ -343,7 +372,7 @@ async function process_text_for_rendering(
     const container = document.createDocumentFragment();
     if (!text) return container;
 
-    const foregroundColor = get_color_from_css_variable(foregroundColorVar);
+    const foregroundColor = resolveCssVariable(foregroundColorVar);
 
     const abbreviations = {
         feet: "ft",
@@ -572,7 +601,11 @@ async function render_component_text(spell) {
     return componentTextContainer;
 }
 
-async function render_concentration_and_ritual(spell, computedColor) {
+async function render_concentration_and_ritual(
+    spell,
+    foregroundColor,
+    backgroundColor
+) {
     const concentrationAndRitualContainer = document.createElement("div");
     concentrationAndRitualContainer.className =
         "spell-concentration-and-ritual";
@@ -581,21 +614,25 @@ async function render_concentration_and_ritual(spell, computedColor) {
         const concentrationIcon = document.createElement("img");
         concentrationIcon.src = await load_icon(
             "chip-c",
-            computedColor,
-            "white"
+            foregroundColor,
+            backgroundColor
         );
         concentrationAndRitualContainer.appendChild(concentrationIcon);
     }
     if (spell.meta?.ritual) {
         const ritualIcon = document.createElement("img");
-        ritualIcon.src = await load_icon("chip-r", computedColor, "white");
+        ritualIcon.src = await load_icon(
+            "chip-r",
+            foregroundColor,
+            backgroundColor
+        );
         concentrationAndRitualContainer.appendChild(ritualIcon);
     }
 
     return concentrationAndRitualContainer;
 }
 
-async function render_class_icons(spell, computedColor) {
+async function render_class_icons(spell, foregroundColor, backgroundColor) {
     const classIconsContainer = document.createElement("div");
     classIconsContainer.className = "spell-class-icons";
 
@@ -612,11 +649,11 @@ async function render_class_icons(spell, computedColor) {
     for (const className of ALL_CLASSES) {
         const classIcon = document.createElement("img");
         const isPresent = uniqueClasses.includes(className);
-        const color = isPresent ? computedColor : "#d4d4d4";
+        const color = isPresent ? foregroundColor : "#cccccc";
         classIcon.src = await load_icon(
             `icon-${className.toLowerCase()}`,
             color,
-            "white"
+            backgroundColor
         );
         classIconsContainer.appendChild(classIcon);
     }
@@ -624,21 +661,22 @@ async function render_class_icons(spell, computedColor) {
     return classIconsContainer;
 }
 
-function render_spell_source(spell, computedColor) {
+function render_spell_source(spell, foregroundColor) {
     const sourceText = document.createElement("div");
     sourceText.className = "spell-source-text";
     sourceText.textContent = spell.source === "XPHB" ? "PHB'24" : spell.source;
-    sourceText.style.color = computedColor;
+    sourceText.style.color = foregroundColor;
     return sourceText;
 }
 
-function render_spell_school(spell, computedColor) {
+function render_spell_school(spell, foregroundColor, backgroundColor) {
     const spellSchoolContainer = document.createElement("div");
     spellSchoolContainer.className = "spell-school-container";
 
     const spellSchool = document.createElement("div");
     spellSchool.className = "spell-school";
-    spellSchool.style.color = computedColor;
+    spellSchool.style.color = foregroundColor;
+    spellSchool.style.backgroundColor = backgroundColor;
 
     const schoolNameMap = {
         A: "Abjuration",
@@ -677,7 +715,11 @@ async function render_condition_text(spell) {
     return null;
 }
 
-async function render_higher_level_text(spell, computedColor) {
+async function render_higher_level_text(
+    spell,
+    foregroundColor,
+    backgroundColor
+) {
     const higherLevel = spell.entriesHigherLevel;
     if (!higherLevel) {
         return null;
@@ -688,11 +730,11 @@ async function render_higher_level_text(spell, computedColor) {
 
     const line = document.createElement("div");
     line.className = "higher-level-line";
-    line.style.borderColor = computedColor;
+    line.style.borderColor = foregroundColor;
     higherLevelTextContainer.appendChild(line);
 
     const circle = document.createElement("img");
-    circle.src = await load_icon("chip-plus", computedColor, "white");
+    circle.src = await load_icon("chip-plus", foregroundColor, backgroundColor);
     circle.className = "higher-level-circle";
     higherLevelTextContainer.appendChild(circle);
 
@@ -810,93 +852,169 @@ async function render_list(listData) {
     }
 }
 
-async function make_spell_card(spell) {
-    const card = document.createElement("div");
-    card.className = "spell-card";
-
-    const front = document.createElement("div");
-    front.className = "spell-card-front";
-
-    const computedColor = compute_color(spell);
-
-    const frontBorder = await render_front_border(spell, computedColor);
-    front.appendChild(frontBorder);
-
-    const cardHeader = document.createElement("div");
-    cardHeader.className = "card-header";
-    front.appendChild(cardHeader);
-
-    const row1 = document.createElement("div");
-    row1.className = "header-row";
-    const spellLevel = render_spell_level(spell, computedColor);
-    const spellName = render_spell_name(spell);
-    row1.appendChild(spellLevel);
-    row1.appendChild(spellName);
-    cardHeader.appendChild(row1);
-
-    const row2 = document.createElement("div");
-    row2.className = "header-row";
-    row2.style.marginTop = "-7pt";
-    row2.style.marginBottom = "2pt";
-    row2.style.alignItems = "center";
-    const castingTime = render_casting_time(spell, computedColor);
-    const rangeAndDuration = await render_range_and_duration(
-        spell,
-        computedColor
-    );
-    row2.appendChild(castingTime);
-    row2.appendChild(rangeAndDuration);
-    cardHeader.appendChild(row2);
-
-    const row3 = document.createElement("div");
-    row3.className = "header-row";
-    const componentIcons = await render_component_icons(spell, computedColor);
-    const componentText = await render_component_text(spell);
-    row3.appendChild(componentIcons);
-    row3.appendChild(componentText);
-    cardHeader.appendChild(row3);
-
-    const cardBody = document.createElement("div");
-    cardBody.className = "card-body";
-    front.appendChild(cardBody);
-
-    const conditionText = await render_condition_text(spell);
-    if (conditionText) {
-        cardBody.appendChild(conditionText);
+class SpellCard {
+    constructor(spell) {
+        this.spell = spell;
+        this.frontElement = null;
+        this.backElement = null;
+        this.isAlwaysPrepared = false;
+        this.foregroundColor = null;
+        this.backgroundColor = null;
     }
 
-    const descriptionText = document.createElement("div");
-    descriptionText.className = "description-text";
-    const spellDescription = await render_entries(spell.entries);
-    descriptionText.appendChild(spellDescription);
-    cardBody.appendChild(descriptionText);
-
-    const higherLevelText = await render_higher_level_text(
-        spell,
-        computedColor
-    );
-    if (higherLevelText) {
-        cardBody.appendChild(higherLevelText);
+    _updateColors() {
+        this.foregroundColor = getSpellSchoolColor(this.spell);
+        if (this.isAlwaysPrepared) {
+            const hslColor = colord(this.foregroundColor).toHsl();
+            hslColor.l = 97;
+            this.backgroundColor = colord(hslColor).toRgbString();
+        } else {
+            this.backgroundColor = "white";
+        }
     }
 
-    const concentrationAndRitual = await render_concentration_and_ritual(
-        spell,
-        computedColor
-    );
-    front.appendChild(concentrationAndRitual);
+    async setAlwaysPrepared(isPrepared) {
+        this.isAlwaysPrepared = isPrepared;
+        await this.render();
+    }
 
-    const classIcons = await render_class_icons(spell, computedColor);
-    front.appendChild(classIcons);
+    async render() {
+        this._updateColors();
+        const spell = this.spell;
 
-    const spellSchool = render_spell_school(spell, computedColor);
-    front.appendChild(spellSchool);
+        let card = this.frontElement;
+        if (card) {
+            card.innerHTML = ""; // Clear existing content for redraw
+        } else {
+            card = document.createElement("div");
+            this.frontElement = card;
+        }
 
-    const spellSource = render_spell_source(spell, computedColor);
-    front.appendChild(spellSource);
+        card.className = "spell-card";
+        card.dataset.spellName = spell.name;
+        card.style.backgroundColor = this.backgroundColor;
 
-    card.appendChild(front);
+        const front = document.createElement("div");
+        front.className = "spell-card-front";
 
-    return card;
+        const tooltip = document.createElement("sl-tooltip");
+        tooltip.content = "Always prepared";
+
+        const preparedCheckboxContainer = document.createElement("div");
+        preparedCheckboxContainer.className = "prepared-checkbox-container";
+        const preparedCheckbox = document.createElement("sl-checkbox");
+        preparedCheckbox.className = "prepared-checkbox";
+        preparedCheckbox.checked = this.isAlwaysPrepared;
+
+        tooltip.appendChild(preparedCheckbox);
+        preparedCheckboxContainer.appendChild(tooltip);
+        front.appendChild(preparedCheckboxContainer);
+
+        const foregroundColor = this.foregroundColor;
+        const backgroundColor = this.backgroundColor;
+
+        const frontBorder = await render_front_border(
+            spell,
+            foregroundColor,
+            backgroundColor
+        );
+        front.appendChild(frontBorder);
+
+        const cardHeader = document.createElement("div");
+        cardHeader.className = "card-header";
+        front.appendChild(cardHeader);
+
+        const row1 = document.createElement("div");
+        row1.className = "header-row";
+        const spellLevel = render_spell_level(spell, foregroundColor);
+        const spellName = render_spell_name(spell);
+        row1.appendChild(spellLevel);
+        row1.appendChild(spellName);
+        cardHeader.appendChild(row1);
+
+        const row2 = document.createElement("div");
+        row2.className = "header-row";
+        row2.style.marginTop = "-7pt";
+        row2.style.marginBottom = "2pt";
+        row2.style.alignItems = "center";
+        const castingTime = render_casting_time(
+            spell,
+            foregroundColor,
+            backgroundColor
+        );
+        const rangeAndDuration = await render_range_and_duration(
+            spell,
+            foregroundColor,
+            backgroundColor
+        );
+        row2.appendChild(castingTime);
+        row2.appendChild(rangeAndDuration);
+        cardHeader.appendChild(row2);
+
+        const row3 = document.createElement("div");
+        row3.className = "header-row";
+        const componentIcons = await render_component_icons(
+            spell,
+            foregroundColor,
+            backgroundColor
+        );
+        const componentText = await render_component_text(spell);
+        row3.appendChild(componentIcons);
+        row3.appendChild(componentText);
+        cardHeader.appendChild(row3);
+
+        const cardBody = document.createElement("div");
+        cardBody.className = "card-body";
+        front.appendChild(cardBody);
+
+        const conditionText = await render_condition_text(spell);
+        if (conditionText) {
+            cardBody.appendChild(conditionText);
+        }
+
+        const descriptionText = document.createElement("div");
+        descriptionText.className = "description-text";
+        const spellDescription = await render_entries(spell.entries);
+        descriptionText.appendChild(spellDescription);
+        cardBody.appendChild(descriptionText);
+
+        const higherLevelText = await render_higher_level_text(
+            spell,
+            foregroundColor,
+            backgroundColor
+        );
+        if (higherLevelText) {
+            cardBody.appendChild(higherLevelText);
+        }
+
+        const concentrationAndRitual = await render_concentration_and_ritual(
+            spell,
+            foregroundColor,
+            backgroundColor
+        );
+        front.appendChild(concentrationAndRitual);
+
+        const classIcons = await render_class_icons(
+            spell,
+            foregroundColor,
+            backgroundColor
+        );
+        front.appendChild(classIcons);
+
+        const spellSchool = render_spell_school(
+            spell,
+            foregroundColor,
+            backgroundColor
+        );
+        front.appendChild(spellSchool);
+
+        const spellSource = render_spell_source(spell, foregroundColor);
+        front.appendChild(spellSource);
+
+        card.appendChild(front);
+
+        this.backElement = null;
+    }
 }
 
 async function make_glossary_card() {
@@ -1007,7 +1125,7 @@ async function make_glossary_card() {
     back.appendChild(backColumns[0]);
     back.appendChild(backColumns[1]);
 
-    const iconColor = get_color_from_css_variable("var(--font-color)");
+    const iconColor = resolveCssVariable("var(--font-color)");
 
     const columnLayout = {
         0: [glossaryData[0], glossaryData[1], glossaryData[2]],
@@ -1052,20 +1170,20 @@ async function make_glossary_card() {
     return [frontCard, backCard];
 }
 
-export async function generateSpellCards(
-    spellIndices,
-    pageSize,
-    addGlossary,
-    printableArea
-) {
+export async function layoutCards(cards, pageSize, addGlossary, printableArea) {
     printableArea.innerHTML = "";
 
-    const tempCard = await make_spell_card(spells[0]);
-    printableArea.appendChild(tempCard);
+    if (cards.length === 0 && !addGlossary) {
+        return;
+    }
+
+    const tempCard = new SpellCard(spells[0]);
+    await tempCard.render();
+    printableArea.appendChild(tempCard.frontElement);
     const pxPerMm = getPxPerMm();
-    const cardWidth = tempCard.offsetWidth / pxPerMm;
-    const cardHeight = tempCard.offsetHeight / pxPerMm;
-    printableArea.removeChild(tempCard);
+    const cardWidth = tempCard.frontElement.offsetWidth / pxPerMm;
+    const cardHeight = tempCard.frontElement.offsetHeight / pxPerMm;
+    printableArea.removeChild(tempCard.frontElement);
 
     const pagePadding = 10 * 2;
 
@@ -1091,27 +1209,27 @@ export async function generateSpellCards(
         allCards.push(...glossaryCards);
     }
 
-    const spellsToRender = spellIndices
-        .map((index) => spells[parseInt(index, 10)])
-        .filter(Boolean);
-
     const singleCardGroups = [];
     const pairCardGroups = [];
+
     const tempContainer = document.createElement("div");
     tempContainer.style.position = "absolute";
     tempContainer.style.left = "-9999px";
     tempContainer.style.top = "-9999px";
     printableArea.appendChild(tempContainer);
 
-    for (const spell of spellsToRender) {
-        const spellCard = await make_spell_card(spell);
-        tempContainer.appendChild(spellCard);
-        const backCard = await handle_overflow(spellCard, spell, tempContainer);
-        tempContainer.removeChild(spellCard);
-        if (backCard) {
-            pairCardGroups.push([spellCard, backCard]);
+    for (const spellCard of cards) {
+        tempContainer.appendChild(spellCard.frontElement);
+        await handle_overflow(spellCard, tempContainer);
+        tempContainer.removeChild(spellCard.frontElement);
+
+        if (spellCard.backElement) {
+            pairCardGroups.push([
+                spellCard.frontElement,
+                spellCard.backElement,
+            ]);
         } else {
-            singleCardGroups.push([spellCard]);
+            singleCardGroups.push([spellCard.frontElement]);
         }
     }
     printableArea.removeChild(tempContainer);
@@ -1189,6 +1307,35 @@ export async function generateSpellCards(
     });
 }
 
+export async function generateSpellCards(spellIndices) {
+    const spellsToRender = spellIndices
+        .map((index) => spells[parseInt(index, 10)])
+        .filter(Boolean);
+
+    const currentlySelectedSpellNames = new Set(
+        spellsToRender.map((s) => s.name)
+    );
+
+    for (const spellName of spellCardInstances.keys()) {
+        if (!currentlySelectedSpellNames.has(spellName)) {
+            spellCardInstances.delete(spellName);
+        }
+    }
+
+    const cards = [];
+    for (const spell of spellsToRender) {
+        let spellCard = spellCardInstances.get(spell.name);
+        if (!spellCard) {
+            spellCard = new SpellCard(spell);
+            spellCardInstances.set(spell.name, spellCard);
+        }
+        await spellCard.render();
+        cards.push(spellCard);
+    }
+
+    return cards;
+}
+
 function createPage(pageSize, containerWidth, containerHeight) {
     const page = document.createElement("div");
     page.className = "page";
@@ -1219,7 +1366,9 @@ function getPxPerMm() {
     return pxPerMm;
 }
 
-async function handle_overflow(card, spell, tempContainer, fontLevel = 0) {
+async function handle_overflow(spellCard, tempContainer, fontLevel = 0) {
+    const card = spellCard.frontElement;
+    const spell = spellCard.spell;
     const cardBody = card.querySelector(".card-body");
     const descriptionText = card.querySelector(".description-text");
 
@@ -1250,16 +1399,17 @@ async function handle_overflow(card, spell, tempContainer, fontLevel = 0) {
             }
         }
 
-        const computedColor = compute_color(spell);
         const backCardContainer = document.createElement("div");
         backCardContainer.className = "spell-card";
+        backCardContainer.dataset.spellName = spell.name;
+        backCardContainer.style.backgroundColor = spellCard.backgroundColor;
 
         const back = document.createElement("div");
         back.className = "spell-card-back";
 
         const backCardBody = document.createElement("div");
         backCardBody.className = "card-body back";
-        backCardBody.style.borderColor = computedColor;
+        backCardBody.style.borderColor = getSpellSchoolColor(spell);
         back.appendChild(backCardBody);
 
         const backDescriptionText = document.createElement("div");
@@ -1304,8 +1454,7 @@ async function handle_overflow(card, spell, tempContainer, fontLevel = 0) {
             }
 
             return await handle_overflow(
-                card,
-                spell,
+                spellCard,
                 tempContainer,
                 fontLevel + 1
             );
@@ -1320,7 +1469,8 @@ async function handle_overflow(card, spell, tempContainer, fontLevel = 0) {
             tempContainer.removeChild(backCardContainer);
         }
 
-        return backCardContainer;
+        spellCard.backElement = backCardContainer;
+        return;
     }
 
     return null;

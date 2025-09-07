@@ -167,6 +167,21 @@ body.grayscale {
     position: relative;
 }
 
+.prepared-checkbox-container {
+    position: absolute;
+    top: 4pt;
+    left: 4pt;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.prepared-checkbox {
+    width: 12pt;
+    height: 12pt;
+    cursor: pointer;
+}
+
 .spell-card-front,
 .spell-card-back {
     position: relative;
@@ -258,7 +273,7 @@ body.grayscale {
     height: 17pt;
     line-height: 15pt;
     padding: 0 4pt;
-    border: 1pt solid white;
+    border: 1pt solid;
     border-radius: var(--casting-time-size);
     color: white;
     font-weight: bold;
@@ -386,7 +401,6 @@ body.grayscale {
     transform: rotate(-90deg);
     font-size: 5pt;
     line-height: 5pt;
-    background-color: white;
     padding-left: 1pt;
     padding-right: 1pt;
     text-transform: uppercase;
@@ -404,11 +418,17 @@ body.grayscale {
     bottom: 4pt;
     left: 9.5pt;
     height: var(--icon-size);
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 2pt;
+    white-space: nowrap;
+}
+
+.spell-class-icons img {
+    display: inline-block;
+    vertical-align: top;
+    margin-right: 2pt;
+}
+
+.spell-class-icons img:last-child {
+    margin-right: 0;
 }
 
 .card-body {

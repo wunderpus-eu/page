@@ -1,4 +1,9 @@
-import { loadSpells, generateSpellCards } from "./card-generator.js";
+import {
+    loadSpells,
+    generateSpellCards,
+    spellCardInstances,
+    layoutCards,
+} from "./card-generator.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
     const exportPdfButton = document.getElementById("export-pdf-button");
@@ -23,6 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let spells = [];
     let spellClassMap = {};
     let pageWidthPx = 0;
+    let currentCards = [];
 
     function handleZoom() {
         const headerHeight = header.getBoundingClientRect().height;
@@ -232,22 +238,31 @@ document.addEventListener("DOMContentLoaded", async () => {
             selectedSpells = spellSelect.value;
         }
 
+        document.body.classList.toggle("grayscale", colorToggle.checked);
+
         if (!selectedSpells || selectedSpells.length === 0) {
             printableArea.innerHTML = "";
+            currentCards = [];
             return;
         }
 
         const pageSize = pageSizeSelect.value;
         const addGlossary = glossaryToggle.checked;
 
-        document.body.classList.toggle("grayscale", colorToggle.checked);
+        currentCards = await generateSpellCards(selectedSpells);
+        await layoutCards(currentCards, pageSize, addGlossary, printableArea);
 
-        await generateSpellCards(
-            selectedSpells,
-            pageSize,
-            addGlossary,
-            printableArea
-        );
+        const allCheckboxes = document.querySelectorAll(".prepared-checkbox");
+        allCheckboxes.forEach((checkbox) => {
+            const cardElement = checkbox.closest(".spell-card");
+            if (cardElement) {
+                const spellName = cardElement.dataset.spellName;
+                const spellCard = spellCardInstances.get(spellName);
+                if (spellCard) {
+                    checkbox.checked = spellCard.isAlwaysPrepared;
+                }
+            }
+        });
         updateWrapperSizeAndPosition();
     }
 
@@ -262,6 +277,66 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     colorToggle.addEventListener("sl-change", () => regenerateCards());
     glossaryToggle.addEventListener("sl-change", () => regenerateCards());
+
+    printableArea.addEventListener("sl-change", async (event) => {
+        if (event.target.classList.contains("prepared-checkbox")) {
+            const cardElement = event.target.closest(".spell-card");
+            if (cardElement) {
+                const spellName = cardElement.dataset.spellName;
+                const spellCard = spellCardInstances.get(spellName);
+                if (spellCard) {
+                    await spellCard.setAlwaysPrepared(event.target.checked);
+                    const pageSize = pageSizeSelect.value;
+                    const addGlossary = glossaryToggle.checked;
+                    await layoutCards(
+                        currentCards,
+                        pageSize,
+                        addGlossary,
+                        printableArea
+                    );
+                    updateWrapperSizeAndPosition();
+                }
+            }
+        }
+    });
+
+    printableArea.addEventListener("mouseover", (event) => {
+        const cardElement = event.target.closest(".spell-card");
+        if (cardElement) {
+            const spellName = cardElement.dataset.spellName;
+            if (spellName) {
+                const spellCard = spellCardInstances.get(spellName);
+                if (spellCard && spellCard.frontElement) {
+                    const checkboxContainer =
+                        spellCard.frontElement.querySelector(
+                            ".prepared-checkbox-container"
+                        );
+                    if (checkboxContainer) {
+                        checkboxContainer.style.opacity = "1";
+                    }
+                }
+            }
+        }
+    });
+
+    printableArea.addEventListener("mouseout", (event) => {
+        const cardElement = event.target.closest(".spell-card");
+        if (cardElement) {
+            const spellName = cardElement.dataset.spellName;
+            if (spellName) {
+                const spellCard = spellCardInstances.get(spellName);
+                if (spellCard && spellCard.frontElement) {
+                    const checkboxContainer =
+                        spellCard.frontElement.querySelector(
+                            ".prepared-checkbox-container"
+                        );
+                    if (checkboxContainer) {
+                        checkboxContainer.style.opacity = "0";
+                    }
+                }
+            }
+        }
+    });
 
     exportPdfButton.addEventListener("click", async () => {
         exportPdfButton.loading = true;
