@@ -10,9 +10,7 @@ header {
     background-color: #333;
     padding: 10px;
     transform-origin: top center;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%); /* This will be managed by JS */
+    width: 100%;
 }
 
 .controls {

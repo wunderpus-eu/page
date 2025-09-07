@@ -85,12 +85,22 @@
     text-align: right;
 }
 
-#printable-area {
+#main-container {
+    overflow: auto;
+    position: relative;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
+    justify-content: center;
 }
+
+#printable-area-wrapper {
+    margin: 0;
+}
+
+#printable-area {
+    transform-origin: top left;
+    transition: transform 0.1s ease-out;
+}
+
 body {
     font-family: var(--main-font);
     margin: 0;
