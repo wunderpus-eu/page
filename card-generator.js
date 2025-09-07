@@ -1209,9 +1209,6 @@ export async function layoutCards(cards, pageSize, addGlossary, printableArea) {
         allCards.push(...glossaryCards);
     }
 
-    const singleCardGroups = [];
-    const pairCardGroups = [];
-
     const tempContainer = document.createElement("div");
     tempContainer.style.position = "absolute";
     tempContainer.style.left = "-9999px";
@@ -1224,50 +1221,25 @@ export async function layoutCards(cards, pageSize, addGlossary, printableArea) {
         tempContainer.removeChild(spellCard.frontElement);
 
         if (spellCard.backElement) {
-            pairCardGroups.push([
-                spellCard.frontElement,
-                spellCard.backElement,
-            ]);
-        } else {
-            singleCardGroups.push([spellCard.frontElement]);
+            tempContainer.appendChild(spellCard.backElement);
         }
     }
     printableArea.removeChild(tempContainer);
 
-    const layout = [];
-    let currentIndex = 0;
-
-    for (const pair of pairCardGroups) {
-        const column = currentIndex % cardsPerRow;
-        if (column + 2 > cardsPerRow) {
-            const gap = cardsPerRow - column;
-            for (let i = 0; i < gap; i++) {
-                layout.push(null);
-            }
-            currentIndex += gap;
-        }
-        layout.push(pair[0]);
-        layout.push(pair[1]);
-        currentIndex += 2;
-    }
-
-    const singleCards = singleCardGroups.flat();
-    for (let i = 0; i < layout.length; i++) {
-        if (layout[i] === null) {
-            const card = singleCards.shift();
-            if (card) {
-                layout[i] = card;
-            }
+    const allRenderedCards = [];
+    for (const spellCard of cards) {
+        allRenderedCards.push(spellCard.frontElement);
+        if (spellCard.backElement) {
+            allRenderedCards.push(spellCard.backElement);
         }
     }
-    layout.push(...singleCards);
 
     printableArea.innerHTML = "";
     let currentPage = createPage(pageSize, containerWidth, containerHeight);
     printableArea.appendChild(currentPage);
     let cardCount = 0;
 
-    const finalLayout = [...allCards, ...layout];
+    const finalLayout = [...allCards, ...allRenderedCards];
 
     for (const card of finalLayout) {
         if (cardCount >= maxCardsPerPage) {
@@ -1311,6 +1283,13 @@ export async function generateSpellCards(spellIndices) {
     const spellsToRender = spellIndices
         .map((index) => spells[parseInt(index, 10)])
         .filter(Boolean);
+
+    spellsToRender.sort((a, b) => {
+        if (a.level !== b.level) {
+            return a.level - b.level;
+        }
+        return a.name.localeCompare(b.name);
+    });
 
     const currentlySelectedSpellNames = new Set(
         spellsToRender.map((s) => s.name)
