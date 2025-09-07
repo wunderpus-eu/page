@@ -480,25 +480,6 @@ body.grayscale {
     top: -0.05em;
 }
 
-.spell-list-hang {
-    text-align: justify;
-    margin-top: 0em;
-    margin-bottom: 0.5em;
-}
-
-.spell-list-hang:last-child {
-    margin-bottom: 0;
-}
-
-.spell-list-hang p {
-    margin-top: 0;
-    margin-bottom: 0.5em;
-}
-
-.spell-list-hang p:last-child {
-    margin-bottom: 0;
-}
-
 .spell-list-hang-term {
     font-weight: bold;
     padding-right: 0.5em;
@@ -506,8 +487,14 @@ body.grayscale {
 
 .spell-table {
     text-align: left;
-    margin-top: 0em;
+    width: 100%;
     margin-bottom: 0.5em;
+    border-collapse: separate;
+    border-spacing: 0 0em;
+}
+
+.spell-table td {
+    vertical-align: top;
 }
 
 .spell-table thead {

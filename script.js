@@ -985,10 +985,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function render_list(listData) {
         if (listData.style === "list-hang-notitle") {
-            const container = document.createElement("div");
-            container.className = "spell-list-hang";
+            const container = document.createDocumentFragment();
             for (const item of listData.items) {
                 const p = document.createElement("p");
+                p.className = "spell-list-hang-item";
 
                 const term = document.createElement("span");
                 term.className = "spell-list-hang-term";
@@ -1334,7 +1334,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const backCard = await handle_overflow(
                 spellCard,
                 spell,
-                false,
                 tempContainer
             );
             tempContainer.removeChild(spellCard);
@@ -1519,7 +1518,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return pxPerMm;
     }
 
-    async function handle_overflow(card, spell, fontReduced, tempContainer) {
+    async function handle_overflow(card, spell, tempContainer, fontLevel = 0) {
         const cardBody = card.querySelector(".card-body");
         const descriptionText = card.querySelector(".description-text");
 
@@ -1535,8 +1534,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (is_overflowing(descriptionText)) {
-            // First, try to fix the overflow by reducing the font size
-            if (!fontReduced) {
+            // First, try to fix the overflow by reducing the font size on the front
+            if (fontLevel === 0) {
                 cardBody.style.fontSize = "6pt";
                 cardBody.style.lineHeight = "6pt";
                 componentText.style.fontSize = "6pt";
@@ -1554,7 +1553,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const computedColor = compute_color(spell);
-
             const backCardContainer = document.createElement("div");
             backCardContainer.className = "spell-card";
 
@@ -1576,14 +1574,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 tempContainer.appendChild(backCardContainer);
             }
 
-            if (fontReduced) {
+            if (fontLevel > 0) {
+                const fontSize = fontLevel === 1 ? "6pt" : "5.5pt";
                 const frontCardBody = card.querySelector(".card-body");
-                frontCardBody.style.fontSize = "6pt";
-                frontCardBody.style.lineHeight = "6pt";
-                componentText.style.fontSize = "6pt";
-                componentText.style.lineHeight = "6pt";
-                backCardBody.style.fontSize = "6pt";
-                backCardBody.style.lineHeight = "6pt";
+                frontCardBody.style.fontSize = fontSize;
+                frontCardBody.style.lineHeight = fontSize;
+                componentText.style.fontSize = fontSize;
+                componentText.style.lineHeight = fontSize;
+                backCardBody.style.fontSize = fontSize;
+                backCardBody.style.lineHeight = fontSize;
             }
 
             const descriptionElements = Array.from(descriptionText.children);
@@ -1596,11 +1595,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 backDescriptionText.prepend(elementToMove);
             }
 
-            if (is_overflowing(backCardBody) && !fontReduced) {
-                // Back is overflowing, and we haven't reduced font size yet.
-                // We need to restart the process with smaller fonts.
+            if (is_overflowing(backCardBody) && fontLevel < 2) {
+                // Back is overflowing, and we haven't hit the minimum font size
+                // We need to restart the process with a smaller font.
 
-                // 1. Restore the front card's description container by moving elements back from the back card.
+                // 1. Restore the front card's description container...
                 const backElements = Array.from(backDescriptionText.children);
                 for (const elementToMove of backElements) {
                     descriptionText.appendChild(elementToMove);
@@ -1611,15 +1610,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     tempContainer.removeChild(backCardContainer);
                 }
 
-                // 4. Recursively call handle_overflow.
-                // It will now apply smaller fonts and re-distribute from a full front card.
-                return await handle_overflow(card, spell, true, tempContainer);
+                // 4. Recursively call handle_overflow with the next font level.
+                return await handle_overflow(
+                    card,
+                    spell,
+                    tempContainer,
+                    fontLevel + 1
+                );
             }
 
             const lastParagraph =
                 descriptionText.querySelector("p:last-of-type");
             if (lastParagraph) {
-                lastParagraph.textContent += " →";
+                lastParagraph.appendChild(document.createTextNode(" →"));
             }
 
             if (tempContainer) {
