@@ -26,66 +26,75 @@
         <header>
             <div id="header-content">
                 <div class="controls">
-                    <div id="selection-group">
+                    <div id="selection-controls">
                         <sl-select
                             id="spell-select"
+                            placeholder="Select spells..."
                             multiple
                             clearable
                             max-options-visible="2"
                             filterable
-                            placeholder="Select spells..."
                             pill
                         ></sl-select>
-                        <div id="filter-controls">
-                            <div id="filters">
-                                <sl-select
-                                    id="class-filter"
-                                    placeholder="Filter by class..."
-                                    multiple
-                                    clearable
-                                    max-options-visible="1"
-                                ></sl-select>
-                                <sl-select
-                                    id="level-filter"
-                                    placeholder="Filter by level..."
-                                    multiple
-                                    clearable
-                                    max-options-visible="1"
-                                ></sl-select>
-                            </div>
-                            <div>
+                        <div id="filter-row-1">
+                            <sl-select
+                                id="class-filter"
+                                placeholder="Class..."
+                                multiple
+                                clearable
+                                max-options-visible="1"
+                                pill
+                            ></sl-select>
+                            <sl-select
+                                id="level-filter"
+                                placeholder="Level..."
+                                multiple
+                                clearable
+                                max-options-visible="1"
+                                pill
+                            ></sl-select>
+                            <sl-select
+                                id="source-filter"
+                                placeholder="Source book..."
+                                multiple
+                                clearable
+                                max-options-visible="1"
+                                pill
+                            ></sl-select>
+                        </div>
+                        <div id="filter-row-2">
+                            <sl-switch id="rules-toggle" checked
+                                >Use 2024 rules</sl-switch
+                            >
+                            <div id="add-filtered-controls">
                                 <span id="filtered-count"></span>
-                                <sl-button id="add-filtered-button"
+                                <sl-button
+                                    id="add-filtered-button"
+                                    variant="neutral"
                                     >Add Filtered</sl-button
                                 >
                             </div>
                         </div>
                     </div>
-                    <div id="right-controls">
-                        <div id="switch-group">
-                            <sl-switch id="glossary-toggle" checked
-                                >Glossary Card</sl-switch
-                            >
-                            <sl-switch id="color-toggle">Grayscale</sl-switch>
-                        </div>
-                        <div class="vertical-separator"></div>
-                        <div id="export-controls">
-                            <sl-select id="page-size-select" value="letter">
-                                <sl-icon
-                                    slot="prefix"
-                                    name="file-earmark"
-                                ></sl-icon>
-                                <sl-option value="letter">Letter</sl-option>
-                                <sl-option value="a4">A4</sl-option>
-                            </sl-select>
-                            <sl-button id="export-pdf-button" variant="primary">
-                                <sl-icon
-                                    slot="prefix"
-                                    name="download"
-                                ></sl-icon>
-                                Download PDF
-                            </sl-button>
-                        </div>
+                    <div id="appearance-controls">
+                        <sl-switch id="glossary-toggle" checked
+                            >Glossary Card</sl-switch
+                        >
+                        <sl-switch id="color-toggle">Grayscale</sl-switch>
+                    </div>
+                    <div id="export-controls">
+                        <sl-select id="page-size-select" value="letter">
+                            <sl-icon
+                                slot="prefix"
+                                name="file-earmark"
+                            ></sl-icon>
+                            <sl-option value="letter">Letter</sl-option>
+                            <sl-option value="a4">A4</sl-option>
+                        </sl-select>
+                        <sl-button id="export-pdf-button" variant="primary">
+                            <sl-icon slot="prefix" name="download"></sl-icon>
+                            Download PDF
+                        </sl-button>
                     </div>
                 </div>
             </div>

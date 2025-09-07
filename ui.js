@@ -3,6 +3,7 @@ import {
     generateSpellCards,
     spellCardInstances,
     layoutCards,
+    SOURCE_MAP,
 } from "./card-generator.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -16,6 +17,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const headerContent = document.getElementById("header-content");
     const classFilter = document.getElementById("class-filter");
     const levelFilter = document.getElementById("level-filter");
+    const sourceFilter = document.getElementById("source-filter");
+    const rulesToggle = document.getElementById("rules-toggle");
     const addFilteredButton = document.getElementById("add-filtered-button");
     const filteredCount = document.getElementById("filtered-count");
     const mainContainer = document.getElementById("main-container");
@@ -29,6 +32,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     let spellClassMap = {};
     let pageWidthPx = 0;
     let currentCards = [];
+
+    async function reloadData() {
+        const use2024Rules = rulesToggle.checked;
+        const loadedData = await loadSpells(use2024Rules);
+        spells = loadedData.spells;
+        spellClassMap = loadedData.spellClassMap;
+
+        // Clear existing selections and options
+        spellSelect.value = [];
+        classFilter.value = [];
+        levelFilter.value = [];
+        sourceFilter.value = [];
+
+        spellSelect.innerHTML = "";
+        classFilter.innerHTML = "";
+        levelFilter.innerHTML = "";
+        sourceFilter.innerHTML = "";
+
+        printableArea.innerHTML = "";
+        currentCards = [];
+        spellCardInstances.clear();
+
+        populateSpellSelect();
+        populateFilters();
+        updateFilteredCount();
+        updateWrapperSizeAndPosition();
+    }
 
     function handleZoom() {
         const headerHeight = header.getBoundingClientRect().height;
@@ -108,15 +138,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     async function initialize() {
-        const loadedData = await loadSpells();
-        spells = loadedData.spells;
-        spellClassMap = loadedData.spellClassMap;
-
-        populateSpellSelect();
-        populateFilters();
+        await reloadData();
         handleZoom();
         updatePageWidth();
-        updateWrapperSizeAndPosition();
     }
 
     function populateSpellSelect() {
@@ -124,6 +148,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             const option = document.createElement("sl-option");
             option.value = index;
             option.textContent = spell.name;
+
+            const sourceText = SOURCE_MAP[spell.source] || spell.source;
+
+            const sourceSpan = document.createElement("span");
+            sourceSpan.slot = "suffix";
+            sourceSpan.className = "spell-source-suffix";
+            sourceSpan.textContent = sourceText;
+
+            option.appendChild(sourceSpan);
             spellSelect.appendChild(option);
         });
     }
@@ -131,6 +164,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     function populateFilters() {
         const allClasses = new Set();
         const allLevels = new Set();
+        const allSources = new Set();
 
         spells.forEach((spell, index) => {
             if (spellClassMap[index]) {
@@ -141,6 +175,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             allLevels.add(
                 spell.level === 0 ? "Cantrip" : spell.level.toString()
             );
+            if (spell.source === "XPHB" || spell.source === "PHB") {
+                allSources.add("PHB");
+            } else {
+                allSources.add(spell.source);
+            }
         });
 
         const sortedClasses = [...allClasses].sort();
@@ -149,11 +188,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (b === "Cantrip") return 1;
             return parseInt(a) - parseInt(b);
         });
+        const sortedSources = [...allSources].sort();
 
         sortedClasses.forEach((className) => {
             const option = document.createElement("sl-option");
             option.value = className;
             option.textContent = className;
+
+            const icon = document.createElement("sl-icon");
+            icon.slot = "prefix";
+            icon.src = `assets/icon-${className.toLowerCase()}.svg`;
+            icon.classList.add("class-filter-icon");
+            option.appendChild(icon);
+
             classFilter.appendChild(option);
         });
 
@@ -163,6 +210,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             option.textContent = level;
             levelFilter.appendChild(option);
         });
+
+        sortedSources.forEach((source) => {
+            const option = document.createElement("sl-option");
+            option.value = source;
+            option.textContent = source;
+            sourceFilter.appendChild(option);
+        });
+
+        sourceFilter.value = ["PHB"];
     }
 
     function updateFilteredCount() {
@@ -170,8 +226,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         const selectedLevels = levelFilter.value.map((l) =>
             l === "Cantrip" ? 0 : parseInt(l)
         );
+        const selectedSources = sourceFilter.value;
 
-        if (selectedClasses.length === 0 && selectedLevels.length === 0) {
+        if (
+            selectedClasses.length === 0 &&
+            selectedLevels.length === 0 &&
+            selectedSources.length === 0
+        ) {
             filteredCount.textContent = "";
             return;
         }
@@ -182,13 +243,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             const spellLevel = spell.level;
 
             const classMatch =
-                selectedClasses.length === 0 ||
-                selectedClasses.some((c) => spellClasses.includes(c));
+                selectedClasses.length === 0
+                    ? true
+                    : selectedClasses.some((c) => spellClasses.includes(c));
             const levelMatch =
                 selectedLevels.length === 0 ||
                 selectedLevels.includes(spellLevel);
+            const sourceMatch =
+                selectedSources.length === 0 ||
+                selectedSources.some((selected) => {
+                    if (selected === "PHB") {
+                        return (
+                            spell.source === "PHB" || spell.source === "XPHB"
+                        );
+                    }
+                    return spell.source === selected;
+                });
 
-            if (classMatch && levelMatch) {
+            if (classMatch && levelMatch && sourceMatch) {
                 count++;
             }
         });
@@ -201,8 +273,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         const selectedLevels = levelFilter.value.map((l) =>
             l === "Cantrip" ? 0 : parseInt(l)
         );
+        const selectedSources = sourceFilter.value;
 
-        if (selectedClasses.length === 0 && selectedLevels.length === 0) {
+        if (
+            selectedClasses.length === 0 &&
+            selectedLevels.length === 0 &&
+            selectedSources.length === 0
+        ) {
             return;
         }
 
@@ -212,13 +289,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             const spellLevel = spell.level;
 
             const classMatch =
-                selectedClasses.length === 0 ||
-                selectedClasses.some((c) => spellClasses.includes(c));
+                selectedClasses.length === 0
+                    ? true
+                    : selectedClasses.some((c) => spellClasses.includes(c));
             const levelMatch =
                 selectedLevels.length === 0 ||
                 selectedLevels.includes(spellLevel);
+            const sourceMatch =
+                selectedSources.length === 0 ||
+                selectedSources.some((selected) => {
+                    if (selected === "PHB") {
+                        return (
+                            spell.source === "PHB" || spell.source === "XPHB"
+                        );
+                    }
+                    return spell.source === selected;
+                });
 
-            if (classMatch && levelMatch) {
+            if (classMatch && levelMatch && sourceMatch) {
                 spellsToAdd.push(index.toString());
             }
         });
@@ -231,6 +319,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     classFilter.addEventListener("sl-change", updateFilteredCount);
     levelFilter.addEventListener("sl-change", updateFilteredCount);
+    sourceFilter.addEventListener("sl-change", updateFilteredCount);
+    rulesToggle.addEventListener("sl-change", reloadData);
     addFilteredButton.addEventListener("click", addFilteredSpells);
 
     async function regenerateCards(selectedSpells = null) {

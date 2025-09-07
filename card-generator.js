@@ -12,6 +12,11 @@ export const ALL_CLASSES = [
     "Wizard",
 ];
 
+export const SOURCE_MAP = {
+    XPHB: "PHB'24",
+    PHB: "PHB'14",
+};
+
 let spells = [];
 let spellSources = {};
 let spellClassMap = {};
@@ -87,16 +92,57 @@ export async function load_icon(
     }
 }
 
-export async function loadSpells() {
+export async function loadSpells(use2024Rules = true) {
+    let spellFiles = [
+        "spells-aag.json",
+        "spells-ai.json",
+        "spells-bmt.json",
+        "spells-ftd.json",
+        "spells-ggr.json",
+        "spells-idrotf.json",
+        "spells-sato.json",
+        "spells-scc.json",
+        "spells-tce.json",
+        "spells-xge.json",
+    ];
+
+    if (use2024Rules) {
+        spellFiles.push("spells-xphb.json");
+    } else {
+        spellFiles.push("spells-phb.json");
+    }
+
     try {
-        const [spellsResponse, sourcesResponse] = await Promise.all([
-            fetch("spells-xphb.json"),
-            fetch("sources.json"),
-        ]);
-        const spellsData = await spellsResponse.json();
-        const sourcesData = await sourcesResponse.json();
-        spells = spellsData.spell;
-        spellSources = sourcesData.XPHB;
+        const spellFilePromises = spellFiles.map((file) =>
+            fetch(`data/${file}`).then((res) => res.json())
+        );
+        const sourcesPromise = fetch("data/sources.json").then((res) =>
+            res.json()
+        );
+
+        const allSpellData = await Promise.all(spellFilePromises);
+        const sourcesData = await sourcesPromise;
+
+        const allSpells = allSpellData.flatMap((data) => data.spell);
+
+        if (use2024Rules) {
+            spells = allSpells.filter(
+                (spell) => !spell.reprintedAs || spell.reprintedAs.length === 0
+            );
+        } else {
+            spells = allSpells.filter(
+                (spell) =>
+                    !spell.reprintedAs ||
+                    (spell.reprintedAs.length === 1 &&
+                        spell.reprintedAs[0].endsWith("XPHB"))
+            );
+        }
+
+        spells.sort((a, b) => a.name.localeCompare(b.name));
+        spellSources = Object.values(sourcesData).reduce(
+            (acc, source) => ({ ...acc, ...source }),
+            {}
+        );
 
         buildSpellClassMap();
 
@@ -110,8 +156,10 @@ export async function loadSpells() {
 function buildSpellClassMap() {
     spells.forEach((spell, index) => {
         const sourceInfo = spellSources[spell.name];
-        if (sourceInfo && sourceInfo.class) {
-            const validClasses = sourceInfo.class
+        const classList =
+            (sourceInfo && (sourceInfo.class || sourceInfo.classVariant)) || [];
+        if (classList.length > 0) {
+            const validClasses = classList
                 .filter((c) => c.source === "XPHB" || c.source === "TCE")
                 .map((c) => c.name);
             if (validClasses.length > 0) {
@@ -638,8 +686,10 @@ async function render_class_icons(spell, foregroundColor, backgroundColor) {
 
     const sourceInfo = spellSources[spell.name];
     let uniqueClasses = [];
-    if (sourceInfo && sourceInfo.class) {
-        const validClasses = sourceInfo.class
+    const classList =
+        (sourceInfo && (sourceInfo.class || sourceInfo.classVariant)) || [];
+    if (classList.length > 0) {
+        const validClasses = classList
             .filter((c) => c.source === "XPHB" || c.source === "TCE")
             .map((c) => c.name);
 
@@ -664,7 +714,7 @@ async function render_class_icons(spell, foregroundColor, backgroundColor) {
 function render_spell_source(spell, foregroundColor) {
     const sourceText = document.createElement("div");
     sourceText.className = "spell-source-text";
-    sourceText.textContent = spell.source === "XPHB" ? "PHB'24" : spell.source;
+    sourceText.textContent = SOURCE_MAP[spell.source] || spell.source;
     sourceText.style.color = foregroundColor;
     return sourceText;
 }
