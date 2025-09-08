@@ -916,7 +916,7 @@ class SpellCard {
         this.foregroundColor = getSpellSchoolColor(this.spell);
         if (this.isAlwaysPrepared) {
             const hslColor = colord(this.foregroundColor).toHsl();
-            hslColor.l = 97;
+            hslColor.l = 90;
             this.backgroundColor = colord(hslColor).toRgbString();
         } else {
             this.backgroundColor = "white";
