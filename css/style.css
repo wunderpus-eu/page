@@ -147,6 +147,8 @@ wa-button.hero-button::part(base):focus-visible {
 
     .sheet-image {
         max-width: 100%;
+        width: 100%;
+        height: auto;
     }
 
     .wordmark {
