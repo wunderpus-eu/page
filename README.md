@@ -1,1 +1,1 @@
-# page
+This repo contains the code for the Wunderpus website.
