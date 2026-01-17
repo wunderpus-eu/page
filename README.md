@@ -17,6 +17,11 @@ This is a web application for generating spell cards for Dungeons & Dragons. It 
 
 ### Running the Application
 
+0.  **Download/update the raw spell data**
+    ```bash
+    ./download_spell_data.sh
+    ```
+
 1.  **Clone the repository**
 
     ```bash
