@@ -18,22 +18,20 @@ export const SOURCE_MAP = {
 };
 
 let spells = [];
-let spellSources = {};
-let spellClassMap = {};
 const iconCache = {};
 const spellCardInstances = new Map();
 
 export { spellCardInstances };
 
 export const schoolColorMap = {
-    A: "var(--abjuration-color)",
-    C: "var(--conjuration-color)",
-    D: "var(--divination-color)",
-    E: "var(--enchantment-color)",
-    V: "var(--evocation-color)",
-    I: "var(--illusion-color)",
-    N: "var(--necromancy-color)",
-    T: "var(--transmutation-color)",
+    Abjuration: "var(--abjuration-color)",
+    Conjuration: "var(--conjuration-color)",
+    Divination: "var(--divination-color)",
+    Enchantment: "var(--enchantment-color)",
+    Evocation: "var(--evocation-color)",
+    Illusion: "var(--illusion-color)",
+    Necromancy: "var(--necromancy-color)",
+    Transmutation: "var(--transmutation-color)",
 };
 
 function resolveCssVariable(cssVar) {
@@ -93,80 +91,38 @@ export async function load_icon(
 }
 
 export async function loadSpells(use2024Rules = true) {
-    let spellFiles = [
-        "spells-aag.json",
-        "spells-ai.json",
-        "spells-bmt.json",
-        "spells-ftd.json",
-        "spells-ggr.json",
-        "spells-idrotf.json",
-        "spells-sato.json",
-        "spells-scc.json",
-        "spells-tce.json",
-        "spells-xge.json",
-    ];
-
-    if (use2024Rules) {
-        spellFiles.push("spells-xphb.json");
-    } else {
-        spellFiles.push("spells-phb.json");
-    }
-
     try {
-        const spellFilePromises = spellFiles.map((file) =>
-            fetch(`data/${file}`).then((res) => res.json())
-        );
-        const sourcesPromise = fetch("data/sources.json").then((res) =>
-            res.json()
-        );
-
-        const allSpellData = await Promise.all(spellFilePromises);
-        const sourcesData = await sourcesPromise;
-
-        const allSpells = allSpellData.flatMap((data) => data.spell);
+        const response = await fetch("data/spells.json");
+        const allSpells = await response.json();
 
         if (use2024Rules) {
+            // Filter out spells that have been reprinted (prefer XPHB versions)
             spells = allSpells.filter(
-                (spell) => !spell.reprintedAs || spell.reprintedAs.length === 0
+                (spell) => spell.source === "XPHB" || 
+                    !allSpells.some(s => s.name === spell.name && s.source === "XPHB")
             );
         } else {
+            // Filter out XPHB spells, prefer PHB versions
             spells = allSpells.filter(
-                (spell) =>
-                    !spell.reprintedAs ||
-                    (spell.reprintedAs.length === 1 &&
-                        spell.reprintedAs[0].endsWith("XPHB"))
+                (spell) => spell.source !== "XPHB"
             );
         }
 
         spells.sort((a, b) => a.name.localeCompare(b.name));
-        spellSources = Object.values(sourcesData).reduce(
-            (acc, source) => ({ ...acc, ...source }),
-            {}
-        );
 
-        buildSpellClassMap();
+        // Build spellClassMap from spell.classes for backwards compatibility
+        const spellClassMap = {};
+        spells.forEach((spell, index) => {
+            if (spell.classes && spell.classes.length > 0) {
+                spellClassMap[index] = spell.classes;
+            }
+        });
 
         return { spells, spellClassMap };
     } catch (error) {
         console.error("Error loading spell data:", error);
         return { spells: [], spellClassMap: {} };
     }
-}
-
-function buildSpellClassMap() {
-    spells.forEach((spell, index) => {
-        const sourceInfo = spellSources[spell.name];
-        const classList =
-            (sourceInfo && (sourceInfo.class || sourceInfo.classVariant)) || [];
-        if (classList.length > 0) {
-            const validClasses = classList
-                .filter((c) => c.source === "XPHB" || c.source === "TCE")
-                .map((c) => c.name);
-            if (validClasses.length > 0) {
-                spellClassMap[index] = validClasses;
-            }
-        }
-    });
 }
 
 function render_spell_level(spell, computedColor) {
@@ -213,7 +169,7 @@ function render_casting_time(spell, foregroundColor, backgroundColor) {
     castingTimeWrapper.appendChild(castingTimeContainer);
 
     if (spell.time) {
-        const time = spell.time[0];
+        const time = spell.time;
         const number = time.number;
         const unit = time.unit;
         let castingTimeText = "";
@@ -244,12 +200,19 @@ async function render_range(spell, foregroundColor, backgroundColor) {
 
     rangeContainer.style.backgroundColor = foregroundColor;
 
-    const rangeType = spell.range.type;
-    const rangeDistType = spell.range.distance.type;
-    const rangeDistNumber = spell.range.distance.amount || "";
-    const tags = spell.miscTags || [];
+    const range = spell.range;
+    const origin = range.origin;
+    const distance = range.distance;
+    const unit = range.unit;
+    const area = range.area;
+    const areaDistance = range.areaDistance;
+    const areaUnit = range.areaUnit;
 
-    const iconName = tags.includes("SGT") ? "icon-range-los-inv" : "icon-range";
+    const validAreaTypes = ["line", "cone", "cube", "cylinder", "sphere", "emanation", "hemisphere", "wall", "circle", "square"];
+    const hasArea = validAreaTypes.includes(area) && areaDistance > 0;
+    const unitAbbrev = { feet: "ft", miles: "mi" };
+
+    const iconName = range.requiresSight ? "icon-range-los-inv" : "icon-range";
     const iconUrl = await load_icon(iconName, "white", foregroundColor);
     if (iconUrl) {
         const icon = document.createElement("img");
@@ -258,35 +221,60 @@ async function render_range(spell, foregroundColor, backgroundColor) {
         rangeContainer.appendChild(icon);
     }
 
-    let rangeText = "";
-    if (["self", "touch"].includes(rangeDistType)) {
-        rangeText = rangeDistType[0].toUpperCase() + rangeDistType.slice(1);
-    } else {
-        const rangeDistAbbrev = {
-            feet: "ft",
-        };
-        rangeText = `${rangeDistNumber} ${
-            rangeDistAbbrev[rangeDistType] || rangeDistType
-        }`;
-    }
-    const rangeTextNode = document.createTextNode(rangeText);
-    rangeContainer.appendChild(rangeTextNode);
-
-    if (
-        ["line", "cone", "cube", "cylinder", "sphere", "emanation"].includes(
-            rangeType
-        )
-    ) {
-        const areaIconURL = await load_icon(
-            `icon-${rangeType}`,
-            "white",
-            foregroundColor
-        );
+    // Case 1: Self with area - just show area size and type
+    if (origin === "self" && hasArea) {
+        const areaText = `${areaDistance} ${unitAbbrev[areaUnit] || areaUnit}`;
+        rangeContainer.appendChild(document.createTextNode(areaText));
+        
+        const areaIconURL = await load_icon(`icon-${area}`, "white", foregroundColor);
         if (areaIconURL) {
             const areaIcon = document.createElement("img");
             areaIcon.src = areaIconURL;
             areaIcon.className = "spell-range-icon area";
             rangeContainer.appendChild(areaIcon);
+        }
+    }
+    // Case 2: Point with distance and area - show range, then area size and icon
+    else if (origin === "point" && distance > 0 && hasArea) {
+        const rangeText = `${distance} ${unitAbbrev[unit] || unit}`;
+        const areaText = `, ${areaDistance} ${unitAbbrev[areaUnit] || areaUnit}`;
+        rangeContainer.appendChild(document.createTextNode(rangeText + areaText));
+        
+        const areaIconURL = await load_icon(`icon-${area}`, "white", foregroundColor);
+        if (areaIconURL) {
+            const areaIcon = document.createElement("img");
+            areaIcon.src = areaIconURL;
+            areaIcon.className = "spell-range-icon area";
+            rangeContainer.appendChild(areaIcon);
+        }
+    }
+    // Case 3: Other cases - show origin/distance as before, optionally with area icon
+    else {
+        let rangeText = "";
+        if (origin === "self") {
+            rangeText = "Self";
+        } else if (origin === "touch") {
+            rangeText = "Touch";
+        } else if (origin === "special") {
+            rangeText = "Special";
+        } else if (unit === "unlimited") {
+            rangeText = "Unlimited";
+        } else if (distance > 0) {
+            rangeText = `${distance} ${unitAbbrev[unit] || unit}`;
+        } else {
+            rangeText = "Self";
+        }
+        rangeContainer.appendChild(document.createTextNode(rangeText));
+
+        // Add area icon if there's an area type (even without parsed dimensions)
+        if (validAreaTypes.includes(area)) {
+            const areaIconURL = await load_icon(`icon-${area}`, "white", foregroundColor);
+            if (areaIconURL) {
+                const areaIcon = document.createElement("img");
+                areaIcon.src = areaIconURL;
+                areaIcon.className = "spell-range-icon area";
+                rangeContainer.appendChild(areaIcon);
+            }
         }
     }
 
@@ -299,9 +287,11 @@ async function render_duration(spell, foregroundColor, backgroundColor) {
 
     durationContainer.style.backgroundColor = foregroundColor;
 
-    const durationType = spell.duration[0].type;
-    const durationTimeType = spell.duration[0].duration?.type || "";
-    const durationTimeNumber = spell.duration[0].duration?.amount || "";
+    const duration = spell.duration;
+    const durationType = duration.type;
+    const durationAmount = duration.amount;
+    const durationUnit = duration.unit;
+    const ends = duration.ends || [];
 
     if (["instant", "special"].includes(durationType)) {
         return null;
@@ -324,12 +314,11 @@ async function render_duration(spell, foregroundColor, backgroundColor) {
             day: "d",
             round: "Round",
         };
-        let durationText = `${durationTimeNumber} ${durationUnitAbbrev[durationTimeType]}`;
+        let durationText = `${durationAmount} ${durationUnitAbbrev[durationUnit] || durationUnit}`;
         const durationSpan = document.createElement("span");
         durationSpan.textContent = durationText;
         durationContainer.appendChild(durationSpan);
     } else {
-        const ends = spell.duration[0].ends;
         if (ends.includes("trigger")) {
             const durationSpan = document.createElement("span");
             durationSpan.textContent = "or Triggered";
@@ -396,11 +385,11 @@ async function render_component_icons(spell, foregroundColor, backgroundColor) {
     if (components.m) {
         const materialIcon = document.createElement("img");
         let icon_name = "chip-m";
-        if (typeof components.m === "object") {
+        if (components.hasCost) {
             icon_name = "chip-m-req";
-            if (components.m.consume) {
-                icon_name = "chip-m-cons";
-            }
+        }
+        if (components.isConsumed) {
+            icon_name = "chip-m-cons";
         }
         materialIcon.src = await load_icon(
             icon_name,
@@ -422,20 +411,8 @@ async function process_text_for_rendering(
 
     const foregroundColor = resolveCssVariable(foregroundColorVar);
 
-    const abbreviations = {
-        feet: "ft",
-        foot: "ft",
-        minute: "min",
-        minutes: "min",
-        hour: "h",
-        hours: "h",
-    };
-
-    const icons = {
-        action: "icon-a",
-        cp: "icon-copper",
-        sp: "icon-silver",
-        gp: "icon-gold",
+    // Icons for placeholders wrapped in backticks
+    const placeholderIcons = {
         "acid damage": "icon-acid",
         "cold damage": "icon-cold",
         "fire damage": "icon-fire",
@@ -449,59 +426,23 @@ async function process_text_for_rendering(
         "piercing damage": "icon-piercing",
         "thunder damage": "icon-thunder",
         "force damage": "icon-force",
-        "{@variantrule Emanation [Area of Effect]|XPHB|Emanation}":
-            "icon-emanation",
-        "{@variantrule Line [Area of Effect]|XPHB|Line}": "icon-line",
-        "{@variantrule Cone [Area of Effect]|XPHB|Cone}": "icon-cone",
-        "{@variantrule Cube [Area of Effect]|XPHB|Cube}": "icon-cube",
-        "{@variantrule Cylinder [Area of Effect]|XPHB|Cylinder}":
-            "icon-cylinder",
-        "{@variantrule Sphere [Area of Effect]|XPHB|Sphere}": "icon-sphere",
-        "{@variantrule Action|XPHB}": "icon-a",
-        "{@variantrule Bonus Action|XPHB}": "icon-b",
-        "{@variantrule Reaction|XPHB}": "icon-r",
+        "emanation": "icon-emanation",
+        "line": "icon-line",
+        "cone": "icon-cone",
+        "cube": "icon-cube",
+        "cylinder": "icon-cylinder",
+        "sphere": "icon-sphere",
+        "hemisphere": "icon-hemisphere",
     };
 
-    function escapeRegExp(string) {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    }
-
-    const wordKeys = [...Object.keys(abbreviations)];
-    const tagKeys = [];
-
-    for (const key of Object.keys(icons)) {
-        if (key.startsWith("{@")) {
-            tagKeys.push(key);
-        } else {
-            wordKeys.push(key);
-        }
-    }
-
-    const diceTags = ["damage", "dice", "scaledamage", "scaledice"];
-    const chanceTag = "chance";
-    const actionTag = "action";
-    const filterTag = "filter";
-
-    const wordRegexPart = `(?<!course of )\\b(${wordKeys.join("|")})\\b`;
-
-    const iconTagRegexPart =
-        tagKeys.length > 0 ? `|(${tagKeys.map(escapeRegExp).join("|")})` : "";
-
-    const diceRegexPart = `|({@(?:${diceTags.join("|")})\\s[^}]+})`;
-    const chanceRegexPart = `|({@${chanceTag}\\s[^}]+})`;
-    const actionRegexPart = `|({@${actionTag}\\s[^}]+}(?:\\s*action)?)`;
-    const filterRegexPart = `|({@${filterTag}\\s[^}]+})`;
-    const genericTagRegexPart = `|({@[^}]+})`;
-
-    const regex = new RegExp(
-        `${wordRegexPart}${iconTagRegexPart}${diceRegexPart}${chanceRegexPart}${actionRegexPart}${filterRegexPart}${genericTagRegexPart}`,
-        "gi"
-    );
+    // Regex to match: **bold**, *italic*, `placeholder`, and newlines
+    const regex = /(\*\*[^*]+\*\*)|(\*[^*]+\*)|(`[^`]+`)|(\n)/g;
 
     let lastIndex = 0;
     let match;
 
     while ((match = regex.exec(text)) !== null) {
+        // Add text before match
         if (match.index > lastIndex) {
             container.appendChild(
                 document.createTextNode(text.substring(lastIndex, match.index))
@@ -511,110 +452,80 @@ async function process_text_for_rendering(
         const matchedText = match[0];
 
         if (match[1]) {
-            const matchedWordLower = matchedText.toLowerCase();
-            if (abbreviations[matchedWordLower]) {
-                container.appendChild(
-                    document.createTextNode(abbreviations[matchedWordLower])
-                );
-            } else if (icons[matchedWordLower]) {
+            // Bold text **...**
+            const boldText = matchedText.slice(2, -2);
+            const strong = document.createElement("strong");
+            strong.textContent = boldText;
+            container.appendChild(strong);
+        } else if (match[2]) {
+            // Italic text *...*
+            const italicText = matchedText.slice(1, -1);
+            const em = document.createElement("em");
+            em.textContent = italicText;
+            container.appendChild(em);
+        } else if (match[3]) {
+            // Placeholder `...`
+            const placeholder = matchedText.slice(1, -1).toLowerCase();
+            
+            // Check if it's a currency placeholder (e.g., "100 gp")
+            const currencyMatch = placeholder.match(/^([\d,]+\+?)\s*(gp|sp|cp)$/i);
+            if (currencyMatch) {
+                const amount = currencyMatch[1];
+                const currency = currencyMatch[2].toLowerCase();
+                const iconName = currency === "gp" ? "icon-gold" : 
+                                 currency === "sp" ? "icon-silver" : "icon-copper";
+                container.appendChild(document.createTextNode(amount + " "));
                 const icon = document.createElement("img");
-                icon.src = await load_icon(
-                    icons[matchedWordLower],
-                    foregroundColor
-                );
+                icon.src = await load_icon(iconName, foregroundColor);
                 icon.className = "inline-icon";
                 const iconWrapper = document.createElement("span");
                 iconWrapper.className = "inline-icon-wrapper";
                 iconWrapper.appendChild(icon);
                 container.appendChild(iconWrapper);
             }
-        } else if (match[2]) {
-            const icon = document.createElement("img");
-            icon.src = await load_icon(icons[matchedText], foregroundColor);
-            icon.className = "inline-icon";
-            const iconWrapper = document.createElement("span");
-            iconWrapper.className = "inline-icon-wrapper";
-            iconWrapper.appendChild(icon);
-            container.appendChild(iconWrapper);
-        } else if (match[3]) {
-            const innerContent = matchedText.substring(
-                2,
-                matchedText.length - 1
-            );
-            const firstSpaceIndex = innerContent.indexOf(" ");
-            const formula = innerContent
-                .substring(firstSpaceIndex + 1)
-                .split("|")
-                .pop()
-                .trim();
-            const span = document.createElement("span");
-            span.className = "dice-formula";
-            span.textContent = formula;
-            container.appendChild(span);
+            // Check if it's an icon placeholder
+            else if (placeholderIcons[placeholder]) {
+                const icon = document.createElement("img");
+                icon.src = await load_icon(placeholderIcons[placeholder], foregroundColor);
+                icon.className = "inline-icon";
+                const iconWrapper = document.createElement("span");
+                iconWrapper.className = "inline-icon-wrapper";
+                iconWrapper.appendChild(icon);
+                container.appendChild(iconWrapper);
+            }
+            // Check for action economy placeholders and replace with icons
+            else if (placeholder === "bonus action" || placeholder === "action" || placeholder === "actions" || placeholder === "reaction" || placeholder === "reactions") {
+                // Determine the action type icon
+                let iconName = null;
+                if (placeholder === "bonus action") {
+                    iconName = "icon-b"; // Bonus action
+                } else if (placeholder === "reaction" || placeholder === "reactions") {
+                    iconName = "icon-r"; // Reaction
+                } else {
+                    iconName = "icon-a"; // Action
+                }
+                
+                const icon = document.createElement("img");
+                icon.src = await load_icon(iconName, foregroundColor);
+                icon.className = "inline-icon";
+                const iconWrapper = document.createElement("span");
+                iconWrapper.className = "inline-icon-wrapper";
+                iconWrapper.appendChild(icon);
+                container.appendChild(iconWrapper);
+            }
+            // Default: render as plain text (without backticks)
+            else {
+                container.appendChild(document.createTextNode(matchedText.slice(1, -1)));
+            }
         } else if (match[4]) {
-            const innerContent = matchedText.substring(
-                2,
-                matchedText.length - 1
-            );
-            const firstSpaceIndex = innerContent.indexOf(" ");
-            const value = innerContent
-                .substring(firstSpaceIndex + 1)
-                .split("|")[0]
-                .trim();
-            container.appendChild(document.createTextNode(`${value}%`));
-        } else if (match[5]) {
-            const actionTagMatch = matchedText.match(/{@action\s([^|}]+)/);
-            const actionText = actionTagMatch ? actionTagMatch[1].trim() : "";
-
-            if (actionText) {
-                container.appendChild(
-                    document.createTextNode(actionText + " ")
-                );
-            }
-
-            const icon = document.createElement("img");
-            icon.src = await load_icon("icon-a", foregroundColor);
-            icon.className = "inline-icon";
-            const iconWrapper = document.createElement("span");
-            iconWrapper.className = "inline-icon-wrapper";
-            iconWrapper.appendChild(icon);
-            container.appendChild(iconWrapper);
-        } else if (match[6]) {
-            const innerContent = matchedText.substring(
-                2,
-                matchedText.length - 1
-            );
-            const firstSpaceIndex = innerContent.indexOf(" ");
-            const contentAfterTag = innerContent.substring(firstSpaceIndex + 1);
-            const textToRender = contentAfterTag.split("|")[0].trim();
-            container.appendChild(document.createTextNode(textToRender));
-        } else if (match[7]) {
-            const innerContent = matchedText.substring(
-                2,
-                matchedText.length - 1
-            );
-            const parts = innerContent.split("|");
-            let textToRender;
-
-            if (parts.length >= 3) {
-                textToRender = parts[parts.length - 1].trim();
-            } else if (parts.length === 2) {
-                const firstPart = parts[0];
-                const firstSpaceIndex = firstPart.indexOf(" ");
-                textToRender = firstPart.substring(firstSpaceIndex + 1).trim();
-            } else {
-                const firstSpaceIndex = innerContent.indexOf(" ");
-                textToRender =
-                    firstSpaceIndex !== -1
-                        ? innerContent.substring(firstSpaceIndex + 1).trim()
-                        : "";
-            }
-            container.appendChild(document.createTextNode(textToRender));
+            // Newline - convert to space or line break as needed
+            container.appendChild(document.createTextNode(" "));
         }
 
         lastIndex = regex.lastIndex;
     }
 
+    // Add remaining text
     if (lastIndex < text.length) {
         container.appendChild(
             document.createTextNode(text.substring(lastIndex))
@@ -629,13 +540,8 @@ async function render_component_text(spell) {
     componentTextContainer.className = "spell-component-text";
 
     const components = spell.components;
-    if (components.m) {
-        let materialText = "";
-        if (typeof components.m === "string") {
-            materialText = components.m;
-        } else {
-            materialText = components.m.text;
-        }
+    if (components.m && components.description) {
+        const materialText = components.description;
         const materialTextElement = document.createElement("span");
         materialTextElement.appendChild(
             await process_text_for_rendering(
@@ -658,7 +564,7 @@ async function render_concentration_and_ritual(
     concentrationAndRitualContainer.className =
         "spell-concentration-and-ritual";
 
-    if (spell.duration[0].concentration) {
+    if (spell.isConcentration) {
         const concentrationIcon = document.createElement("img");
         concentrationIcon.src = await load_icon(
             "chip-c",
@@ -667,7 +573,7 @@ async function render_concentration_and_ritual(
         );
         concentrationAndRitualContainer.appendChild(concentrationIcon);
     }
-    if (spell.meta?.ritual) {
+    if (spell.isRitual) {
         const ritualIcon = document.createElement("img");
         ritualIcon.src = await load_icon(
             "chip-r",
@@ -684,21 +590,11 @@ async function render_class_icons(spell, foregroundColor, backgroundColor) {
     const classIconsContainer = document.createElement("div");
     classIconsContainer.className = "spell-class-icons";
 
-    const sourceInfo = spellSources[spell.name];
-    let uniqueClasses = [];
-    const classList =
-        (sourceInfo && (sourceInfo.class || sourceInfo.classVariant)) || [];
-    if (classList.length > 0) {
-        const validClasses = classList
-            .filter((c) => c.source === "XPHB" || c.source === "TCE")
-            .map((c) => c.name);
-
-        uniqueClasses = [...new Set(validClasses)];
-    }
+    const spellClasses = spell.classes || [];
 
     for (const className of ALL_CLASSES) {
         const classIcon = document.createElement("img");
-        const isPresent = uniqueClasses.includes(className);
+        const isPresent = spellClasses.includes(className);
         const color = isPresent ? foregroundColor : "#cccccc";
         classIcon.src = await load_icon(
             `icon-${className.toLowerCase()}`,
@@ -728,17 +624,7 @@ function render_spell_school(spell, foregroundColor, backgroundColor) {
     spellSchool.style.color = foregroundColor;
     spellSchool.style.backgroundColor = backgroundColor;
 
-    const schoolNameMap = {
-        A: "Abjuration",
-        C: "Conjuration",
-        D: "Divination",
-        E: "Enchantment",
-        V: "Evocation",
-        I: "Illusion",
-        N: "Necromancy",
-        T: "Transmutation",
-    };
-    const schoolName = schoolNameMap[spell.school];
+    const schoolName = spell.school;
     for (const char of schoolName) {
         const span = document.createElement("span");
         span.textContent = char;
@@ -749,7 +635,7 @@ function render_spell_school(spell, foregroundColor, backgroundColor) {
 }
 
 async function render_condition_text(spell) {
-    let conditionText = spell.time[0].condition;
+    let conditionText = spell.time.condition;
     if (conditionText) {
         conditionText = conditionText.replace(/which you take/g, "").trim();
         conditionText =
@@ -770,8 +656,8 @@ async function render_higher_level_text(
     foregroundColor,
     backgroundColor
 ) {
-    const higherLevel = spell.entriesHigherLevel;
-    if (!higherLevel) {
+    const upcast = spell.upcast;
+    if (!upcast) {
         return null;
     }
 
@@ -794,113 +680,111 @@ async function render_higher_level_text(
     circle.appendChild(plus);
 
     higherLevelTextContainer.appendChild(
-        await process_text_for_rendering(higherLevel[0].entries[0])
+        await process_text_for_rendering(upcast)
     );
 
     return higherLevelTextContainer;
 }
 
-async function render_entries(entries, entryName = "") {
+async function render_description(description) {
     const container = document.createDocumentFragment();
 
-    for (const entry of entries) {
-        if (typeof entry === "string") {
-            const p = document.createElement("p");
-            if (entryName) {
+    if (!description) return container;
+
+    // Split by double newlines to get paragraphs
+    const blocks = description.split(/\n\n+/);
+
+    for (const block of blocks) {
+        const trimmedBlock = block.trim();
+        if (!trimmedBlock) continue;
+
+        // Check if it's a markdown table
+        if (trimmedBlock.startsWith("|") && trimmedBlock.includes("| --- |")) {
+            const table = await render_markdown_table(trimmedBlock);
+            container.appendChild(table);
+        }
+        // Check if it's a markdown list
+        else if (trimmedBlock.startsWith("- ")) {
+            const list = await render_markdown_list(trimmedBlock);
+            container.appendChild(list);
+        }
+        // Check if it's a named entry (starts with **Name**)
+        else if (trimmedBlock.match(/^\*\*[^*]+\*\*\n/)) {
+            const lines = trimmedBlock.split("\n");
+            const nameMatch = lines[0].match(/^\*\*([^*]+)\*\*$/);
+            if (nameMatch) {
+                const entryName = nameMatch[1];
+                const entryContent = lines.slice(1).join("\n");
+                const p = document.createElement("p");
                 const nameSpan = document.createElement("span");
                 nameSpan.className = "spell-entry-name";
-                nameSpan.textContent = entryName;
+                nameSpan.textContent = entryName + " ";
                 p.appendChild(nameSpan);
-                entryName = "";
+                p.appendChild(await process_text_for_rendering(entryContent));
+                container.appendChild(p);
             }
-            p.appendChild(await process_text_for_rendering(entry));
+        }
+        // Regular paragraph
+        else {
+            const p = document.createElement("p");
+            p.appendChild(await process_text_for_rendering(trimmedBlock));
             container.appendChild(p);
-        } else if (entry.type === "table") {
-            const table = await render_table(entry);
-            container.appendChild(table);
-        } else if (entry.type === "list") {
-            const list = await render_list(entry);
-            container.appendChild(list);
-        } else if (entry.type === "entries") {
-            const nestedEntries = await render_entries(
-                entry.entries,
-                entry.name || ""
-            );
-            container.appendChild(nestedEntries);
         }
     }
 
     return container;
 }
 
-async function render_table(tableData) {
+async function render_markdown_table(tableText) {
     const table = document.createElement("table");
     table.className = "spell-table";
 
-    if (tableData.caption) {
-        const caption = document.createElement("caption");
-        caption.textContent = tableData.caption;
-        table.appendChild(caption);
-    }
-
+    const lines = tableText.trim().split("\n");
+    
+    // Header row
     const thead = document.createElement("thead");
-    const tr = document.createElement("tr");
-    for (const colLabel of tableData.colLabels) {
+    const headerRow = document.createElement("tr");
+    const headerCells = lines[0].split("|").filter(c => c.trim());
+    for (const cell of headerCells) {
         const th = document.createElement("th");
-        th.textContent = colLabel;
-        tr.appendChild(th);
+        th.appendChild(await process_text_for_rendering(cell.trim()));
+        headerRow.appendChild(th);
     }
-    thead.appendChild(tr);
+    thead.appendChild(headerRow);
     table.appendChild(thead);
 
+    // Data rows (skip header and separator)
     const tbody = document.createElement("tbody");
-    for (const rowData of tableData.rows) {
-        const tr = document.createElement("tr");
-        for (const cellData of rowData) {
+    for (let i = 2; i < lines.length; i++) {
+        const row = document.createElement("tr");
+        const cells = lines[i].split("|").filter(c => c.trim() !== "");
+        for (const cell of cells) {
             const td = document.createElement("td");
-            td.appendChild(await process_text_for_rendering(cellData));
-            tr.appendChild(td);
+            td.appendChild(await process_text_for_rendering(cell.trim()));
+            row.appendChild(td);
         }
-        tbody.appendChild(tr);
+        tbody.appendChild(row);
     }
     table.appendChild(tbody);
 
     return table;
 }
 
-async function render_list(listData) {
-    if (listData.style === "list-hang-notitle") {
-        const container = document.createDocumentFragment();
-        for (const item of listData.items) {
-            const p = document.createElement("p");
-            p.className = "spell-list-hang-item";
+async function render_markdown_list(listText) {
+    const ul = document.createElement("ul");
+    ul.className = "spell-list";
 
-            const term = document.createElement("span");
-            term.className = "spell-list-hang-term";
-            term.textContent = item.name;
-            p.appendChild(term);
-
-            const description = item.entries.join(" ");
-            p.appendChild(await process_text_for_rendering(description));
-            container.appendChild(p);
-        }
-        return container;
-    } else {
-        const ul = document.createElement("ul");
-        ul.className = "spell-list";
-        for (const item of listData.items) {
-            const li = document.createElement("li");
-            if (typeof item === "string") {
-                li.appendChild(await process_text_for_rendering(item));
-            } else {
-                const nestedEntries = await render_entries(item.entries);
-                li.appendChild(nestedEntries);
-            }
-            ul.appendChild(li);
-        }
-        return ul;
+    const items = listText.split(/\n(?=- )/);
+    for (const item of items) {
+        const li = document.createElement("li");
+        const content = item.replace(/^- /, "").trim();
+        li.appendChild(await process_text_for_rendering(content));
+        ul.appendChild(li);
     }
+
+    return ul;
 }
+
 
 class SpellCard {
     constructor(spell) {
@@ -1024,7 +908,7 @@ class SpellCard {
 
         const descriptionText = document.createElement("div");
         descriptionText.className = "description-text";
-        const spellDescription = await render_entries(spell.entries);
+        const spellDescription = await render_description(spell.description);
         descriptionText.appendChild(spellDescription);
         cardBody.appendChild(descriptionText);
 
@@ -1378,9 +1262,85 @@ function createPage(pageSize, containerWidth, containerHeight) {
 
     const cardContainer = document.createElement("div");
     cardContainer.className = "card-container";
+    cardContainer.style.width = `${containerWidth}mm`;
+    cardContainer.style.height = `${containerHeight}mm`;
+
+    // Add cutting marks overlay
+    const cuttingMarks = createCuttingMarks(containerWidth, containerHeight);
+    pageContent.appendChild(cuttingMarks);
 
     pageContent.appendChild(cardContainer);
     return page;
+}
+
+function createCuttingMarks(containerWidth, containerHeight) {
+    const marksContainer = document.createElement("div");
+    marksContainer.className = "cutting-marks";
+    marksContainer.style.width = `${containerWidth}mm`;
+    marksContainer.style.height = `${containerHeight}mm`;
+
+    const cardWidth = 63; // mm
+    const cardHeight = 88; // mm
+    const markLength = 3; // mm
+    const markThickness = 0.3; // mm
+    const margin = 1; // mm
+
+    const cols = Math.floor(containerWidth / cardWidth);
+    const rows = Math.floor(containerHeight / cardHeight);
+
+    // Create marks at each grid intersection
+    for (let row = 0; row <= rows; row++) {
+        for (let col = 0; col <= cols; col++) {
+            const x = col * cardWidth;
+            const y = row * cardHeight;
+
+            // Vertical mark above the intersection (top edge marks)
+            if (row === 0) {
+                const vMarkTop = document.createElement("div");
+                vMarkTop.className = "cut-mark cut-mark-v";
+                vMarkTop.style.left = `${x - markThickness / 2}mm`;
+                vMarkTop.style.top = `-${markLength + margin}mm`;
+                vMarkTop.style.width = `${markThickness}mm`;
+                vMarkTop.style.height = `${markLength}mm`;
+                marksContainer.appendChild(vMarkTop);
+            }
+
+            // Vertical mark below the intersection (bottom edge marks)
+            if (row === rows) {
+                const vMarkBottom = document.createElement("div");
+                vMarkBottom.className = "cut-mark cut-mark-v";
+                vMarkBottom.style.left = `${x - markThickness / 2}mm`;
+                vMarkBottom.style.top = `${y + margin}mm`;
+                vMarkBottom.style.width = `${markThickness}mm`;
+                vMarkBottom.style.height = `${markLength}mm`;
+                marksContainer.appendChild(vMarkBottom);
+            }
+
+            // Horizontal mark to the left of the intersection (left edge marks)
+            if (col === 0) {
+                const hMarkLeft = document.createElement("div");
+                hMarkLeft.className = "cut-mark cut-mark-h";
+                hMarkLeft.style.left = `-${markLength + margin}mm`;
+                hMarkLeft.style.top = `${y - markThickness / 2}mm`;
+                hMarkLeft.style.width = `${markLength}mm`;
+                hMarkLeft.style.height = `${markThickness}mm`;
+                marksContainer.appendChild(hMarkLeft);
+            }
+
+            // Horizontal mark to the right of the intersection (right edge marks)
+            if (col === cols) {
+                const hMarkRight = document.createElement("div");
+                hMarkRight.className = "cut-mark cut-mark-h";
+                hMarkRight.style.left = `${x + margin}mm`;
+                hMarkRight.style.top = `${y - markThickness / 2}mm`;
+                hMarkRight.style.width = `${markLength}mm`;
+                hMarkRight.style.height = `${markThickness}mm`;
+                marksContainer.appendChild(hMarkRight);
+            }
+        }
+    }
+
+    return marksContainer;
 }
 
 function getPxPerMm() {

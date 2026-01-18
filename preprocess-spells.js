@@ -69,6 +69,20 @@ for (const file of spellFiles) {
 const sourcesContent = fs.readFileSync(sourcesFile, "utf-8");
 const sourcesData = JSON.parse(sourcesContent);
 
+// Supported classes - Monk is excluded because only a single outdated spell has it
+// and we don't have an icon for it
+const SUPPORTED_CLASSES = [
+    "Artificer",
+    "Bard",
+    "Cleric",
+    "Druid",
+    "Paladin",
+    "Ranger",
+    "Sorcerer",
+    "Warlock",
+    "Wizard",
+];
+
 // Create a map of spell names to classes
 const spellClassMap = {};
 for (const source in sourcesData) {
@@ -81,7 +95,8 @@ for (const source in sourcesData) {
             sourcesData[source][spellName].classVariant ||
             [];
         classList.forEach((c) => {
-            if (!spellClassMap[spellName].includes(c.name)) {
+            // Only include supported classes (excludes Monk, etc.)
+            if (SUPPORTED_CLASSES.includes(c.name) && !spellClassMap[spellName].includes(c.name)) {
                 spellClassMap[spellName].push(c.name);
             }
         });
@@ -126,6 +141,7 @@ function processString(text) {
         "scaledice",
         "hazard",
         "hit",
+        "condition",
     ];
 
     // Tags that should be wrapped in *italics*
@@ -222,8 +238,26 @@ function processString(text) {
         "slashing",
         "thunder",
     ];
+    const damageTypesPattern = damageTypes.join("|");
+    
+    // First, handle immunity/resistance/vulnerability lists like "Immunity to Cold, Poison, and Psychic damage"
+    // These need special handling because only the last type has "damage" after it
+    // Match the entire phrase and wrap each damage type individually
+    processedText = processedText.replace(
+        new RegExp(`\\b(Immunity|Resistance|Vulnerability) to ([^.]+?)(${damageTypesPattern}) damage\\b`, "gi"),
+        (match, keyword, middle, lastType) => {
+            // Wrap each damage type in the middle part
+            const wrappedMiddle = middle.replace(
+                new RegExp(`\\b(${damageTypesPattern})\\b`, "gi"),
+                "`$1 damage`"
+            );
+            return `${keyword} to ${wrappedMiddle}\`${lastType} damage\``;
+        }
+    );
+    
+    // Then handle standalone "X damage" patterns
     const damageRegex = new RegExp(
-        `\\b(${damageTypes.join("|")})( damage)\\b(?!\`)`,
+        `\\b(${damageTypesPattern})( damage)\\b(?!\`)`,
         "gi"
     );
     processedText = processedText.replace(damageRegex, "`$1$2`");
@@ -236,40 +270,43 @@ function processString(text) {
     );
 
     // Wrap action economy terms in backticks
+    // For "bonus action" - wrap entire phrase for B icon
+    // For "action" and "reaction" - wrap only the word itself for A/R icon
 
-    // "Bonus Action(s)" - always specific to action type
+    // "Bonus Action(s)" - wrap entire phrase (becomes B icon)
     processedText = processedText.replace(
-        /\b(bonus actions?)\b(?!`)/gi,
+        /\b(bonus action)s?\b(?!`)/gi,
         "`$1`"
     );
 
-    // "Reaction(s)" - specific to action type
+    // "Reaction(s)" - wrap only "reaction" (becomes R icon)
     processedText = processedText.replace(/\b(reactions?)\b(?!`)/gi, "`$1`");
 
-    // "Action" (singular) - only wrap when clearly referring to action economy
+    // "Action" (singular) - only wrap "action" when clearly referring to action economy
     // Avoid: "interaction", "course of action"
-    const actionSingularPatterns = [
-        /\b(an action)\b(?!`)/gi,
-        /\b(the action)\b(?!`)/gi,
-        /\b(as an action)\b(?!`)/gi,
-        /\b(use (?:an |your |its )?action)\b(?!`)/gi,
-        /\b(uses (?:an |its )?action)\b(?!`)/gi,
-        /\b(take (?:an |the |its )?action)\b(?!`)/gi,
-        /\b(takes (?:an |the |its )?action)\b(?!`)/gi,
-        /\b(no action)\b(?!`)/gi,
-        /\b(one action)\b(?!`)/gi,
-        /\b((?:Dodge|Attack|Dash|Disengage|Help|Hide|Ready|Search|Use|Magic|Study|Influence|Utilize) action)\b(?!`)/gi,
-        /\b(Use an Object action)\b(?!`)/gi,
-        /\b(1 action)\b(?!`)/gi,
-        /\b(that action)\b(?!`)/gi,
-        /\b(what action)\b(?!`)/gi,
-        /\b(additional action)\b(?!`)/gi,
-        /\b(wastes? (?:its |their )?action)\b(?!`)/gi,
-        /\b(only action)\b(?!`)/gi,
-        /\b((?:your|its|their) action)\b(?!`)/gi,
+    // These patterns match the context but only wrap "action"
+    const actionContextPatterns = [
+        /\b(an )(action)\b(?!`)/gi,
+        /\b(the )(action)\b(?!`)/gi,
+        /\b(as an )(action)\b(?!`)/gi,
+        /\b(use (?:an |your |its )?)(action)\b(?!`)/gi,
+        /\b(uses (?:an |its )?)(action)\b(?!`)/gi,
+        /\b(take (?:an |the |its )?)(action)\b(?!`)/gi,
+        /\b(takes (?:an |the |its )?)(action)\b(?!`)/gi,
+        /\b(no )(action)\b(?!`)/gi,
+        /\b(one )(action)\b(?!`)/gi,
+        /\b((?:Dodge|Attack|Dash|Disengage|Help|Hide|Ready|Search|Use|Magic|Study|Influence|Utilize) )(action)\b(?!`)/gi,
+        /\b(Use an Object )(action)\b(?!`)/gi,
+        /\b(1 )(action)\b(?!`)/gi,
+        /\b(that )(action)\b(?!`)/gi,
+        /\b(what )(action)\b(?!`)/gi,
+        /\b(additional )(action)\b(?!`)/gi,
+        /\b(wastes? (?:its |their )?)(action)\b(?!`)/gi,
+        /\b(only )(action)\b(?!`)/gi,
+        /\b((?:your |its |their )?)(action)\b(?!`)/gi,
     ];
-    actionSingularPatterns.forEach((pattern) => {
-        processedText = processedText.replace(pattern, "`$1`");
+    actionContextPatterns.forEach((pattern) => {
+        processedText = processedText.replace(pattern, "$1`$2`");
     });
 
     // "Actions" (plural) - wrap just "actions" when in game mechanics context
@@ -315,6 +352,12 @@ function processString(text) {
     processedText = processedText.replace(
         new RegExp(`\\b(${abilitiesPattern})\\s+(checks?)\\b(?!\\*\\*)`, "gi"),
         "**$1 $2**"
+    );
+
+    // Wrap light levels in bold (e.g., "Dim Light", "Bright Light")
+    processedText = processedText.replace(
+        /\b((?:Dim|Bright) Light)\b(?!\*\*)/gi,
+        "**$1**"
     );
 
     return processedText;
@@ -390,6 +433,7 @@ function processEntries(entries, isHigherLevel = false) {
             const upcastHeaders = [
                 "At Higher Levels",
                 "Using a Higher-Level Spell Slot",
+                "Cantrip Upgrade",
             ];
             const isUpcastHeader =
                 isHigherLevel && upcastHeaders.includes(entry.name);
@@ -896,8 +940,17 @@ function createSpellFromRaw(rawSpell) {
         primaryTime.condition = processString(primaryTime.condition);
     }
     const rawDuration = rawSpell.duration[0];
-    const requiresSight = (rawSpell.miscTags || []).includes("SGT");
     const areaTags = rawSpell.areaTags || [];
+    
+    // Determine if spell requires sight of target
+    // Check SGT miscTag first, then fallback to checking entries text for "you can see" targeting patterns
+    let requiresSight = (rawSpell.miscTags || []).includes("SGT");
+    if (!requiresSight && rawSpell.entries) {
+        const entriesText = JSON.stringify(rawSpell.entries).toLowerCase();
+        // Match patterns like "creature you can see", "space you can see", etc.
+        // Note: "place" is excluded because spells like Dimension Door use "place you can see" as one option among others
+        requiresSight = /(?:creature|target|point|humanoid|beast|object|space).{0,20}you can see/i.test(entriesText);
+    }
 
     return new Spell({
         name: rawSpell.name,
