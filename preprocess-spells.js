@@ -290,6 +290,33 @@ function processString(text) {
         "$1 `$2`"
     );
 
+    // Wrap saving throws in bold (e.g., "Wisdom saving throw" → "**Wisdom saving throw**")
+    const abilities = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"];
+    const abilitiesPattern = abilities.join("|");
+    processedText = processedText.replace(
+        new RegExp(`\\b(${abilitiesPattern}) (saving throws?)\\b(?!\\*\\*)`, "gi"),
+        "**$1 $2**"
+    );
+
+    // Wrap spell attacks in bold (e.g., "melee spell attack" → "**melee spell attack**")
+    processedText = processedText.replace(
+        /\b((?:melee|ranged) spell attacks?)\b(?!\*\*)/gi,
+        "**$1**"
+    );
+
+    // Wrap ability checks in bold
+    // Handles: "Wisdom check", "Wisdom checks", "Wisdom (Perception) check", etc.
+    // First, handle checks with skill in parentheses (may have **skill** from earlier processing)
+    processedText = processedText.replace(
+        new RegExp(`\\b(${abilitiesPattern})\\s*\\(\\*\\*([^*]+)\\*\\*\\)\\s*(checks?)\\b`, "gi"),
+        "**$1 ($2) $3**"
+    );
+    // Then handle simple ability checks without skill
+    processedText = processedText.replace(
+        new RegExp(`\\b(${abilitiesPattern})\\s+(checks?)\\b(?!\\*\\*)`, "gi"),
+        "**$1 $2**"
+    );
+
     return processedText;
 }
 
@@ -336,11 +363,25 @@ function processEntries(entries, isHigherLevel = false) {
                     .map(
                         (row) =>
                             `| ${row
-                                .map((cell) =>
-                                    typeof cell === "string"
-                                        ? processString(cell)
-                                        : ""
-                                )
+                                .map((cell) => {
+                                    if (typeof cell === "string") {
+                                        return processString(cell);
+                                    } else if (cell && typeof cell === "object") {
+                                        // Handle complex cell objects (e.g., {type: 'cell', roll: {exact: 1}})
+                                        if (cell.roll) {
+                                            if (cell.roll.exact !== undefined) {
+                                                return String(cell.roll.exact);
+                                            } else if (cell.roll.min !== undefined && cell.roll.max !== undefined) {
+                                                return `${cell.roll.min}-${cell.roll.max}`;
+                                            }
+                                        }
+                                        // Fallback: try to extract any text content
+                                        if (cell.entry) {
+                                            return processString(cell.entry);
+                                        }
+                                    }
+                                    return "";
+                                })
                                 .join(" | ")} |`
                     )
                     .join("\n") + "\n\n";
@@ -353,7 +394,7 @@ function processEntries(entries, isHigherLevel = false) {
             const isUpcastHeader =
                 isHigherLevel && upcastHeaders.includes(entry.name);
             if (entry.name && !isUpcastHeader) {
-                result += `**${entry.name}**\n`;
+            result += `**${entry.name}**\n`;
             }
             result += processEntries(entry.entries, isHigherLevel);
         }
@@ -362,31 +403,477 @@ function processEntries(entries, isHigherLevel = false) {
 }
 
 /**
- * Processes raw components data to convert cost to hasCost boolean.
+ * Processes raw components data into a flat structure.
  * @param {Object} rawComponents - The raw components data.
- * @returns {Object} Processed components data.
+ * @returns {Object} Processed components data with flat structure.
  */
 function processComponents(rawComponents) {
-    if (!rawComponents) return {};
+    if (!rawComponents) {
+        return {
+            v: false,
+            s: false,
+            m: false,
+            hasCost: false,
+            isConsumed: false,
+            description: "",
+        };
+    }
 
-    const result = {
-        v: rawComponents.v,
-        s: rawComponents.s,
-    };
+    let description = "";
+    let hasCost = false;
+    let isConsumed = false;
 
     if (rawComponents.m) {
         if (typeof rawComponents.m === "string") {
-            result.m = rawComponents.m;
+            description = rawComponents.m;
         } else {
-            result.m = {
-                text: rawComponents.m.text,
-                hasCost: rawComponents.m.cost !== undefined,
-                isConsumed: rawComponents.m.consume || false,
-            };
+            description = rawComponents.m.text || "";
+            hasCost = rawComponents.m.cost !== undefined;
+            isConsumed = rawComponents.m.consume || false;
         }
     }
 
-    return result;
+    return {
+        v: rawComponents.v || false,
+        s: rawComponents.s || false,
+        m: rawComponents.m !== undefined,
+        hasCost,
+        isConsumed,
+        description,
+    };
+}
+
+/**
+ * Map of areaTags to area type names.
+ * C = Cube (3D volume)
+ * Q = sQuare (2D ground area)
+ * R = Radius/circle (2D circular ground area)
+ * W = Wall (dimensions not parsed - too complex)
+ */
+const AREA_TAG_MAP = {
+    S: "sphere",
+    C: "cube",
+    L: "line",
+    Q: "square",
+    Y: "cylinder",
+    H: "hemisphere",
+    N: "cone",
+    R: "circle",
+    W: "wall",
+};
+
+/**
+ * Shape types that indicate the range.type is actually an area of effect.
+ */
+const SHAPE_TYPES = ["cone", "sphere", "line", "cube", "emanation", "hemisphere", "radius", "cylinder"];
+
+/**
+ * Parses area dimensions from spell description text.
+ * @param {string} text - The spell description text.
+ * @param {string} areaType - The area type (sphere, cube, line, etc.).
+ * @returns {{ areaDistance: number, areaUnit: string, areaHeight: number, areaHeightUnit: string }} The parsed dimensions.
+ */
+function parseAreaDimensions(text, areaType) {
+    if (!text || !areaType) {
+        return { areaDistance: 0, areaUnit: "", areaHeight: 0, areaHeightUnit: "" };
+    }
+
+    let areaDistance = 0;
+    let areaUnit = "";
+    let areaHeight = 0;
+    let areaHeightUnit = "";
+
+    // For cylinders, try to extract both radius and height
+    if (areaType === "cylinder") {
+        // Pattern: "X-foot-radius, Y-foot-tall/high cylinder" or "X-foot-radius, Y-foot tall/high"
+        const cylinderPattern1 = /(\d+)-foot-radius[,\s]+(\d+)-foot[- ]?(?:tall|high)/i;
+        const cylinderMatch1 = text.match(cylinderPattern1);
+        if (cylinderMatch1) {
+            areaDistance = parseInt(cylinderMatch1[1], 10);
+            areaUnit = "feet";
+            areaHeight = parseInt(cylinderMatch1[2], 10);
+            areaHeightUnit = "feet";
+            return { areaDistance, areaUnit, areaHeight, areaHeightUnit };
+        }
+
+        // Pattern: "Y-foot-tall, X-foot-radius Cylinder" (height first, XPHB style)
+        const cylinderPattern2 = /(\d+)-foot-tall[,\s]+(\d+)-foot-radius/i;
+        const cylinderMatch2 = text.match(cylinderPattern2);
+        if (cylinderMatch2) {
+            areaHeight = parseInt(cylinderMatch2[1], 10);
+            areaHeightUnit = "feet";
+            areaDistance = parseInt(cylinderMatch2[2], 10);
+            areaUnit = "feet";
+            return { areaDistance, areaUnit, areaHeight, areaHeightUnit };
+        }
+
+        // Pattern: "Y-foot-tall cylinder with a X-foot radius" (PHB style)
+        const cylinderPattern3 = /(\d+)-foot-tall\s+cylinder\s+with\s+a\s+(\d+)-foot\s+radius/i;
+        const cylinderMatch3 = text.match(cylinderPattern3);
+        if (cylinderMatch3) {
+            areaHeight = parseInt(cylinderMatch3[1], 10);
+            areaHeightUnit = "feet";
+            areaDistance = parseInt(cylinderMatch3[2], 10);
+            areaUnit = "feet";
+            return { areaDistance, areaUnit, areaHeight, areaHeightUnit };
+        }
+
+        // Pattern: "Y feet tall with a X-foot radius"
+        const tallWithRadiusPattern = /(\d+)\s+feet\s+tall\s+with\s+a\s+(\d+)-foot\s+radius/i;
+        const tallWithRadiusMatch = text.match(tallWithRadiusPattern);
+        if (tallWithRadiusMatch) {
+            areaHeight = parseInt(tallWithRadiusMatch[1], 10);
+            areaHeightUnit = "feet";
+            areaDistance = parseInt(tallWithRadiusMatch[2], 10);
+            areaUnit = "feet";
+            return { areaDistance, areaUnit, areaHeight, areaHeightUnit };
+        }
+    }
+
+    // For circles (R tag), parse radius from text
+    if (areaType === "circle") {
+        // Pattern: "X-foot radius centered on", "X-foot-radius circle"
+        const circlePatterns = [
+            /(\d+)-foot-radius\s+circle/i,
+            /(\d+)-foot\s+radius\s+centered/i,
+            /in\s+a\s+(\d+)-foot\s+radius/i,
+            /(\d+)-foot-radius\s+(?:centered|area)/i,
+        ];
+        for (const pattern of circlePatterns) {
+            const match = text.match(pattern);
+            if (match) {
+                return { areaDistance: parseInt(match[1], 10), areaUnit: "feet", areaHeight: 0, areaHeightUnit: "" };
+            }
+        }
+    }
+
+    // Patterns to match area dimensions (case-insensitive)
+    const patterns = [
+        // "20-foot-radius {@variantrule Sphere...}" (XPHB style)
+        /(\d+)-foot-radius\s+\{@variantrule\s+(?:Sphere|Cylinder|Emanation|Hemisphere)/i,
+        // "20-foot-radius sphere", "10-foot-radius cylinder"
+        /(\d+)-foot-radius\s+(?:sphere|cylinder|emanation|hemisphere)/i,
+        // "radius of up to 40 feet"
+        /radius\s+of\s+(?:up\s+to\s+)?(\d+)\s+feet/i,
+        // "20-foot cube", "20-foot square", "15-foot cone"
+        /(\d+)-foot\s+(?:cube|square|cone|sphere)/i,
+        // "20-foot {@variantrule Cube...}" (XPHB style)
+        /(\d+)-foot\s+\{@variantrule\s+(?:Cube|Cone|Line|Square)/i,
+        // "cube 5 feet on each side", "cube up to 100 feet on a side"
+        /cube\s+(?:up\s+to\s+)?(\d+)\s+feet\s+on\s+(?:each|a)\s+side/i,
+        // "30 feet long" (for lines)
+        /(\d+)\s+feet\s+long/i,
+        // "X-foot line" or "X-foot {@variantrule Line...}"
+        /(\d+)-foot(?:\s+\{@variantrule)?\s*line/i,
+        // "10 feet tall with a 60-foot radius" - take the radius
+        /(\d+)-foot\s+radius/i,
+        // "within X feet" for area effects like Cordon of Arrows
+        /within\s+(\d+)\s+feet\s+of/i,
+        // Generic "X-foot" followed by area type (case insensitive on area)
+        new RegExp(`(\\d+)-foot(?:-\\w+)?\\s+(?:\\{@variantrule[^}]+\\})?\\s*${areaType}`, "i"),
+        // "X feet" followed by area type
+        new RegExp(`(\\d+)\\s+feet\\s+${areaType}`, "i"),
+    ];
+
+    for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match) {
+            return { areaDistance: parseInt(match[1], 10), areaUnit: "feet", areaHeight: 0, areaHeightUnit: "" };
+        }
+    }
+
+    // Check for mile-based dimensions (rare)
+    const milePattern = /(\d+)-mile(?:-radius)?\s+(?:sphere|radius|area)/i;
+    const mileMatch = text.match(milePattern);
+    if (mileMatch) {
+        return { areaDistance: parseInt(mileMatch[1], 10), areaUnit: "miles", areaHeight: 0, areaHeightUnit: "" };
+    }
+
+    return { areaDistance: 0, areaUnit: "", areaHeight: 0, areaHeightUnit: "" };
+}
+
+/**
+ * Extracts text from spell entries for area dimension parsing.
+ * @param {Array} entries - The spell entries array.
+ * @returns {string} Combined text from entries.
+ */
+function getEntriesText(entries) {
+    if (!entries) return "";
+    
+    let text = "";
+    for (const entry of entries) {
+        if (typeof entry === "string") {
+            text += entry + " ";
+        } else if (entry.entries) {
+            text += getEntriesText(entry.entries) + " ";
+        }
+    }
+    return text;
+}
+
+/**
+ * Map of number words to integers.
+ */
+const NUMBER_WORDS = {
+    one: 1, two: 2, three: 3, four: 4, five: 5,
+    six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+    eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15,
+    sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20,
+};
+
+/**
+ * Parses the number of targets from spell description text.
+ * @param {string} text - The spell description text.
+ * @returns {number} The number of targets:
+ *   - 0: not found or area-based
+ *   - -1: unlimited ("any number")
+ *   - -2: variable (1+, depends on level/modifier/choice)
+ *   - positive: specific count
+ */
+function parseTargets(text) {
+    if (!text) return 0;
+
+    // Check for unlimited targets patterns first
+    if (/any number of/i.test(text)) {
+        return -1;
+    }
+    // "each creature of your choice" or "creatures of your choice" without a specific number = unlimited
+    if (/(?:each |all )?creatures? (?:of your choice|you choose)/i.test(text)) {
+        // Check if there's NOT a specific number word before "creature(s)"
+        // Allow for optional words like "willing" between number and "creatures"
+        const hasNumberBefore = /(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d+)(?: \w+)? creatures? (?:of your choice|you choose)/i.test(text);
+        if (!hasNumberBefore) {
+            return -1;
+        }
+    }
+
+    // Check for variable (1+) patterns - return -2
+    // These must be checked BEFORE numbered patterns to avoid partial matches
+    const variablePatterns = [
+        // "one or two creatures" or "choose one creature ... or choose two" (Acid Splash PHB)
+        /(?:one|1) or (?:two|2) creatures?/i,
+        /choose (?:one|1) creature.+or choose (?:two|2) creatures?/i,
+        // Modifier-dependent: "number of objects/creatures is equal to your ... modifier"
+        // Must specifically mention objects/creatures/targets, not damage dice
+        /number of (?:objects|creatures|targets).+(?:equal to|equals).+modifier/i,
+        /maximum number of (?:objects|creatures|targets).+equal.+modifier/i,
+        // Level-scaling beams (Eldritch Blast): "more than one beam when you reach higher levels"
+        /more than one beam when you reach higher levels/i,
+        /creates more than one beam/i,
+        // Complex multi-option (Giant Insect PHB): "up to ten centipedes, three spiders, five wasps, or one scorpion"
+        /up to \w+ \w+, \w+ \w+, \w+ \w+, or \w+ \w+/i,
+    ];
+
+    for (const pattern of variablePatterns) {
+        if (pattern.test(text)) {
+            return -2;
+        }
+    }
+
+    // Build number word pattern for matching
+    const numWordPattern = Object.keys(NUMBER_WORDS).join("|");
+    
+    // Patterns to match target counts (with explicit number)
+    const numberedPatterns = [
+        // "up to X creatures" or "up to X willing/falling creatures"
+        /up to (\w+)(?: \w+)? creatures?/i,
+        // "up to X objects" (Animate Objects PHB)
+        /up to (\w+)(?: \w+)? objects?/i,
+        // "X or fewer creatures" (Mass Suggestion)
+        /(\w+) or fewer creatures?/i,
+        // "X creatures of your choice" or "X creatures you can see"
+        /(\w+) creatures? (?:of your choice|you can see|you choose|within range)/i,
+        // "choose X creatures"
+        /choose (\w+) creatures?/i,
+        // "target X creatures"
+        /target (\w+) creatures?/i,
+        // "X other targets" (Chain Lightning)
+        /(\w+) other targets?/i,
+        // "X darts/rays/bolts/beams" with optional adjective (Magic Missile, Scorching Ray)
+        // Must start with a number word to avoid matching "create three rays"
+        new RegExp(`(${numWordPattern}|\\d+)(?: \\w+)? (?:darts?|rays?|bolts?|beams?)`, "i"),
+        // "X pillars" (Bones of the Earth)
+        new RegExp(`(${numWordPattern}|\\d+)(?: \\w+)? pillars?`, "i"),
+    ];
+
+    for (const pattern of numberedPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            const numStr = match[1].toLowerCase();
+            // Try to parse as number word
+            if (NUMBER_WORDS[numStr] !== undefined) {
+                return NUMBER_WORDS[numStr];
+            }
+            // Try to parse as digit
+            const num = parseInt(numStr, 10);
+            if (!isNaN(num)) {
+                return num;
+            }
+        }
+    }
+
+    // Patterns for "a creature" or "one humanoid" (singular, meaning 1 target)
+    const singularPatterns = [
+        /choose a (?:willing )?creature/i,
+        /a (?:willing )?creature (?:of your choice|you can see|within range)/i,
+        /target a creature/i,
+        /choose one humanoid/i,
+        /one humanoid (?:within range|you can see)/i,
+        // "one creature or object" (Eldritch Blast XPHB)
+        /one creature or object/i,
+        /against one creature/i,
+        // "summon a giant X" (Giant Insect XPHB)
+        /summon a giant/i,
+        // Touch/melee spell patterns
+        /a creature within your reach/i,
+        /a creature you can reach/i,
+        /a creature (?:that )?you (?:try to )?touch/i,
+        /attack against a creature/i,
+    ];
+
+    for (const pattern of singularPatterns) {
+        if (text.match(pattern)) {
+            return 1;
+        }
+    }
+
+    // Check for blade/weapon spells that make multiple attacks (Blade of Disaster)
+    // Must explicitly mention "two" or multiple attacks, not just "make a melee spell attack"
+    if (/you can make two melee spell attacks/i.test(text) || 
+        /make up to \w+ (?:melee )?spell attacks/i.test(text)) {
+        return -2;  // Variable attacks
+    }
+
+    return 0;
+}
+
+/**
+ * Processes raw range data into a flat structure with origin, distance, unit, area info.
+ * @param {Object} rawRange - The raw range data.
+ * @param {boolean} requiresSight - Whether the spell requires sight of target (from miscTags).
+ * @param {string[]} areaTags - The area tags from the spell (e.g., ['S'] for sphere).
+ * @param {Array} entries - The spell entries for parsing area dimensions.
+ * @returns {Object} Processed range data with flat structure.
+ */
+function processRange(rawRange, requiresSight, areaTags, entries) {
+    const rangeType = rawRange.type;
+    const distanceType = rawRange.distance?.type || "";
+    const distanceAmount = rawRange.distance?.amount || 0;
+
+    // Default values
+    let origin = "point";
+    let distance = 0;
+    let unit = "";
+    let area = "";
+    let areaDistance = 0;
+    let areaUnit = "";
+    let areaHeight = 0;
+    let areaHeightUnit = "";
+
+    // If range.type is a shape, it's a self-emanating area effect
+    if (SHAPE_TYPES.includes(rangeType)) {
+        origin = "self";
+        area = rangeType;
+        areaDistance = distanceAmount;
+        areaUnit = distanceType === "feet" || distanceType === "miles" ? distanceType : "";
+        
+        // For self-emanating areas, also try to parse height from text (for cylinders)
+        if (area === "cylinder" && entries) {
+            const entriesText = getEntriesText(entries);
+            const parsed = parseAreaDimensions(entriesText, area);
+            if (parsed.areaHeight > 0) {
+                areaHeight = parsed.areaHeight;
+                areaHeightUnit = parsed.areaHeightUnit;
+            }
+        }
+    }
+    // If range.type is "special", use special origin
+    else if (rangeType === "special") {
+        origin = "special";
+    }
+    // If range.type is "point", determine origin from distance.type
+    else if (rangeType === "point") {
+        if (distanceType === "self") {
+            origin = "self";
+        } else if (distanceType === "touch") {
+            origin = "touch";
+        } else if (distanceType === "sight") {
+            origin = "point";
+            unit = "unlimited";
+            // requiresSight is already set from miscTags, but sight range implies it
+            requiresSight = true;
+        } else if (distanceType === "unlimited") {
+            origin = "point";
+            unit = "unlimited";
+        } else if (distanceType === "feet" || distanceType === "miles") {
+            origin = "point";
+            distance = distanceAmount;
+            unit = distanceType;
+        }
+
+        // Check areaTags for area type (for spells like Fireball)
+        if (areaTags && areaTags.length > 0) {
+            for (const tag of areaTags) {
+                if (AREA_TAG_MAP[tag]) {
+                    area = AREA_TAG_MAP[tag];
+                    break;
+                }
+            }
+        }
+
+        // Parse area dimensions from spell text if we have an area type
+        if (area && entries) {
+            const entriesText = getEntriesText(entries);
+            const parsed = parseAreaDimensions(entriesText, area);
+            areaDistance = parsed.areaDistance;
+            areaUnit = parsed.areaUnit;
+            areaHeight = parsed.areaHeight;
+            areaHeightUnit = parsed.areaHeightUnit;
+        }
+    }
+
+    // Parse target count from spell text
+    let targets = 0;
+    if (entries) {
+        const entriesText = getEntriesText(entries);
+        targets = parseTargets(entriesText);
+    }
+
+    return {
+        origin,
+        distance,
+        unit,
+        requiresSight,
+        area,
+        areaDistance,
+        areaUnit,
+        areaHeight,
+        areaHeightUnit,
+        targets,
+    };
+}
+
+/**
+ * Processes raw duration data into a flat structure with type, amount, unit, ends.
+ * @param {Object} rawDuration - The raw duration data.
+ * @returns {Object} Processed duration data with flat structure.
+ */
+function processDuration(rawDuration) {
+    const type = rawDuration.type;
+    let amount = 0;
+    let unit = "";
+    let ends = [];
+
+    if (type === "timed" && rawDuration.duration) {
+        amount = rawDuration.duration.amount || 0;
+        unit = rawDuration.duration.type || "";
+    }
+
+    if (rawDuration.ends) {
+        ends = rawDuration.ends;
+    }
+
+    return { type, amount, unit, ends };
 }
 
 /**
@@ -408,26 +895,29 @@ function createSpellFromRaw(rawSpell) {
     if (primaryTime.condition) {
         primaryTime.condition = processString(primaryTime.condition);
     }
-    const primaryDuration = rawSpell.duration[0];
+    const rawDuration = rawSpell.duration[0];
+    const requiresSight = (rawSpell.miscTags || []).includes("SGT");
+    const areaTags = rawSpell.areaTags || [];
 
     return new Spell({
         name: rawSpell.name,
+        subtitle: "",
         source: rawSpell.source,
         page: rawSpell.page,
+        isSRD: rawSpell.srd || rawSpell.srd52 || false,
         level: rawSpell.level,
         school: schoolName,
         time: primaryTime,
-        range: rawSpell.range,
+        range: processRange(rawSpell.range, requiresSight, areaTags, rawSpell.entries),
         components: processComponents(rawSpell.components),
-        duration: primaryDuration,
+        duration: processDuration(rawDuration),
         description: processEntries(rawSpell.entries).trim(),
         upcast: rawSpell.entriesHigherLevel
             ? processEntries(rawSpell.entriesHigherLevel, true).trim()
             : undefined,
         classes: spellClassMap[rawSpell.name] || [],
-        isConcentration: primaryDuration.concentration || false,
+        isConcentration: rawDuration.concentration || false,
         isRitual: rawSpell.meta?.ritual || false,
-        requiresSight: (rawSpell.miscTags || []).includes("SGT"),
     });
 }
 

@@ -13,30 +13,31 @@ export const SCHOOL_MAP = {
 };
 
 /**
- * Valid values for Distance.type
+ * Valid values for Range.origin
  */
-export const DISTANCE_TYPES = [
-    "feet",
-    "miles",
-    "touch",
-    "self",
-    "sight",
-    "unlimited",
-];
+export const ORIGIN_TYPES = ["self", "touch", "point", "special"];
 
 /**
- * Valid values for Range.type
+ * Valid values for Range.unit
  */
-export const RANGE_TYPES = [
-    "point",
+export const UNIT_TYPES = ["feet", "miles", "unlimited", ""];
+
+/**
+ * Valid values for Range.area and Range.areaUnit
+ */
+export const AREA_TYPES = [
+    "",
+    "circle",
     "cone",
-    "sphere",
-    "line",
     "cube",
+    "cylinder",
     "emanation",
     "hemisphere",
+    "line",
+    "sphere",
+    "square",
     "radius",
-    "special",
+    "wall",
 ];
 
 /**
@@ -61,140 +62,89 @@ export const CASTING_TIME_UNITS = [
 ];
 
 /**
- * Represents a distance measurement.
- * @example { type: "feet", amount: 60 }
- * @example { type: "touch" }
- * @example { type: "self" }
- */
-export class Distance {
-    /**
-     * @param {Object} data - The distance data.
-     * @param {string} data.type - The distance type: "feet", "miles", "touch", "self", "sight", "unlimited".
-     * @param {number} [data.amount] - The numeric distance (only for "feet" or "miles").
-     */
-    constructor({ type, amount }) {
-        if (!DISTANCE_TYPES.includes(type)) {
-            throw new Error(
-                `Invalid distance type: "${type}". Expected one of: ${DISTANCE_TYPES.join(
-                    ", "
-                )}`
-            );
-        }
-        this.type = type;
-        this.amount = amount;
-    }
-
-    toJSON() {
-        const obj = { type: this.type };
-        if (this.amount !== undefined) {
-            obj.amount = this.amount;
-        }
-        return obj;
-    }
-
-    static fromJSON(json) {
-        if (!json) return undefined;
-        return new Distance(json);
-    }
-}
-
-/**
- * Represents the range of a spell.
- * @example { type: "point", distance: { type: "feet", amount: 60 } }
- * @example { type: "cone", distance: { type: "feet", amount: 30 } }
- * @example { type: "special" } (no distance, e.g., Dream spell)
+ * Represents the range of a spell (flattened structure).
+ * @example { origin: "point", distance: 60, unit: "feet", requiresSight: false, area: "", areaDistance: 0, areaUnit: "", areaHeight: 0, areaHeightUnit: "", targets: 0 }
+ * @example { origin: "self", distance: 0, unit: "", requiresSight: false, area: "cone", areaDistance: 15, areaUnit: "feet", areaHeight: 0, areaHeightUnit: "", targets: 0 }
+ * @example { origin: "touch", distance: 0, unit: "", requiresSight: false, area: "", areaDistance: 0, areaUnit: "", areaHeight: 0, areaHeightUnit: "", targets: 10 }
  */
 export class Range {
     /**
      * @param {Object} data - The range data.
-     * @param {string} data.type - The range type: "point", "cone", "sphere", "line", "cube", "emanation", "hemisphere", "radius", "special".
-     * @param {Object} [data.distance] - The distance information (optional for "special" type).
+     * @param {string} data.origin - Where the spell originates: "self", "touch", "point".
+     * @param {number} [data.distance] - The casting distance (0 for self/touch/unlimited).
+     * @param {string} [data.unit] - The distance unit: "feet", "miles", "unlimited", or "" for self/touch.
+     * @param {boolean} [data.requiresSight] - Whether the spell requires sight of target.
+     * @param {string} [data.area] - The area of effect shape: "cone", "cube", "cylinder", "emanation", "hemisphere", "line", "sphere", "radius", or "".
+     * @param {number} [data.areaDistance] - The size/radius of the area of effect.
+     * @param {string} [data.areaUnit] - The unit for area size: "feet", "miles", or "".
+     * @param {number} [data.areaHeight] - The height of the area (for cylinders).
+     * @param {string} [data.areaHeightUnit] - The unit for area height: "feet", "miles", or "".
+     * @param {number} [data.targets] - The number of targets (0 if not specified or area-based, -1 if unlimited, -2 if variable).
      */
-    constructor({ type, distance }) {
-        if (!RANGE_TYPES.includes(type)) {
+    constructor({ origin, distance, unit, requiresSight, area, areaDistance, areaUnit, areaHeight, areaHeightUnit, targets }) {
+        if (!ORIGIN_TYPES.includes(origin)) {
             throw new Error(
-                `Invalid range type: "${type}". Expected one of: ${RANGE_TYPES.join(
-                    ", "
-                )}`
+                `Invalid range origin: "${origin}". Expected one of: ${ORIGIN_TYPES.join(", ")}`
             );
         }
-        this.type = type;
-        this.distance = distance
-            ? distance instanceof Distance
-                ? distance
-                : new Distance(distance)
-            : undefined;
-    }
-
-    toJSON() {
-        const obj = { type: this.type };
-        if (this.distance) {
-            obj.distance = this.distance.toJSON();
-        }
-        return obj;
-    }
-
-    static fromJSON(json) {
-        if (!json) return undefined;
-        return new Range({
-            type: json.type,
-            distance: json.distance
-                ? Distance.fromJSON(json.distance)
-                : undefined,
-        });
-    }
-}
-
-/**
- * Represents the time portion of a timed duration.
- * @example { type: "minute", amount: 1 }
- * @example { type: "hour", amount: 8 }
- */
-export class DurationTime {
-    /**
-     * @param {Object} data - The duration time data.
-     * @param {string} data.type - The time unit: "round", "minute", "hour", "day".
-     * @param {number} data.amount - The numeric amount.
-     */
-    constructor({ type, amount }) {
-        if (!DURATION_TIME_TYPES.includes(type)) {
+        if (unit && !UNIT_TYPES.includes(unit)) {
             throw new Error(
-                `Invalid duration time type: "${type}". Expected one of: ${DURATION_TIME_TYPES.join(
-                    ", "
-                )}`
+                `Invalid range unit: "${unit}". Expected one of: ${UNIT_TYPES.join(", ")}`
             );
         }
-        this.type = type;
-        this.amount = amount;
+        if (area && !AREA_TYPES.includes(area)) {
+            throw new Error(
+                `Invalid area type: "${area}". Expected one of: ${AREA_TYPES.join(", ")}`
+            );
+        }
+        this.origin = origin;
+        this.distance = distance || 0;
+        this.unit = unit || "";
+        this.requiresSight = requiresSight || false;
+        this.area = area || "";
+        this.areaDistance = areaDistance || 0;
+        this.areaUnit = areaUnit || "";
+        this.areaHeight = areaHeight || 0;
+        this.areaHeightUnit = areaHeightUnit || "";
+        this.targets = targets || 0;
     }
 
     toJSON() {
         return {
-            type: this.type,
-            amount: this.amount,
+            origin: this.origin,
+            distance: this.distance,
+            unit: this.unit,
+            requiresSight: this.requiresSight,
+            area: this.area,
+            areaDistance: this.areaDistance,
+            areaUnit: this.areaUnit,
+            areaHeight: this.areaHeight,
+            areaHeightUnit: this.areaHeightUnit,
+            targets: this.targets,
         };
     }
 
     static fromJSON(json) {
         if (!json) return undefined;
-        return new DurationTime(json);
+        return new Range(json);
     }
 }
 
 /**
- * Represents the duration of a spell.
- * @example { type: "instant" }
- * @example { type: "timed", duration: { type: "minute", amount: 1 } }
- * @example { type: "permanent", ends: ["dispel", "trigger"] }
+ * Represents the duration of a spell (flattened structure).
+ * @example { type: "instant", amount: 0, unit: "", ends: [] }
+ * @example { type: "timed", amount: 1, unit: "minute", ends: [] }
+ * @example { type: "permanent", amount: 0, unit: "", ends: ["dispel", "trigger"] }
  */
 export class Duration {
     /**
      * @param {Object} data - The duration data.
      * @param {string} data.type - The duration type: "instant", "timed", "permanent", "special".
-     * @param {Object} [data.duration] - For "timed" type: the time duration.
+     * @param {number} [data.amount] - For "timed" type: the numeric amount.
+     * @param {string} [data.unit] - For "timed" type: the time unit ("round", "minute", "hour", "day").
      * @param {string[]} [data.ends] - How the spell ends (for "permanent"): "dispel", "trigger", etc.
      */
-    constructor({ type, duration, ends }) {
+    constructor({ type, amount, unit, ends }) {
         if (!DURATION_TYPES.includes(type)) {
             throw new Error(
                 `Invalid duration type: "${type}". Expected one of: ${DURATION_TYPES.join(
@@ -202,128 +152,73 @@ export class Duration {
                 )}`
             );
         }
+        if (unit && !DURATION_TIME_TYPES.includes(unit)) {
+            throw new Error(
+                `Invalid duration unit: "${unit}". Expected one of: ${DURATION_TIME_TYPES.join(
+                    ", "
+                )}`
+            );
+        }
         this.type = type;
-        this.duration =
-            duration instanceof DurationTime
-                ? duration
-                : duration
-                ? new DurationTime(duration)
-                : undefined;
-        this.ends = ends;
+        this.amount = amount || 0;
+        this.unit = unit || "";
+        this.ends = ends || [];
     }
 
     toJSON() {
-        const obj = { type: this.type };
-        if (this.duration) {
-            obj.duration = this.duration.toJSON();
-        }
-        if (this.ends) {
-            obj.ends = this.ends;
-        }
-        return obj;
+        return {
+            type: this.type,
+            amount: this.amount,
+            unit: this.unit,
+            ends: this.ends,
+        };
     }
 
     static fromJSON(json) {
         if (!json) return undefined;
-        return new Duration({
-            type: json.type,
-            duration: json.duration
-                ? DurationTime.fromJSON(json.duration)
-                : undefined,
-            ends: json.ends,
-        });
-    }
-}
-
-/**
- * Represents material component details when the component has special properties.
- * @example { text: "a gem worth at least 50 gp", hasCost: true }
- * @example { text: "incense worth at least 300 gp, which the spell consumes", hasCost: true, isConsumed: true }
- */
-export class MaterialComponent {
-    /**
-     * @param {Object} data - The material component data.
-     * @param {string} data.text - The description of the material component.
-     * @param {boolean} [data.hasCost] - Whether the component has a specified cost.
-     * @param {boolean} [data.isConsumed] - Whether the spell consumes the component.
-     */
-    constructor({ text, hasCost, isConsumed }) {
-        this.text = text;
-        this.hasCost = hasCost || false;
-        this.isConsumed = isConsumed || false;
-    }
-
-    toJSON() {
-        const obj = { text: this.text };
-        if (this.hasCost) {
-            obj.hasCost = true;
-        }
-        if (this.isConsumed) {
-            obj.isConsumed = true;
-        }
-        return obj;
-    }
-
-    static fromJSON(json) {
-        if (!json) return undefined;
-        if (typeof json === "string") {
-            return json; // Simple string material component
-        }
-        return new MaterialComponent(json);
+        return new Duration(json);
     }
 }
 
 /**
  * Represents the spell components (verbal, somatic, material).
- * @example { v: true, s: true }
- * @example { v: true, s: true, m: "a feather" }
- * @example { v: true, s: true, m: { text: "diamond worth 500 gp", hasCost: true, isConsumed: true } }
+ * @example { v: true, s: true, m: false, hasCost: false, isConsumed: false, description: "" }
+ * @example { v: true, s: true, m: true, hasCost: true, isConsumed: true, description: "diamond worth 500 gp, which the spell consumes" }
  */
 export class Components {
     /**
      * @param {Object} data - The components data.
      * @param {boolean} [data.v] - Whether the spell has a verbal component.
      * @param {boolean} [data.s] - Whether the spell has a somatic component.
-     * @param {string|Object} [data.m] - The material component (string or MaterialComponent).
+     * @param {boolean} [data.m] - Whether the spell has a material component.
+     * @param {boolean} [data.hasCost] - Whether the material component has a specified cost.
+     * @param {boolean} [data.isConsumed] - Whether the spell consumes the material component.
+     * @param {string} [data.description] - Description text for components (e.g., material component details).
      */
-    constructor({ v, s, m }) {
+    constructor({ v, s, m, hasCost, isConsumed, description }) {
         this.v = v || false;
         this.s = s || false;
-        this.m =
-            m !== undefined
-                ? typeof m === "string" || m instanceof MaterialComponent
-                    ? m
-                    : new MaterialComponent(m)
-                : undefined;
-    }
-
-    /**
-     * Returns the material component text (if any).
-     * @returns {string|undefined}
-     */
-    getMaterialText() {
-        if (!this.m) return undefined;
-        if (typeof this.m === "string") return this.m;
-        return this.m.text;
+        this.m = m || false;
+        // hasCost and isConsumed can only be true if m is true
+        this.hasCost = this.m && (hasCost || false);
+        this.isConsumed = this.m && (isConsumed || false);
+        this.description = description || "";
     }
 
     toJSON() {
-        const obj = {};
-        if (this.v) obj.v = true;
-        if (this.s) obj.s = true;
-        if (this.m) {
-            obj.m = typeof this.m === "string" ? this.m : this.m.toJSON();
-        }
-        return obj;
+        return {
+            v: this.v,
+            s: this.s,
+            m: this.m,
+            hasCost: this.hasCost,
+            isConsumed: this.isConsumed,
+            description: this.description,
+        };
     }
 
     static fromJSON(json) {
         if (!json) return undefined;
-        return new Components({
-            v: json.v,
-            s: json.s,
-            m: json.m ? MaterialComponent.fromJSON(json.m) : undefined,
-        });
+        return new Components(json);
     }
 }
 
@@ -377,25 +272,28 @@ export class Spell {
     /**
      * @param {Object} data - The spell data.
      * @param {string} data.name - The name of the spell.
+     * @param {string} [data.subtitle] - Optional subtitle for the spell.
      * @param {string} data.source - The source book abbreviation.
      * @param {number} [data.page] - The page number in the source book.
+     * @param {boolean} data.isSRD - Whether the spell is included in the SRD.
      * @param {number} data.level - The spell level (0 for cantrips).
      * @param {string} data.school - The school of magic (full name).
      * @param {CastingTime|Object} data.time - Casting time information.
      * @param {Range|Object} data.range - Range information.
-     * @param {Components|Object} data.components - Component requirements (v, s, m).
+     * @param {Components|Object} data.components - Component requirements (v, s, m, hasCost, isConsumed, description).
      * @param {Duration|Object} data.duration - Duration information.
      * @param {string} data.description - The spell description (markdown with placeholders).
      * @param {string} [data.upcast] - Description of effects when cast at higher levels (optional).
      * @param {string[]} data.classes - List of classes that can cast this spell.
      * @param {boolean} data.isConcentration - Whether the spell requires concentration.
      * @param {boolean} data.isRitual - Whether the spell can be cast as a ritual.
-     * @param {boolean} data.requiresSight - Whether the spell requires sight of target.
      */
     constructor({
         name,
+        subtitle,
         source,
         page,
+        isSRD,
         level,
         school,
         time,
@@ -407,11 +305,12 @@ export class Spell {
         classes,
         isConcentration,
         isRitual,
-        requiresSight,
     }) {
         this.name = name;
+        this.subtitle = subtitle || "";
         this.source = source;
         this.page = page;
+        this.isSRD = isSRD || false;
         this.level = level;
         this.school = school;
 
@@ -436,7 +335,6 @@ export class Spell {
         this.classes = classes || [];
         this.isConcentration = isConcentration || false;
         this.isRitual = isRitual || false;
-        this.requiresSight = requiresSight || false;
     }
 
     /**
@@ -446,8 +344,10 @@ export class Spell {
     toJSON() {
         const obj = {
             name: this.name,
+            subtitle: this.subtitle,
             source: this.source,
             page: this.page,
+            isSRD: this.isSRD,
             level: this.level,
             school: this.school,
             time: this.time.toJSON(),
@@ -458,7 +358,6 @@ export class Spell {
             classes: this.classes,
             isConcentration: this.isConcentration,
             isRitual: this.isRitual,
-            requiresSight: this.requiresSight,
         };
 
         if (this.upcast) {
@@ -476,8 +375,10 @@ export class Spell {
     static fromJSON(json) {
         return new Spell({
             name: json.name,
+            subtitle: json.subtitle,
             source: json.source,
             page: json.page,
+            isSRD: json.isSRD,
             level: json.level,
             school: json.school,
             time: CastingTime.fromJSON(json.time),
@@ -489,7 +390,6 @@ export class Spell {
             classes: json.classes,
             isConcentration: json.isConcentration,
             isRitual: json.isRitual,
-            requiresSight: json.requiresSight,
         });
     }
 }
