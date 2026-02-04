@@ -26,87 +26,159 @@
         <header>
             <div id="header-content">
                 <div class="controls">
-                    <div id="selection-controls">
-                        <sl-select
-                            id="spell-select"
-                            placeholder="Select spells..."
-                            multiple
-                            clearable
-                            max-options-visible="2"
-                            filterable
-                            pill
-                        ></sl-select>
-                        <div id="filter-row-1">
-                            <sl-select
-                                id="class-filter"
-                                placeholder="Class..."
-                                multiple
-                                clearable
-                                max-options-visible="1"
-                                pill
-                            ></sl-select>
-                            <sl-select
-                                id="level-filter"
-                                placeholder="Level..."
-                                multiple
-                                clearable
-                                max-options-visible="1"
-                                pill
-                            ></sl-select>
-                            <sl-select
-                                id="source-filter"
-                                placeholder="Source book..."
-                                multiple
-                                clearable
-                                max-options-visible="1"
-                                pill
-                            ></sl-select>
-                        </div>
-                        <div id="filter-row-2">
-                            <sl-switch id="rules-toggle" checked
-                                >Use 2024 rules</sl-switch
-                            >
-                            <div id="add-filtered-controls">
-                                <span id="filtered-count"></span>
-                                <sl-button
-                                    id="add-filtered-button"
-                                    variant="neutral"
-                                    >Add Filtered</sl-button
-                                >
-                            </div>
-                        </div>
-                    </div>
-                    <div id="appearance-controls">
-                        <sl-switch id="glossary-toggle" checked
-                            >Glossary Card</sl-switch
+                    <div id="add-cards-row">
+                        <div
+                            id="spell-search-wrapper"
+                            class="spell-search-wrapper"
                         >
-                        <sl-switch id="color-toggle">Grayscale</sl-switch>
+                            <sl-dropdown
+                                id="spell-combobox"
+                                stay-open-on-select
+                                hoist
+                            >
+                                <sl-input
+                                    slot="trigger"
+                                    id="spell-search-input"
+                                    placeholder="Select a spell..."
+                                    clearable
+                                ></sl-input>
+                                <div
+                                    id="spell-list-popover"
+                                    class="spell-list-popover"
+                                >
+                                    <div class="spell-list-header">
+                                        <span
+                                            id="spell-list-count"
+                                            class="spell-list-count"
+                                        ></span>
+                                        <sl-button
+                                            id="spell-list-add-all"
+                                            size="small"
+                                            variant="default"
+                                            >Add all</sl-button
+                                        >
+                                    </div>
+                                    <div
+                                        id="spell-list-chips"
+                                        class="spell-list-chips"
+                                    ></div>
+                                    <div
+                                        id="spell-list"
+                                        class="spell-list"
+                                    ></div>
+                                </div>
+                            </sl-dropdown>
+                            <sl-dropdown id="filter-dropdown" hoist>
+                                <sl-icon-button
+                                    slot="trigger"
+                                    name="funnel"
+                                    label="Filters"
+                                ></sl-icon-button>
+                                <div
+                                    id="filter-menu-content"
+                                    class="filter-menu-content"
+                                >
+                                    <div class="filter-menu-row">
+                                        <span>Rules</span>
+                                        <sl-switch id="filter-ruleset" checked
+                                            >2024</sl-switch
+                                        >
+                                    </div>
+                                    <sl-select
+                                        id="filter-source"
+                                        placeholder="Source..."
+                                        multiple
+                                        clearable
+                                        max-options-visible="1"
+                                    ></sl-select>
+                                    <sl-select
+                                        id="filter-class"
+                                        placeholder="Class..."
+                                        multiple
+                                        clearable
+                                        max-options-visible="1"
+                                    ></sl-select>
+                                    <sl-select
+                                        id="filter-level"
+                                        placeholder="Level..."
+                                        multiple
+                                        clearable
+                                        max-options-visible="1"
+                                    ></sl-select>
+                                    <sl-select
+                                        id="filter-school"
+                                        placeholder="School..."
+                                        multiple
+                                        clearable
+                                        max-options-visible="1"
+                                    ></sl-select>
+                                    <sl-button
+                                        id="filter-clear-btn"
+                                        variant="default"
+                                        size="small"
+                                        >Clear filters</sl-button
+                                    >
+                                </div>
+                            </sl-dropdown>
+                        </div>
+
+                        <sl-button id="add-empty-btn" variant="default"
+                            >Empty card</sl-button
+                        >
+                        <sl-button id="add-glossary-btn" variant="default"
+                            >Glossary</sl-button
+                        >
                     </div>
-                    <div id="export-controls">
+
+                    <div id="display-row">
+                        <sl-switch id="color-toggle">Grayscale</sl-switch>
                         <sl-select id="page-size-select" value="letter">
-                            <sl-icon
-                                slot="prefix"
-                                name="file-earmark"
-                            ></sl-icon>
                             <sl-option value="letter">Letter</sl-option>
                             <sl-option value="a4">A4</sl-option>
                         </sl-select>
-                        <sl-button id="export-pdf-button" variant="primary">
-                            <sl-icon slot="prefix" name="download"></sl-icon>
-                            Download PDF
-                        </sl-button>
+                        <sl-select id="sort-select" value="level">
+                            <sl-option value="alphabetical">A–Z</sl-option>
+                            <sl-option value="level">By level</sl-option>
+                            <sl-option value="school">By school</sl-option>
+                        </sl-select>
+                        <sl-switch id="background-toggle">Card back</sl-switch>
+                        <sl-switch id="side-by-side-toggle"
+                            >Side by side</sl-switch
+                        >
+                        <sl-button id="print-btn" variant="primary"
+                            >Print / Save as PDF</sl-button
+                        >
                     </div>
                 </div>
             </div>
         </header>
+
         <div id="main-container">
             <div id="printable-area-wrapper">
-                <main id="printable-area">
-                    <!-- Spell cards will be generated here -->
-                </main>
+                <main id="printable-area"></main>
             </div>
         </div>
-        <script type="module" src="card-generator.js"></script>
+
+        <div id="edit-card-overlay" class="overlay hidden" aria-hidden="true">
+            <div class="edit-overlay-panel">
+                <div class="edit-overlay-preview">
+                    <div id="edit-card-preview"></div>
+                </div>
+                <div class="edit-overlay-form-wrapper">
+                    <div id="edit-card-form" class="edit-overlay-form"></div>
+                    <div class="edit-overlay-actions">
+                        <sl-button id="edit-card-cancel" variant="default"
+                            >Cancel</sl-button
+                        >
+                        <sl-button id="edit-card-save" variant="primary"
+                            >Save</sl-button
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="module" src="spell-card.js"></script>
         <script type="module" src="ui.js"></script>
     </body>
 </html>

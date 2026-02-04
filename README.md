@@ -1,63 +1,44 @@
 # Spell Card Generator
 
-This is a web application for generating spell cards for Dungeons & Dragons. It allows you to enter a list of spell names and then generates a printable PDF of the spell cards.
+A lightweight, serverless web app for generating D&D spell cards. Search and filter spells, add cards (including duplicates and custom spells), edit card content, and print or save as PDF using the browser’s print dialog.
 
 ## Features
 
--   Generate spell cards from a comma-separated list of spell names.
--   Choose between A4 and Letter page sizes.
--   Toggle between color and grayscale output.
--   Export to a high-quality, pixel-perfect PDF using a headless browser.
+- Search and filter spells by class, level, source, school, components, and casting time
+- Add spells with a fuzzy-search dropdown (click to add; same spell can be added multiple times)
+- Add all spells matching current filters, or add an empty card for a fully custom spell
+- Edit any card in an overlay (form + live preview); supports markdown in text fields
+- Card actions: delete, duplicate, edit
+- A4 / Letter page size; optional glossary card; color or grayscale
+- Print or “Save as PDF” via the browser (no server-side PDF generation)
 
 ## How to Use
 
-### Prerequisites
+### Running locally
 
--   [Node.js](https://nodejs.org/) (which includes npm) must be installed on your system.
+You need a static file server so that `data/spells.json` and assets load correctly (opening `index.html` as a file can hit CORS with `fetch`).
 
-### Running the Application
+1. **Optional: download/update spell data**
+   ```bash
+   ./download-spell-data.sh
+   ```
 
-0.  **Download/update the raw spell data**
-    ```bash
-    ./download_spell_data.sh
-    ```
+2. **Start a local server**
+   ```bash
+   npm start
+   ```
+   This runs `npx serve . -p 3000`. You can use any static server (e.g. `python -m http.server 3000`).
 
-1.  **Clone the repository**
+3. **Open the app**
+   Go to `http://localhost:3000`.
 
-    ```bash
-    git clone https://github.com/your-username/your-repo-name.git
-    cd your-repo-name
-    ```
+### Deploying (serverless)
 
-2.  **Install the dependencies**
+The app is static: HTML, CSS, JS, and `data/`. Deploy the project directory to any static host (e.g. GitHub Pages, Netlify, Vercel, S3 + CloudFront). No Node server or build step required.
 
-    This will install Express, Puppeteer, and all other required packages.
+### Generating cards and PDF
 
-    ```bash
-    npm install
-    ```
-
-3.  **Start the server**
-
-    This will start a local server on port 3000.
-
-    ```bash
-    npm start
-    ```
-
-4.  **Open the application in your browser**
-
-    Navigate to `http://localhost:3000` in your web browser.
-
-### Generating Cards
-
-1.  Enter a comma-separated list of spell names into the input field.
-2.  Click the "Generate Cards" button to see a preview of the cards in the browser.
-3.  Click the "Export to PDF" button to download a high-quality PDF of the spell cards.
-
-## How It Works
-
-This application uses a hybrid approach to PDF generation:
-
--   **For debugging and previewing:** The "Generate Cards" button uses client-side JavaScript to render the spell cards directly in the browser. This provides an instant preview of the cards.
--   **For final printing:** The "Export to PDF" button sends the HTML and CSS of the generated cards to a Node.js backend. The backend then uses Puppeteer (a headless Chrome browser) to generate a pixel-perfect PDF, which is then sent back to the user for download. This ensures that the final PDF looks exactly like what you see in the browser.
+1. Use “Add spell” (with search/filters) or “Add all matching” / “Empty card” to build your set.
+2. Use delete/duplicate/edit on each card as needed.
+3. Choose page size and options (glossary, grayscale).
+4. Click **Print / Save as PDF** and in the dialog choose “Save as PDF” (or a printer) to get your layout with cut marks.

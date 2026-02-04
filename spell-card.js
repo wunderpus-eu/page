@@ -1,5 +1,15 @@
+/**
+ * spell-card.js – Spell card rendering and spell data.
+ *
+ * Exports:
+ * - SpellCard: class that renders a spell as a printable card front (and optionally back)
+ * - Spell data helpers: getSpells, loadSpells, emptySpellTemplate, cloneSpellData
+ * - Card utilities: createGlossaryCard, createGlossaryCardRef, isGlossaryRef, getNextCardId
+ * - Styling: getSpellSchoolColor, schoolColorMap, load_icon
+ */
 import { colord } from "colord";
 
+/** D&D class names in display order. */
 export const ALL_CLASSES = [
     "Artificer",
     "Bard",
@@ -12,6 +22,7 @@ export const ALL_CLASSES = [
     "Wizard",
 ];
 
+/** Maps source IDs to display labels (e.g. XPHB → PHB'24). */
 export const SOURCE_MAP = {
     XPHB: "PHB'24",
     PHB: "PHB'14",
@@ -19,10 +30,70 @@ export const SOURCE_MAP = {
 
 let spells = [];
 const iconCache = {};
-const spellCardInstances = new Map();
+let nextCardId = 0;
 
-export { spellCardInstances };
+/** Returns a unique ID for new cards (e.g. card-1, card-2). */
+export function getNextCardId() {
+    nextCardId += 1;
+    return `card-${nextCardId}`;
+}
 
+/** Minimal valid spell object for empty/custom cards */
+export function emptySpellTemplate() {
+    return {
+        name: "Custom Spell",
+        subtitle: "",
+        source: "Custom",
+        page: 0,
+        isSRD: false,
+        level: 0,
+        school: "Evocation",
+        time: { number: 1, unit: "action" },
+        range: {
+            origin: "point",
+            distance: 30,
+            unit: "feet",
+            requiresSight: false,
+            area: "",
+            areaDistance: 0,
+            areaUnit: "",
+            areaHeight: 0,
+            areaHeightUnit: "",
+            targets: 1,
+        },
+        components: {
+            v: true,
+            s: true,
+            m: false,
+            hasCost: false,
+            isConsumed: false,
+            description: "",
+        },
+        duration: {
+            type: "timed",
+            amount: 1,
+            unit: "minute",
+            ends: [],
+        },
+        description: "",
+        classes: [],
+        isConcentration: false,
+        isRitual: false,
+        upcast: "",
+    };
+}
+
+/** Deep clone spell data for use in a card (so edits don't mutate shared data) */
+export function cloneSpellData(spell) {
+    return JSON.parse(JSON.stringify(spell));
+}
+
+/** Returns the current spell list (from loadSpells). */
+export function getSpells() {
+    return spells;
+}
+
+/** Maps spell school names to CSS color variables. */
 export const schoolColorMap = {
     Abjuration: "var(--abjuration-color)",
     Conjuration: "var(--conjuration-color)",
@@ -34,6 +105,7 @@ export const schoolColorMap = {
     Transmutation: "var(--transmutation-color)",
 };
 
+/** Resolves a CSS variable (e.g. var(--font-color)) to its computed value. */
 function resolveCssVariable(cssVar) {
     const tempDiv = document.createElement("div");
     tempDiv.style.color = cssVar;
@@ -43,6 +115,7 @@ function resolveCssVariable(cssVar) {
     return computedColor;
 }
 
+/** Returns the computed color for a spell's school (from schoolColorMap). */
 export function getSpellSchoolColor(spell) {
     const colorVar = schoolColorMap[spell.school];
     if (!colorVar) {
@@ -51,6 +124,7 @@ export function getSpellSchoolColor(spell) {
     return resolveCssVariable(colorVar);
 }
 
+/** Builds the decorative border frame for a spell card front. */
 async function render_front_border(spell, foregroundColor, backgroundColor) {
     const frontBorderContainer = document.createElement("div");
     frontBorderContainer.className = "spell-card-front-border";
@@ -66,6 +140,13 @@ async function render_front_border(spell, foregroundColor, backgroundColor) {
     return frontBorderContainer;
 }
 
+/**
+ * Loads an SVG from assets/, swaps #333333/#ffffff with given colors, caches and returns a data URL.
+ * @param {string} iconName - Filename without .svg (e.g. "icon-fire")
+ * @param {string} [foregroundColor] - Color for #333333
+ * @param {string} [backgroundColor] - Color for #ffffff
+ * @returns {Promise<string|null>}
+ */
 export async function load_icon(
     iconName,
     foregroundColor = "#333333",
@@ -90,22 +171,43 @@ export async function load_icon(
     }
 }
 
+/**
+ * Loads spells from data/spells.json and applies ruleset filtering.
+ * 2024 rules: prefer XPHB when the same spell exists in multiple sources.
+ * Non-2024: exclude XPHB, dedupe by name preferring non-PHB sources.
+ * @param {boolean} [use2024Rules=true]
+ * @returns {Promise<{ spells: object[]; spellClassMap: Record<number, string[]> }>}
+ */
 export async function loadSpells(use2024Rules = true) {
     try {
         const response = await fetch("data/spells.json");
         const allSpells = await response.json();
 
         if (use2024Rules) {
-            // Filter out spells that have been reprinted (prefer XPHB versions)
+            // Prefer XPHB over other sources when same spell name exists
             spells = allSpells.filter(
-                (spell) => spell.source === "XPHB" || 
-                    !allSpells.some(s => s.name === spell.name && s.source === "XPHB")
+                (spell) =>
+                    spell.source === "XPHB" ||
+                    !allSpells.some(
+                        (s) => s.name === spell.name && s.source === "XPHB"
+                    )
             );
         } else {
-            // Filter out XPHB spells, prefer PHB versions
-            spells = allSpells.filter(
+            // No XPHB; when same spell in multiple sources (e.g. TCE and PHB), prefer newer source (e.g. Tasha's) over PHB
+            const withoutXphb = allSpells.filter(
                 (spell) => spell.source !== "XPHB"
             );
+            const byName = {};
+            withoutXphb.forEach((spell) => {
+                const existing = byName[spell.name];
+                if (!existing) {
+                    byName[spell.name] = spell;
+                } else if (existing.source === "PHB") {
+                    byName[spell.name] = spell;
+                }
+                // else keep existing (non-PHB)
+            });
+            spells = Object.values(byName);
         }
 
         spells.sort((a, b) => a.name.localeCompare(b.name));
@@ -125,6 +227,7 @@ export async function loadSpells(use2024Rules = true) {
     }
 }
 
+/** Renders the spell level circle (cantrip circle or numeric level). */
 function render_spell_level(spell, computedColor) {
     const outerCircle = document.createElement("div");
     outerCircle.className = "spell-level-outer-circle";
@@ -146,6 +249,7 @@ function render_spell_level(spell, computedColor) {
     return outerCircle;
 }
 
+/** Renders the spell name heading. */
 function render_spell_name(spell) {
     const spellNameContainer = document.createElement("div");
     spellNameContainer.className = "spell-name-container";
@@ -158,6 +262,7 @@ function render_spell_name(spell) {
     return spellNameContainer;
 }
 
+/** Renders the casting time chip (e.g. A for action, 1 min). */
 function render_casting_time(spell, foregroundColor, backgroundColor) {
     const castingTimeWrapper = document.createElement("div");
     castingTimeWrapper.className = "casting-time-container";
@@ -208,7 +313,18 @@ async function render_range(spell, foregroundColor, backgroundColor) {
     const areaDistance = range.areaDistance;
     const areaUnit = range.areaUnit;
 
-    const validAreaTypes = ["line", "cone", "cube", "cylinder", "sphere", "emanation", "hemisphere", "wall", "circle", "square"];
+    const validAreaTypes = [
+        "line",
+        "cone",
+        "cube",
+        "cylinder",
+        "sphere",
+        "emanation",
+        "hemisphere",
+        "wall",
+        "circle",
+        "square",
+    ];
     const hasArea = validAreaTypes.includes(area) && areaDistance > 0;
     const unitAbbrev = { feet: "ft", miles: "mi" };
 
@@ -225,8 +341,12 @@ async function render_range(spell, foregroundColor, backgroundColor) {
     if (origin === "self" && hasArea) {
         const areaText = `${areaDistance} ${unitAbbrev[areaUnit] || areaUnit}`;
         rangeContainer.appendChild(document.createTextNode(areaText));
-        
-        const areaIconURL = await load_icon(`icon-${area}`, "white", foregroundColor);
+
+        const areaIconURL = await load_icon(
+            `icon-${area}`,
+            "white",
+            foregroundColor
+        );
         if (areaIconURL) {
             const areaIcon = document.createElement("img");
             areaIcon.src = areaIconURL;
@@ -237,10 +357,18 @@ async function render_range(spell, foregroundColor, backgroundColor) {
     // Case 2: Point with distance and area - show range, then area size and icon
     else if (origin === "point" && distance > 0 && hasArea) {
         const rangeText = `${distance} ${unitAbbrev[unit] || unit}`;
-        const areaText = `, ${areaDistance} ${unitAbbrev[areaUnit] || areaUnit}`;
-        rangeContainer.appendChild(document.createTextNode(rangeText + areaText));
-        
-        const areaIconURL = await load_icon(`icon-${area}`, "white", foregroundColor);
+        const areaText = `, ${areaDistance} ${
+            unitAbbrev[areaUnit] || areaUnit
+        }`;
+        rangeContainer.appendChild(
+            document.createTextNode(rangeText + areaText)
+        );
+
+        const areaIconURL = await load_icon(
+            `icon-${area}`,
+            "white",
+            foregroundColor
+        );
         if (areaIconURL) {
             const areaIcon = document.createElement("img");
             areaIcon.src = areaIconURL;
@@ -268,7 +396,11 @@ async function render_range(spell, foregroundColor, backgroundColor) {
 
         // Add area icon if there's an area type (even without parsed dimensions)
         if (validAreaTypes.includes(area)) {
-            const areaIconURL = await load_icon(`icon-${area}`, "white", foregroundColor);
+            const areaIconURL = await load_icon(
+                `icon-${area}`,
+                "white",
+                foregroundColor
+            );
             if (areaIconURL) {
                 const areaIcon = document.createElement("img");
                 areaIcon.src = areaIconURL;
@@ -281,6 +413,7 @@ async function render_range(spell, foregroundColor, backgroundColor) {
     return rangeContainer;
 }
 
+/** Renders the duration section (timed amount or permanent). */
 async function render_duration(spell, foregroundColor, backgroundColor) {
     const durationContainer = document.createElement("div");
     durationContainer.className = "spell-duration";
@@ -314,7 +447,9 @@ async function render_duration(spell, foregroundColor, backgroundColor) {
             day: "d",
             round: "Round",
         };
-        let durationText = `${durationAmount} ${durationUnitAbbrev[durationUnit] || durationUnit}`;
+        let durationText = `${durationAmount} ${
+            durationUnitAbbrev[durationUnit] || durationUnit
+        }`;
         const durationSpan = document.createElement("span");
         durationSpan.textContent = durationText;
         durationContainer.appendChild(durationSpan);
@@ -329,6 +464,7 @@ async function render_duration(spell, foregroundColor, backgroundColor) {
     return durationContainer;
 }
 
+/** Renders range and duration in a single row. */
 async function render_range_and_duration(
     spell,
     foregroundColor,
@@ -359,6 +495,7 @@ async function render_range_and_duration(
     return rangeAndDurationContainer;
 }
 
+/** Renders V/S/M component icons. */
 async function render_component_icons(spell, foregroundColor, backgroundColor) {
     const componentIconsContainer = document.createElement("div");
     componentIconsContainer.className = "spell-component-icons";
@@ -402,6 +539,10 @@ async function render_component_icons(spell, foregroundColor, backgroundColor) {
     return componentIconsContainer;
 }
 
+/**
+ * Parses spell text with **bold**, *italic*, `placeholder` and inline icons.
+ * Placeholders map to icons (e.g. `fire damage` → fire icon, `100 gp` → gold).
+ */
 async function process_text_for_rendering(
     text,
     foregroundColorVar = "var(--font-color)"
@@ -426,13 +567,13 @@ async function process_text_for_rendering(
         "piercing damage": "icon-piercing",
         "thunder damage": "icon-thunder",
         "force damage": "icon-force",
-        "emanation": "icon-emanation",
-        "line": "icon-line",
-        "cone": "icon-cone",
-        "cube": "icon-cube",
-        "cylinder": "icon-cylinder",
-        "sphere": "icon-sphere",
-        "hemisphere": "icon-hemisphere",
+        emanation: "icon-emanation",
+        line: "icon-line",
+        cone: "icon-cone",
+        cube: "icon-cube",
+        cylinder: "icon-cylinder",
+        sphere: "icon-sphere",
+        hemisphere: "icon-hemisphere",
     };
 
     // Regex to match: **bold**, *italic*, `placeholder`, and newlines
@@ -466,14 +607,20 @@ async function process_text_for_rendering(
         } else if (match[3]) {
             // Placeholder `...`
             const placeholder = matchedText.slice(1, -1).toLowerCase();
-            
+
             // Check if it's a currency placeholder (e.g., "100 gp")
-            const currencyMatch = placeholder.match(/^([\d,]+\+?)\s*(gp|sp|cp)$/i);
+            const currencyMatch = placeholder.match(
+                /^([\d,]+\+?)\s*(gp|sp|cp)$/i
+            );
             if (currencyMatch) {
                 const amount = currencyMatch[1];
                 const currency = currencyMatch[2].toLowerCase();
-                const iconName = currency === "gp" ? "icon-gold" : 
-                                 currency === "sp" ? "icon-silver" : "icon-copper";
+                const iconName =
+                    currency === "gp"
+                        ? "icon-gold"
+                        : currency === "sp"
+                        ? "icon-silver"
+                        : "icon-copper";
                 container.appendChild(document.createTextNode(amount + " "));
                 const icon = document.createElement("img");
                 icon.src = await load_icon(iconName, foregroundColor);
@@ -486,7 +633,10 @@ async function process_text_for_rendering(
             // Check if it's an icon placeholder
             else if (placeholderIcons[placeholder]) {
                 const icon = document.createElement("img");
-                icon.src = await load_icon(placeholderIcons[placeholder], foregroundColor);
+                icon.src = await load_icon(
+                    placeholderIcons[placeholder],
+                    foregroundColor
+                );
                 icon.className = "inline-icon";
                 const iconWrapper = document.createElement("span");
                 iconWrapper.className = "inline-icon-wrapper";
@@ -494,17 +644,26 @@ async function process_text_for_rendering(
                 container.appendChild(iconWrapper);
             }
             // Check for action economy placeholders and replace with icons
-            else if (placeholder === "bonus action" || placeholder === "action" || placeholder === "actions" || placeholder === "reaction" || placeholder === "reactions") {
+            else if (
+                placeholder === "bonus action" ||
+                placeholder === "action" ||
+                placeholder === "actions" ||
+                placeholder === "reaction" ||
+                placeholder === "reactions"
+            ) {
                 // Determine the action type icon
                 let iconName = null;
                 if (placeholder === "bonus action") {
                     iconName = "icon-b"; // Bonus action
-                } else if (placeholder === "reaction" || placeholder === "reactions") {
+                } else if (
+                    placeholder === "reaction" ||
+                    placeholder === "reactions"
+                ) {
                     iconName = "icon-r"; // Reaction
                 } else {
                     iconName = "icon-a"; // Action
                 }
-                
+
                 const icon = document.createElement("img");
                 icon.src = await load_icon(iconName, foregroundColor);
                 icon.className = "inline-icon";
@@ -515,7 +674,9 @@ async function process_text_for_rendering(
             }
             // Default: render as plain text (without backticks)
             else {
-                container.appendChild(document.createTextNode(matchedText.slice(1, -1)));
+                container.appendChild(
+                    document.createTextNode(matchedText.slice(1, -1))
+                );
             }
         } else if (match[4]) {
             // Newline - convert to space or line break as needed
@@ -535,6 +696,7 @@ async function process_text_for_rendering(
     return container;
 }
 
+/** Renders material component description text. */
 async function render_component_text(spell) {
     const componentTextContainer = document.createElement("div");
     componentTextContainer.className = "spell-component-text";
@@ -555,6 +717,7 @@ async function render_component_text(spell) {
     return componentTextContainer;
 }
 
+/** Renders concentration and ritual chips. */
 async function render_concentration_and_ritual(
     spell,
     foregroundColor,
@@ -586,6 +749,7 @@ async function render_concentration_and_ritual(
     return concentrationAndRitualContainer;
 }
 
+/** Renders class icons row (greyed out for classes the spell doesn't have). */
 async function render_class_icons(spell, foregroundColor, backgroundColor) {
     const classIconsContainer = document.createElement("div");
     classIconsContainer.className = "spell-class-icons";
@@ -607,6 +771,7 @@ async function render_class_icons(spell, foregroundColor, backgroundColor) {
     return classIconsContainer;
 }
 
+/** Renders the spell source label (e.g. PHB'24). */
 function render_spell_source(spell, foregroundColor) {
     const sourceText = document.createElement("div");
     sourceText.className = "spell-source-text";
@@ -615,6 +780,7 @@ function render_spell_source(spell, foregroundColor) {
     return sourceText;
 }
 
+/** Renders the spell school label with per-character styling. */
 function render_spell_school(spell, foregroundColor, backgroundColor) {
     const spellSchoolContainer = document.createElement("div");
     spellSchoolContainer.className = "spell-school-container";
@@ -634,6 +800,7 @@ function render_spell_school(spell, foregroundColor, backgroundColor) {
     return spellSchoolContainer;
 }
 
+/** Renders casting time condition text if present. */
 async function render_condition_text(spell) {
     let conditionText = spell.time.condition;
     if (conditionText) {
@@ -651,6 +818,7 @@ async function render_condition_text(spell) {
     return null;
 }
 
+/** Renders the "at higher levels" upcast section. */
 async function render_higher_level_text(
     spell,
     foregroundColor,
@@ -686,6 +854,7 @@ async function render_higher_level_text(
     return higherLevelTextContainer;
 }
 
+/** Parses description text into paragraphs, lists, tables, and named entries. */
 async function render_description(description) {
     const container = document.createDocumentFragment();
 
@@ -735,16 +904,17 @@ async function render_description(description) {
     return container;
 }
 
+/** Parses markdown table syntax (| col1 | col2 |\n| --- | --- |) into a table element. */
 async function render_markdown_table(tableText) {
     const table = document.createElement("table");
     table.className = "spell-table";
 
     const lines = tableText.trim().split("\n");
-    
+
     // Header row
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
-    const headerCells = lines[0].split("|").filter(c => c.trim());
+    const headerCells = lines[0].split("|").filter((c) => c.trim());
     for (const cell of headerCells) {
         const th = document.createElement("th");
         th.appendChild(await process_text_for_rendering(cell.trim()));
@@ -757,7 +927,7 @@ async function render_markdown_table(tableText) {
     const tbody = document.createElement("tbody");
     for (let i = 2; i < lines.length; i++) {
         const row = document.createElement("tr");
-        const cells = lines[i].split("|").filter(c => c.trim() !== "");
+        const cells = lines[i].split("|").filter((c) => c.trim() !== "");
         for (const cell of cells) {
             const td = document.createElement("td");
             td.appendChild(await process_text_for_rendering(cell.trim()));
@@ -770,9 +940,10 @@ async function render_markdown_table(tableText) {
     return table;
 }
 
+/** Parses markdown list syntax (- item) into a ul element. */
 async function render_markdown_list(listText) {
     const ul = document.createElement("ul");
-    ul.className = "spell-list";
+    ul.className = "spell-description-list";
 
     const items = listText.split(/\n(?=- )/);
     for (const item of items) {
@@ -785,9 +956,16 @@ async function render_markdown_list(listText) {
     return ul;
 }
 
-
-class SpellCard {
+/**
+ * Renders a single spell as a printable card.
+ * Holds spell data, front DOM element, and optionally a back element (for overflow).
+ */
+export class SpellCard {
+    /**
+     * @param {object} spell - Spell data object (from getSpells or cloneSpellData)
+     */
     constructor(spell) {
+        this.id = getNextCardId();
         this.spell = spell;
         this.frontElement = null;
         this.backElement = null;
@@ -796,8 +974,23 @@ class SpellCard {
         this.backgroundColor = null;
     }
 
+    /** Updates spell data and re-renders (used by edit overlay). */
+    setSpellData(spell) {
+        this.spell = spell;
+    }
+
+    /** Returns a new SpellCard with cloned spell data and a fresh id. */
+    duplicate() {
+        return new SpellCard(cloneSpellData(this.spell));
+    }
+
+    /** Sets foregroundColor (school or grayscale) and backgroundColor (prepared highlight). */
     _updateColors() {
-        this.foregroundColor = getSpellSchoolColor(this.spell);
+        if (document.body.classList.contains("grayscale")) {
+            this.foregroundColor = resolveCssVariable("var(--font-color)");
+        } else {
+            this.foregroundColor = getSpellSchoolColor(this.spell);
+        }
         if (this.isAlwaysPrepared) {
             const hslColor = colord(this.foregroundColor).toHsl();
             hslColor.l = 90;
@@ -812,6 +1005,7 @@ class SpellCard {
         await this.render();
     }
 
+    /** Builds or rebuilds the card front DOM. Clears backElement; layout may add a back later. */
     async render() {
         this._updateColors();
         const spell = this.spell;
@@ -825,6 +1019,7 @@ class SpellCard {
         }
 
         card.className = "spell-card";
+        card.dataset.cardId = this.id;
         card.dataset.spellName = spell.name;
         card.style.backgroundColor = this.backgroundColor;
 
@@ -945,13 +1140,66 @@ class SpellCard {
         const spellSource = render_spell_source(spell, foregroundColor);
         front.appendChild(spellSource);
 
+        const cardActions = document.createElement("div");
+        cardActions.className = "card-actions no-print";
+        cardActions.dataset.cardId = this.id;
+
+        const deleteBtn = document.createElement("sl-icon-button");
+        deleteBtn.name = "trash";
+        deleteBtn.title = "Delete card";
+        deleteBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            card.dispatchEvent(
+                new CustomEvent("card-delete", {
+                    bubbles: true,
+                    detail: { cardId: this.id },
+                })
+            );
+        });
+
+        const duplicateBtn = document.createElement("sl-icon-button");
+        duplicateBtn.name = "files";
+        duplicateBtn.title = "Duplicate card";
+        duplicateBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            card.dispatchEvent(
+                new CustomEvent("card-duplicate", {
+                    bubbles: true,
+                    detail: { cardId: this.id },
+                })
+            );
+        });
+
+        const editBtn = document.createElement("sl-icon-button");
+        editBtn.name = "pencil-square";
+        editBtn.title = "Edit card";
+        editBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            card.dispatchEvent(
+                new CustomEvent("card-edit", {
+                    bubbles: true,
+                    detail: { cardId: this.id },
+                })
+            );
+        });
+
+        cardActions.appendChild(deleteBtn);
+        cardActions.appendChild(duplicateBtn);
+        cardActions.appendChild(editBtn);
+        front.appendChild(cardActions);
+
         card.appendChild(front);
 
         this.backElement = null;
     }
 }
 
-async function make_glossary_card() {
+/**
+ * Creates the glossary reference card (front + back with icon legend).
+ * Used by layout when rendering glossary refs.
+ * @returns {Promise<[HTMLElement, HTMLElement]>} [frontCard, backCard]
+ */
+export async function createGlossaryCard() {
     const glossaryData = [
         {
             category: "Casting Time",
@@ -1104,363 +1352,31 @@ async function make_glossary_card() {
     return [frontCard, backCard];
 }
 
-export async function layoutCards(cards, pageSize, addGlossary, printableArea) {
-    printableArea.innerHTML = "";
+/**
+ * Creates SpellCard instances from spell data. Caller must render and layout.
+ * @param {object[]} spellDataList - Array of spell objects
+ * @returns {SpellCard[]}
+ */
+export function createCardsFromSpellDataList(spellDataList) {
+    return spellDataList.map((spell) => new SpellCard(spell));
+}
 
-    if (cards.length === 0 && !addGlossary) {
-        return;
-    }
+/**
+ * Creates a glossary card reference for the card list.
+ * Layout will call createGlossaryCard and attach a delete button.
+ * @returns {{ type: "glossary"; id: string }}
+ */
+export function createGlossaryCardRef() {
+    return { type: "glossary", id: getNextCardId() };
+}
 
-    const tempCard = new SpellCard(spells[0]);
-    await tempCard.render();
-    printableArea.appendChild(tempCard.frontElement);
-    const pxPerMm = getPxPerMm();
-    const cardWidth = tempCard.frontElement.offsetWidth / pxPerMm;
-    const cardHeight = tempCard.frontElement.offsetHeight / pxPerMm;
-    printableArea.removeChild(tempCard.frontElement);
-
-    const pagePadding = 10 * 2;
-
-    const pageDimensions = {
-        a4: { width: 297, height: 210 },
-        letter: { width: 279.4, height: 215.9 },
-    };
-
-    const { width: pageWidth, height: pageHeight } = pageDimensions[pageSize];
-
-    const cardsPerRow = Math.floor((pageWidth - pagePadding) / (cardWidth + 1));
-    const rowsPerPage = Math.floor(
-        (pageHeight - pagePadding) / (cardHeight + 1)
+/**
+ * True if the item is a glossary card ref (layout will render with createGlossaryCard).
+ * @param {unknown} item
+ * @returns {item is { type: "glossary"; id: string }}
+ */
+export function isGlossaryRef(item) {
+    return (
+        item && typeof item === "object" && item.type === "glossary" && item.id
     );
-    const maxCardsPerPage = cardsPerRow * rowsPerPage;
-
-    const containerWidth = cardsPerRow * (cardWidth + 1) - 1;
-    const containerHeight = rowsPerPage * (cardHeight + 1) - 1;
-
-    const allCards = [];
-    if (addGlossary) {
-        const glossaryCards = await make_glossary_card();
-        allCards.push(...glossaryCards);
-    }
-
-    const tempContainer = document.createElement("div");
-    tempContainer.style.position = "absolute";
-    tempContainer.style.left = "-9999px";
-    tempContainer.style.top = "-9999px";
-    printableArea.appendChild(tempContainer);
-
-    for (const spellCard of cards) {
-        tempContainer.appendChild(spellCard.frontElement);
-        await handle_overflow(spellCard, tempContainer);
-        tempContainer.removeChild(spellCard.frontElement);
-
-        if (spellCard.backElement) {
-            tempContainer.appendChild(spellCard.backElement);
-        }
-    }
-    printableArea.removeChild(tempContainer);
-
-    const allRenderedCards = [];
-    for (const spellCard of cards) {
-        allRenderedCards.push(spellCard.frontElement);
-        if (spellCard.backElement) {
-            allRenderedCards.push(spellCard.backElement);
-        }
-    }
-
-    printableArea.innerHTML = "";
-    let currentPage = createPage(pageSize, containerWidth, containerHeight);
-    printableArea.appendChild(currentPage);
-    let cardCount = 0;
-
-    const finalLayout = [...allCards, ...allRenderedCards];
-
-    for (const card of finalLayout) {
-        if (cardCount >= maxCardsPerPage) {
-            currentPage = createPage(pageSize, containerWidth, containerHeight);
-            printableArea.appendChild(currentPage);
-            cardCount = 0;
-        }
-        const cardContainer = currentPage.querySelector(".card-container");
-        if (card) {
-            cardContainer.appendChild(card);
-        } else {
-            const placeholder = document.createElement("div");
-            placeholder.style.width = `${cardWidth}mm`;
-            placeholder.style.height = `${cardHeight}mm`;
-            cardContainer.appendChild(placeholder);
-        }
-        cardCount++;
-    }
-
-    const allPages = printableArea.querySelectorAll(".page");
-    const minElementsPerPage = 2 * cardsPerRow;
-
-    allPages.forEach((page) => {
-        const cardContainer = page.querySelector(".card-container");
-        const numElements = cardContainer.children.length;
-
-        if (numElements > 0 && numElements < minElementsPerPage) {
-            const spacersNeeded = minElementsPerPage - numElements;
-            for (let i = 0; i < spacersNeeded; i++) {
-                const spacer = document.createElement("div");
-                spacer.className = "spell-card-spacer";
-                spacer.style.width = `${cardWidth}mm`;
-                spacer.style.height = `${cardHeight}mm`;
-                cardContainer.appendChild(spacer);
-            }
-        }
-    });
-}
-
-export async function generateSpellCards(spellIndices) {
-    const spellsToRender = spellIndices
-        .map((index) => spells[parseInt(index, 10)])
-        .filter(Boolean);
-
-    spellsToRender.sort((a, b) => {
-        if (a.level !== b.level) {
-            return a.level - b.level;
-        }
-        return a.name.localeCompare(b.name);
-    });
-
-    const currentlySelectedSpellNames = new Set(
-        spellsToRender.map((s) => s.name)
-    );
-
-    for (const spellName of spellCardInstances.keys()) {
-        if (!currentlySelectedSpellNames.has(spellName)) {
-            spellCardInstances.delete(spellName);
-        }
-    }
-
-    const cards = [];
-    for (const spell of spellsToRender) {
-        let spellCard = spellCardInstances.get(spell.name);
-        if (!spellCard) {
-            spellCard = new SpellCard(spell);
-            spellCardInstances.set(spell.name, spellCard);
-        }
-        await spellCard.render();
-        cards.push(spellCard);
-    }
-
-    return cards;
-}
-
-function createPage(pageSize, containerWidth, containerHeight) {
-    const page = document.createElement("div");
-    page.className = "page";
-    if (pageSize === "letter") {
-        page.classList.add("page-letter");
-    }
-
-    const pageContent = document.createElement("div");
-    pageContent.className = "page-content";
-    page.appendChild(pageContent);
-
-    const cardContainer = document.createElement("div");
-    cardContainer.className = "card-container";
-    cardContainer.style.width = `${containerWidth}mm`;
-    cardContainer.style.height = `${containerHeight}mm`;
-
-    // Add cutting marks overlay
-    const cuttingMarks = createCuttingMarks(containerWidth, containerHeight);
-    pageContent.appendChild(cuttingMarks);
-
-    pageContent.appendChild(cardContainer);
-    return page;
-}
-
-function createCuttingMarks(containerWidth, containerHeight) {
-    const marksContainer = document.createElement("div");
-    marksContainer.className = "cutting-marks";
-    marksContainer.style.width = `${containerWidth}mm`;
-    marksContainer.style.height = `${containerHeight}mm`;
-
-    const cardWidth = 63; // mm
-    const cardHeight = 88; // mm
-    const markLength = 3; // mm
-    const markThickness = 0.3; // mm
-    const margin = 1; // mm
-
-    const cols = Math.floor(containerWidth / cardWidth);
-    const rows = Math.floor(containerHeight / cardHeight);
-
-    // Create marks at each grid intersection
-    for (let row = 0; row <= rows; row++) {
-        for (let col = 0; col <= cols; col++) {
-            const x = col * cardWidth;
-            const y = row * cardHeight;
-
-            // Vertical mark above the intersection (top edge marks)
-            if (row === 0) {
-                const vMarkTop = document.createElement("div");
-                vMarkTop.className = "cut-mark cut-mark-v";
-                vMarkTop.style.left = `${x - markThickness / 2}mm`;
-                vMarkTop.style.top = `-${markLength + margin}mm`;
-                vMarkTop.style.width = `${markThickness}mm`;
-                vMarkTop.style.height = `${markLength}mm`;
-                marksContainer.appendChild(vMarkTop);
-            }
-
-            // Vertical mark below the intersection (bottom edge marks)
-            if (row === rows) {
-                const vMarkBottom = document.createElement("div");
-                vMarkBottom.className = "cut-mark cut-mark-v";
-                vMarkBottom.style.left = `${x - markThickness / 2}mm`;
-                vMarkBottom.style.top = `${y + margin}mm`;
-                vMarkBottom.style.width = `${markThickness}mm`;
-                vMarkBottom.style.height = `${markLength}mm`;
-                marksContainer.appendChild(vMarkBottom);
-            }
-
-            // Horizontal mark to the left of the intersection (left edge marks)
-            if (col === 0) {
-                const hMarkLeft = document.createElement("div");
-                hMarkLeft.className = "cut-mark cut-mark-h";
-                hMarkLeft.style.left = `-${markLength + margin}mm`;
-                hMarkLeft.style.top = `${y - markThickness / 2}mm`;
-                hMarkLeft.style.width = `${markLength}mm`;
-                hMarkLeft.style.height = `${markThickness}mm`;
-                marksContainer.appendChild(hMarkLeft);
-            }
-
-            // Horizontal mark to the right of the intersection (right edge marks)
-            if (col === cols) {
-                const hMarkRight = document.createElement("div");
-                hMarkRight.className = "cut-mark cut-mark-h";
-                hMarkRight.style.left = `${x + margin}mm`;
-                hMarkRight.style.top = `${y - markThickness / 2}mm`;
-                hMarkRight.style.width = `${markLength}mm`;
-                hMarkRight.style.height = `${markThickness}mm`;
-                marksContainer.appendChild(hMarkRight);
-            }
-        }
-    }
-
-    return marksContainer;
-}
-
-function getPxPerMm() {
-    const div = document.createElement("div");
-    div.style.position = "absolute";
-    div.style.top = "-9999px";
-    div.style.left = "-9999px";
-    div.style.width = "1mm";
-    document.body.appendChild(div);
-    const pxPerMm = div.getBoundingClientRect().width;
-    document.body.removeChild(div);
-    return pxPerMm;
-}
-
-async function handle_overflow(spellCard, tempContainer, fontLevel = 0) {
-    const card = spellCard.frontElement;
-    const spell = spellCard.spell;
-    const cardBody = card.querySelector(".card-body");
-    const descriptionText = card.querySelector(".description-text");
-
-    if (!cardBody || !descriptionText) {
-        return null;
-    }
-
-    const componentText = card.querySelector(".spell-component-text");
-
-    function is_overflowing(element) {
-        return element.scrollHeight > element.clientHeight;
-    }
-
-    if (is_overflowing(descriptionText)) {
-        if (fontLevel === 0) {
-            cardBody.style.fontSize = "6pt";
-            cardBody.style.lineHeight = "6pt";
-            componentText.style.fontSize = "6pt";
-            componentText.style.lineHeight = "6pt";
-
-            if (is_overflowing(descriptionText)) {
-                cardBody.style.fontSize = "";
-                cardBody.style.lineHeight = "";
-                componentText.style.fontSize = "";
-                componentText.style.lineHeight = "";
-            } else {
-                return null;
-            }
-        }
-
-        const backCardContainer = document.createElement("div");
-        backCardContainer.className = "spell-card";
-        backCardContainer.dataset.spellName = spell.name;
-        backCardContainer.style.backgroundColor = spellCard.backgroundColor;
-
-        const back = document.createElement("div");
-        back.className = "spell-card-back";
-
-        const backCardBody = document.createElement("div");
-        backCardBody.className = "card-body back";
-        backCardBody.style.borderColor = getSpellSchoolColor(spell);
-        back.appendChild(backCardBody);
-
-        const backDescriptionText = document.createElement("div");
-        backDescriptionText.className = "description-text";
-        backCardBody.appendChild(backDescriptionText);
-
-        backCardContainer.appendChild(back);
-
-        if (tempContainer) {
-            tempContainer.appendChild(backCardContainer);
-        }
-
-        if (fontLevel > 0) {
-            const fontSize = fontLevel === 1 ? "6pt" : "5.5pt";
-            const frontCardBody = card.querySelector(".card-body");
-            frontCardBody.style.fontSize = fontSize;
-            frontCardBody.style.lineHeight = fontSize;
-            componentText.style.fontSize = fontSize;
-            componentText.style.lineHeight = fontSize;
-            backCardBody.style.fontSize = fontSize;
-            backCardBody.style.lineHeight = fontSize;
-        }
-
-        const descriptionElements = Array.from(descriptionText.children);
-
-        while (
-            is_overflowing(descriptionText) &&
-            descriptionElements.length > 0
-        ) {
-            const elementToMove = descriptionElements.pop();
-            backDescriptionText.prepend(elementToMove);
-        }
-
-        if (is_overflowing(backCardBody) && fontLevel < 2) {
-            const backElements = Array.from(backDescriptionText.children);
-            for (const elementToMove of backElements) {
-                descriptionText.appendChild(elementToMove);
-            }
-
-            if (tempContainer) {
-                tempContainer.removeChild(backCardContainer);
-            }
-
-            return await handle_overflow(
-                spellCard,
-                tempContainer,
-                fontLevel + 1
-            );
-        }
-
-        const lastParagraph = descriptionText.querySelector("p:last-of-type");
-        if (lastParagraph) {
-            lastParagraph.appendChild(document.createTextNode(" →"));
-        }
-
-        if (tempContainer) {
-            tempContainer.removeChild(backCardContainer);
-        }
-
-        spellCard.backElement = backCardContainer;
-        return;
-    }
-
-    return null;
 }

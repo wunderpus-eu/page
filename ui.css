@@ -1,3 +1,4 @@
+/* Minimal layout only – default Shoelace styling for controls */
 header {
     position: fixed;
     top: 0;
@@ -7,133 +8,204 @@ header {
 }
 
 #header-content {
-    background-color: #333;
     padding: 10px;
-    transform-origin: top center;
     width: 100%;
     box-sizing: border-box;
-    display: flex;
-    justify-content: center;
 }
 
 .controls {
     width: 100%;
     max-width: 800px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 30px;
+    gap: 16px;
 }
 
-#selection-controls {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.spell-source-suffix {
-    font-variant: small-caps;
-    font-size: 0.7em;
-}
-
-#filter-row-1 {
+#add-cards-row,
+#display-row {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
-#class-filter,
-#level-filter,
-#source-filter {
+.spell-search-wrapper {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    min-width: 200px;
+}
+
+.spell-search-wrapper #spell-combobox {
     flex: 1;
     min-width: 0;
 }
 
-#filter-row-2 {
+.spell-search-wrapper #spell-search-input {
+    width: 100%;
+}
+
+.spell-list-popover {
+    padding: 10px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin: 0 10px;
-    color: white;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 70vh;
+    min-width: 280px;
 }
 
-#class-filter::part(combobox),
-#level-filter::part(combobox),
-#source-filter::part(combobox) {
-    background-color: var(--sl-color-neutral-600);
-    border-color: var(--sl-color-neutral-600);
-}
-
-#class-filter::part(expand-icon),
-#level-filter::part(expand-icon),
-#source-filter::part(expand-icon) {
-    color: white;
-}
-
-#class-filter::part(display-input)::placeholder,
-#level-filter::part(display-input)::placeholder,
-#source-filter::part(display-input)::placeholder {
-    color: white;
-    opacity: 0.8;
-}
-
-#class-filter::part(clear-button),
-#level-filter::part(clear-button),
-#source-filter::part(clear-button) {
-    color: white;
-    opacity: 0.8;
-}
-
-#class-filter::part(clear-button):hover,
-#level-filter::part(clear-button):hover,
-#source-filter::part(clear-button):hover {
-    opacity: 1;
-}
-
-#add-filtered-row {
+.spell-list-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     gap: 10px;
 }
 
-#filtered-count {
-    min-width: 150px;
-    text-align: right;
-    margin-right: 10px;
-}
-
-#appearance-controls {
+.spell-list-chips {
     display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 20px;
-    margin: 0 10px;
     flex-wrap: wrap;
-    color: white;
+    gap: 6px;
 }
 
-#export-controls {
+.spell-list {
+    overflow-y: auto;
+    min-height: 180px;
+    max-height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.spell-list-item {
+    padding: 8px 10px;
+    text-align: left;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: var(--sl-border-radius-medium);
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: inherit;
+    position: relative;
+}
+
+.spell-list-item:hover {
+    background: var(--sl-color-primary-100);
+    color: var(--sl-color-primary-700);
+}
+
+.spell-list-item.selected {
+    background: var(--sl-color-primary-200);
+    color: var(--sl-color-primary-800);
+}
+
+.spell-list-item .spell-list-check {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--sl-color-success-600);
+    animation: spell-check-fade 0.6s ease-out forwards;
+}
+
+@keyframes spell-check-fade {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.spell-list-more {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    color: var(--sl-color-neutral-600);
+}
+
+.filter-menu-content {
+    padding: 12px;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filter-menu-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.filter-menu-content sl-select {
+    width: 100%;
+}
+
+/* Edit card overlay */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.edit-overlay-panel {
+    background: white;
+    border-radius: var(--sl-border-radius-large);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 95vw;
+    max-height: 90vh;
+    display: flex;
+    overflow: hidden;
+}
+
+.edit-overlay-preview {
+    flex-shrink: 0;
+    padding: 24px;
+    background: var(--sl-color-neutral-100);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+#edit-card-preview {
+    transform-origin: top left;
+    transform: scale(0.85);
+}
+
+.edit-overlay-form-wrapper {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.edit-overlay-form {
+    overflow-y: auto;
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.edit-overlay-form sl-input,
+.edit-overlay-form sl-textarea,
+.edit-overlay-form sl-select {
+    width: 100%;
+}
+
+.edit-overlay-actions {
+    flex-shrink: 0;
+    padding: 16px 20px;
+    border-top: 1px solid var(--sl-color-neutral-200);
     display: flex;
     justify-content: flex-end;
-    align-items: center;
     gap: 10px;
-    margin: 0 10px;
-}
-
-#page-size-select {
-    width: 150px;
-    color: white;
-}
-
-#page-size-select::part(display-input) {
-    color: white;
-}
-
-#page-size-select::part(form-control),
-#page-size-select::part(combobox) {
-    background-color: transparent;
-    border: none;
 }

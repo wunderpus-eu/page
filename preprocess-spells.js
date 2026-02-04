@@ -96,7 +96,10 @@ for (const source in sourcesData) {
             [];
         classList.forEach((c) => {
             // Only include supported classes (excludes Monk, etc.)
-            if (SUPPORTED_CLASSES.includes(c.name) && !spellClassMap[spellName].includes(c.name)) {
+            if (
+                SUPPORTED_CLASSES.includes(c.name) &&
+                !spellClassMap[spellName].includes(c.name)
+            ) {
                 spellClassMap[spellName].push(c.name);
             }
         });
@@ -239,12 +242,15 @@ function processString(text) {
         "thunder",
     ];
     const damageTypesPattern = damageTypes.join("|");
-    
+
     // First, handle immunity/resistance/vulnerability lists like "Immunity to Cold, Poison, and Psychic damage"
     // These need special handling because only the last type has "damage" after it
     // Match the entire phrase and wrap each damage type individually
     processedText = processedText.replace(
-        new RegExp(`\\b(Immunity|Resistance|Vulnerability) to ([^.]+?)(${damageTypesPattern}) damage\\b`, "gi"),
+        new RegExp(
+            `\\b(Immunity|Resistance|Vulnerability) to ([^.]+?)(${damageTypesPattern}) damage\\b`,
+            "gi"
+        ),
         (match, keyword, middle, lastType) => {
             // Wrap each damage type in the middle part
             const wrappedMiddle = middle.replace(
@@ -254,7 +260,7 @@ function processString(text) {
             return `${keyword} to ${wrappedMiddle}\`${lastType} damage\``;
         }
     );
-    
+
     // Then handle standalone "X damage" patterns
     const damageRegex = new RegExp(
         `\\b(${damageTypesPattern})( damage)\\b(?!\`)`,
@@ -328,10 +334,20 @@ function processString(text) {
     );
 
     // Wrap saving throws in bold (e.g., "Wisdom saving throw" → "**Wisdom saving throw**")
-    const abilities = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"];
+    const abilities = [
+        "Strength",
+        "Dexterity",
+        "Constitution",
+        "Intelligence",
+        "Wisdom",
+        "Charisma",
+    ];
     const abilitiesPattern = abilities.join("|");
     processedText = processedText.replace(
-        new RegExp(`\\b(${abilitiesPattern}) (saving throws?)\\b(?!\\*\\*)`, "gi"),
+        new RegExp(
+            `\\b(${abilitiesPattern}) (saving throws?)\\b(?!\\*\\*)`,
+            "gi"
+        ),
         "**$1 $2**"
     );
 
@@ -345,7 +361,10 @@ function processString(text) {
     // Handles: "Wisdom check", "Wisdom checks", "Wisdom (Perception) check", etc.
     // First, handle checks with skill in parentheses (may have **skill** from earlier processing)
     processedText = processedText.replace(
-        new RegExp(`\\b(${abilitiesPattern})\\s*\\(\\*\\*([^*]+)\\*\\*\\)\\s*(checks?)\\b`, "gi"),
+        new RegExp(
+            `\\b(${abilitiesPattern})\\s*\\(\\*\\*([^*]+)\\*\\*\\)\\s*(checks?)\\b`,
+            "gi"
+        ),
         "**$1 ($2) $3**"
     );
     // Then handle simple ability checks without skill
@@ -388,10 +407,14 @@ function processEntries(entries, isHigherLevel = false) {
                         if (typeof item === "string") {
                             return `- ${processString(item)}`;
                         } else if (item.type === "item") {
-                            // Handle items with name and entry, like in some lists.
-                            return `- **${item.name}** ${processString(
-                                item.entry
-                            )}`;
+                            // Handle items with name and entry/entries (XPHB uses entries array)
+                            const body =
+                                item.entry != null
+                                    ? processString(item.entry)
+                                    : item.entries
+                                    ? processEntries(item.entries).trim()
+                                    : "";
+                            return `- **${item.name}** ${body}`.trimEnd();
                         }
                         return "";
                     })
@@ -409,12 +432,18 @@ function processEntries(entries, isHigherLevel = false) {
                                 .map((cell) => {
                                     if (typeof cell === "string") {
                                         return processString(cell);
-                                    } else if (cell && typeof cell === "object") {
+                                    } else if (
+                                        cell &&
+                                        typeof cell === "object"
+                                    ) {
                                         // Handle complex cell objects (e.g., {type: 'cell', roll: {exact: 1}})
                                         if (cell.roll) {
                                             if (cell.roll.exact !== undefined) {
                                                 return String(cell.roll.exact);
-                                            } else if (cell.roll.min !== undefined && cell.roll.max !== undefined) {
+                                            } else if (
+                                                cell.roll.min !== undefined &&
+                                                cell.roll.max !== undefined
+                                            ) {
                                                 return `${cell.roll.min}-${cell.roll.max}`;
                                             }
                                         }
@@ -438,7 +467,7 @@ function processEntries(entries, isHigherLevel = false) {
             const isUpcastHeader =
                 isHigherLevel && upcastHeaders.includes(entry.name);
             if (entry.name && !isUpcastHeader) {
-            result += `**${entry.name}**\n`;
+                result += `**${entry.name}**\n`;
             }
             result += processEntries(entry.entries, isHigherLevel);
         }
@@ -509,7 +538,16 @@ const AREA_TAG_MAP = {
 /**
  * Shape types that indicate the range.type is actually an area of effect.
  */
-const SHAPE_TYPES = ["cone", "sphere", "line", "cube", "emanation", "hemisphere", "radius", "cylinder"];
+const SHAPE_TYPES = [
+    "cone",
+    "sphere",
+    "line",
+    "cube",
+    "emanation",
+    "hemisphere",
+    "radius",
+    "cylinder",
+];
 
 /**
  * Parses area dimensions from spell description text.
@@ -519,7 +557,12 @@ const SHAPE_TYPES = ["cone", "sphere", "line", "cube", "emanation", "hemisphere"
  */
 function parseAreaDimensions(text, areaType) {
     if (!text || !areaType) {
-        return { areaDistance: 0, areaUnit: "", areaHeight: 0, areaHeightUnit: "" };
+        return {
+            areaDistance: 0,
+            areaUnit: "",
+            areaHeight: 0,
+            areaHeightUnit: "",
+        };
     }
 
     let areaDistance = 0;
@@ -530,7 +573,8 @@ function parseAreaDimensions(text, areaType) {
     // For cylinders, try to extract both radius and height
     if (areaType === "cylinder") {
         // Pattern: "X-foot-radius, Y-foot-tall/high cylinder" or "X-foot-radius, Y-foot tall/high"
-        const cylinderPattern1 = /(\d+)-foot-radius[,\s]+(\d+)-foot[- ]?(?:tall|high)/i;
+        const cylinderPattern1 =
+            /(\d+)-foot-radius[,\s]+(\d+)-foot[- ]?(?:tall|high)/i;
         const cylinderMatch1 = text.match(cylinderPattern1);
         if (cylinderMatch1) {
             areaDistance = parseInt(cylinderMatch1[1], 10);
@@ -552,7 +596,8 @@ function parseAreaDimensions(text, areaType) {
         }
 
         // Pattern: "Y-foot-tall cylinder with a X-foot radius" (PHB style)
-        const cylinderPattern3 = /(\d+)-foot-tall\s+cylinder\s+with\s+a\s+(\d+)-foot\s+radius/i;
+        const cylinderPattern3 =
+            /(\d+)-foot-tall\s+cylinder\s+with\s+a\s+(\d+)-foot\s+radius/i;
         const cylinderMatch3 = text.match(cylinderPattern3);
         if (cylinderMatch3) {
             areaHeight = parseInt(cylinderMatch3[1], 10);
@@ -563,7 +608,8 @@ function parseAreaDimensions(text, areaType) {
         }
 
         // Pattern: "Y feet tall with a X-foot radius"
-        const tallWithRadiusPattern = /(\d+)\s+feet\s+tall\s+with\s+a\s+(\d+)-foot\s+radius/i;
+        const tallWithRadiusPattern =
+            /(\d+)\s+feet\s+tall\s+with\s+a\s+(\d+)-foot\s+radius/i;
         const tallWithRadiusMatch = text.match(tallWithRadiusPattern);
         if (tallWithRadiusMatch) {
             areaHeight = parseInt(tallWithRadiusMatch[1], 10);
@@ -586,7 +632,12 @@ function parseAreaDimensions(text, areaType) {
         for (const pattern of circlePatterns) {
             const match = text.match(pattern);
             if (match) {
-                return { areaDistance: parseInt(match[1], 10), areaUnit: "feet", areaHeight: 0, areaHeightUnit: "" };
+                return {
+                    areaDistance: parseInt(match[1], 10),
+                    areaUnit: "feet",
+                    areaHeight: 0,
+                    areaHeightUnit: "",
+                };
             }
         }
     }
@@ -614,7 +665,10 @@ function parseAreaDimensions(text, areaType) {
         // "within X feet" for area effects like Cordon of Arrows
         /within\s+(\d+)\s+feet\s+of/i,
         // Generic "X-foot" followed by area type (case insensitive on area)
-        new RegExp(`(\\d+)-foot(?:-\\w+)?\\s+(?:\\{@variantrule[^}]+\\})?\\s*${areaType}`, "i"),
+        new RegExp(
+            `(\\d+)-foot(?:-\\w+)?\\s+(?:\\{@variantrule[^}]+\\})?\\s*${areaType}`,
+            "i"
+        ),
         // "X feet" followed by area type
         new RegExp(`(\\d+)\\s+feet\\s+${areaType}`, "i"),
     ];
@@ -622,7 +676,12 @@ function parseAreaDimensions(text, areaType) {
     for (const pattern of patterns) {
         const match = text.match(pattern);
         if (match) {
-            return { areaDistance: parseInt(match[1], 10), areaUnit: "feet", areaHeight: 0, areaHeightUnit: "" };
+            return {
+                areaDistance: parseInt(match[1], 10),
+                areaUnit: "feet",
+                areaHeight: 0,
+                areaHeightUnit: "",
+            };
         }
     }
 
@@ -630,7 +689,12 @@ function parseAreaDimensions(text, areaType) {
     const milePattern = /(\d+)-mile(?:-radius)?\s+(?:sphere|radius|area)/i;
     const mileMatch = text.match(milePattern);
     if (mileMatch) {
-        return { areaDistance: parseInt(mileMatch[1], 10), areaUnit: "miles", areaHeight: 0, areaHeightUnit: "" };
+        return {
+            areaDistance: parseInt(mileMatch[1], 10),
+            areaUnit: "miles",
+            areaHeight: 0,
+            areaHeightUnit: "",
+        };
     }
 
     return { areaDistance: 0, areaUnit: "", areaHeight: 0, areaHeightUnit: "" };
@@ -643,7 +707,7 @@ function parseAreaDimensions(text, areaType) {
  */
 function getEntriesText(entries) {
     if (!entries) return "";
-    
+
     let text = "";
     for (const entry of entries) {
         if (typeof entry === "string") {
@@ -659,10 +723,26 @@ function getEntriesText(entries) {
  * Map of number words to integers.
  */
 const NUMBER_WORDS = {
-    one: 1, two: 2, three: 3, four: 4, five: 5,
-    six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
-    eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15,
-    sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20,
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    six: 6,
+    seven: 7,
+    eight: 8,
+    nine: 9,
+    ten: 10,
+    eleven: 11,
+    twelve: 12,
+    thirteen: 13,
+    fourteen: 14,
+    fifteen: 15,
+    sixteen: 16,
+    seventeen: 17,
+    eighteen: 18,
+    nineteen: 19,
+    twenty: 20,
 };
 
 /**
@@ -685,7 +765,10 @@ function parseTargets(text) {
     if (/(?:each |all )?creatures? (?:of your choice|you choose)/i.test(text)) {
         // Check if there's NOT a specific number word before "creature(s)"
         // Allow for optional words like "willing" between number and "creatures"
-        const hasNumberBefore = /(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d+)(?: \w+)? creatures? (?:of your choice|you choose)/i.test(text);
+        const hasNumberBefore =
+            /(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d+)(?: \w+)? creatures? (?:of your choice|you choose)/i.test(
+                text
+            );
         if (!hasNumberBefore) {
             return -1;
         }
@@ -716,7 +799,7 @@ function parseTargets(text) {
 
     // Build number word pattern for matching
     const numWordPattern = Object.keys(NUMBER_WORDS).join("|");
-    
+
     // Patterns to match target counts (with explicit number)
     const numberedPatterns = [
         // "up to X creatures" or "up to X willing/falling creatures"
@@ -735,7 +818,10 @@ function parseTargets(text) {
         /(\w+) other targets?/i,
         // "X darts/rays/bolts/beams" with optional adjective (Magic Missile, Scorching Ray)
         // Must start with a number word to avoid matching "create three rays"
-        new RegExp(`(${numWordPattern}|\\d+)(?: \\w+)? (?:darts?|rays?|bolts?|beams?)`, "i"),
+        new RegExp(
+            `(${numWordPattern}|\\d+)(?: \\w+)? (?:darts?|rays?|bolts?|beams?)`,
+            "i"
+        ),
         // "X pillars" (Bones of the Earth)
         new RegExp(`(${numWordPattern}|\\d+)(?: \\w+)? pillars?`, "i"),
     ];
@@ -783,9 +869,11 @@ function parseTargets(text) {
 
     // Check for blade/weapon spells that make multiple attacks (Blade of Disaster)
     // Must explicitly mention "two" or multiple attacks, not just "make a melee spell attack"
-    if (/you can make two melee spell attacks/i.test(text) || 
-        /make up to \w+ (?:melee )?spell attacks/i.test(text)) {
-        return -2;  // Variable attacks
+    if (
+        /you can make two melee spell attacks/i.test(text) ||
+        /make up to \w+ (?:melee )?spell attacks/i.test(text)
+    ) {
+        return -2; // Variable attacks
     }
 
     return 0;
@@ -819,8 +907,11 @@ function processRange(rawRange, requiresSight, areaTags, entries) {
         origin = "self";
         area = rangeType;
         areaDistance = distanceAmount;
-        areaUnit = distanceType === "feet" || distanceType === "miles" ? distanceType : "";
-        
+        areaUnit =
+            distanceType === "feet" || distanceType === "miles"
+                ? distanceType
+                : "";
+
         // For self-emanating areas, also try to parse height from text (for cylinders)
         if (area === "cylinder" && entries) {
             const entriesText = getEntriesText(entries);
@@ -941,7 +1032,7 @@ function createSpellFromRaw(rawSpell) {
     }
     const rawDuration = rawSpell.duration[0];
     const areaTags = rawSpell.areaTags || [];
-    
+
     // Determine if spell requires sight of target
     // Check SGT miscTag first, then fallback to checking entries text for "you can see" targeting patterns
     let requiresSight = (rawSpell.miscTags || []).includes("SGT");
@@ -949,7 +1040,10 @@ function createSpellFromRaw(rawSpell) {
         const entriesText = JSON.stringify(rawSpell.entries).toLowerCase();
         // Match patterns like "creature you can see", "space you can see", etc.
         // Note: "place" is excluded because spells like Dimension Door use "place you can see" as one option among others
-        requiresSight = /(?:creature|target|point|humanoid|beast|object|space).{0,20}you can see/i.test(entriesText);
+        requiresSight =
+            /(?:creature|target|point|humanoid|beast|object|space).{0,20}you can see/i.test(
+                entriesText
+            );
     }
 
     return new Spell({
@@ -961,7 +1055,12 @@ function createSpellFromRaw(rawSpell) {
         level: rawSpell.level,
         school: schoolName,
         time: primaryTime,
-        range: processRange(rawSpell.range, requiresSight, areaTags, rawSpell.entries),
+        range: processRange(
+            rawSpell.range,
+            requiresSight,
+            areaTags,
+            rawSpell.entries
+        ),
         components: processComponents(rawSpell.components),
         duration: processDuration(rawDuration),
         description: processEntries(rawSpell.entries).trim(),
