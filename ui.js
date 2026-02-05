@@ -11,6 +11,8 @@ import {
     SOURCE_MAP,
     emptySpellTemplate,
     cloneSpellData,
+    spellToExportFormat,
+    appendSpells,
     createGlossaryCardRef,
     isGlossaryRef,
 } from "./spell-card.js";
@@ -152,6 +154,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const inlineIconsToggle = document.getElementById("inline-icons-toggle");
     const sideBySideToggle = document.getElementById("side-by-side-toggle");
     const clearAllBtn = document.getElementById("clear-all-btn");
+    const downloadCustomBtn = document.getElementById("download-custom-btn");
+    const uploadSpellsInput = document.getElementById("upload-spells-input");
+    const uploadSpellsBtn = document.getElementById("upload-spells-btn");
     const printBtn = document.getElementById("print-btn");
     const editOverlay = document.getElementById("edit-card-overlay");
     const editCardPreview = document.getElementById("edit-card-preview");
@@ -279,7 +284,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             const sourceText = SOURCE_MAP[spell.source] || spell.source;
             const label = document.createElement("span");
             label.className = "spell-list-item-label";
-            label.textContent = `${spell.name} (${sourceText})`;
+            label.textContent = `${spell.name}${
+                spell._uploaded ? " *" : ""
+            } (${sourceText})`;
             row.appendChild(label);
             const count = countUnmodifiedInDeck(spell);
             if (count > 0) {
@@ -298,7 +305,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (e.target.classList.contains("spell-list-count-badge"))
                     return;
                 e.stopPropagation();
-                await addCard(cloneSpellData(spell));
+                await addCard(cloneSpellData(spell), spell);
                 renderSpellList();
                 spellSearchInput.focus();
             });
@@ -326,44 +333,37 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /** Adds a SpellCard to cardList, renders it, and refreshes layout.
      * @param {object} spellData - Spell data for the card
-     * @param {object} [originalSpell] - When adding from list, the list spell; stores name/source for reset
+     * @param {object} [originalSpell] - When adding from list, the list spell (stores id for reset)
      */
     async function addCard(spellData, originalSpell) {
         const card = new SpellCard(spellData);
-        if (originalSpell) {
-            card.originalName = originalSpell.name;
-            card.originalSource = originalSpell.source;
-        }
+        if (originalSpell) card.originalId = originalSpell.id;
         await card.render();
         cardList.push(card);
         await refreshLayout();
     }
 
     /**
-     * Count of unmodified cards in the deck matching this list spell (same name + source).
-     * Only counts SpellCards whose spell data has not been edited (no _modified flag).
+     * Count of unmodified cards in the deck matching this list spell (by spell id).
      */
     function countUnmodifiedInDeck(listSpell) {
         return cardList.filter(
             (c) =>
                 c instanceof SpellCard &&
-                c.spell.name === listSpell.name &&
-                c.spell.source === listSpell.source &&
-                !c.spell._modified
+                !c.spell._modified &&
+                c.spell.id === listSpell.id
         ).length;
     }
 
     /**
-     * Removes one unmodified card matching the list spell from the deck.
-     * Only removes SpellCards that match name + source and are not modified.
+     * Removes one unmodified card matching the list spell from the deck (by spell id).
      */
     async function removeOneUnmodifiedCard(listSpell) {
         const idx = cardList.findIndex(
             (c) =>
                 c instanceof SpellCard &&
-                c.spell.name === listSpell.name &&
-                c.spell.source === listSpell.source &&
-                !c.spell._modified
+                !c.spell._modified &&
+                c.spell.id === listSpell.id
         );
         if (idx === -1) return;
         cardList.splice(idx, 1);
@@ -405,6 +405,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         return [...glossary, ...rest];
     }
 
+    /** Updates Download custom button: disabled when no modified cards. */
+    function updateDownloadCustomButton() {
+        const hasModified = cardList.some(
+            (c) => c instanceof SpellCard && c.spell._modified
+        );
+        downloadCustomBtn.disabled = !hasModified;
+    }
+
     /** Re-renders cards, applies grayscale, sorts, and calls layoutCards. */
     async function refreshLayout() {
         document.body.classList.toggle("grayscale", colorToggle.checked);
@@ -418,6 +426,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         };
         await layoutCards(sorted, pageSizeSelect.value, printableArea, options);
         updateWrapperSizeAndPosition();
+        updateDownloadCustomButton();
     }
 
     /** Removes a card from cardList and refreshes layout. */
@@ -1529,6 +1538,42 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderSpellList();
         await refreshLayout();
     });
+
+    downloadCustomBtn.addEventListener("click", () => {
+        const modified = cardList.filter(
+            (c) => c instanceof SpellCard && c.spell._modified
+        );
+        if (modified.length === 0) return;
+        const data = modified.map((c) => spellToExportFormat(c.spell));
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+            type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "custom-spells.json";
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    uploadSpellsBtn.addEventListener("click", () => uploadSpellsInput.click());
+    uploadSpellsInput.addEventListener("change", async (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            const arr = Array.isArray(data) ? data : [data];
+            if (arr.length === 0) return;
+            appendSpells(arr);
+            renderSpellList();
+            populateFilterChips();
+        } catch (err) {
+            console.error("Upload spells error:", err);
+        }
+    });
+
     printBtn.addEventListener("click", () => window.print());
 
     // --- Card actions: prepared checkbox, delete, duplicate, edit ---
@@ -1594,13 +1639,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const card = cardList.find(
             (c) => c instanceof SpellCard && c.id === event.detail.cardId
         );
-        if (!card || card.originalName == null || card.originalSource == null)
-            return;
+        if (!card) return;
+        if (card.originalId == null) return;
         const spells = getSpells();
-        const original = spells.find(
-            (s) =>
-                s.name === card.originalName && s.source === card.originalSource
-        );
+        const original = spells.find((s) => s.id === card.originalId);
         if (!original) return;
         card.setSpellData(cloneSpellData(original));
         await card.render();

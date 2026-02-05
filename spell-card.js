@@ -31,11 +31,18 @@ export const SOURCE_MAP = {
 let spells = [];
 const iconCache = {};
 let nextCardId = 0;
+let nextSpellId = 0;
 
 /** Returns a unique ID for new cards (e.g. card-1, card-2). */
 export function getNextCardId() {
     nextCardId += 1;
     return `card-${nextCardId}`;
+}
+
+/** Returns a unique ID for spells (used when loading spells.json or appending uploaded spells). */
+export function getNextSpellId() {
+    nextSpellId += 1;
+    return `spell-${nextSpellId}`;
 }
 
 /** Minimal valid spell object for empty/custom cards */
@@ -212,6 +219,11 @@ export async function loadSpells(use2024Rules = true) {
 
         spells.sort((a, b) => a.name.localeCompare(b.name));
 
+        // Always assign a unique id to every spell (overwrites any from file)
+        spells.forEach((spell) => {
+            spell.id = getNextSpellId();
+        });
+
         // Build spellClassMap from spell.classes for backwards compatibility
         const spellClassMap = {};
         spells.forEach((spell, index) => {
@@ -225,6 +237,33 @@ export async function loadSpells(use2024Rules = true) {
         console.error("Error loading spell data:", error);
         return { spells: [], spellClassMap: {} };
     }
+}
+
+/**
+ * Appends spells from uploaded JSON to the list. Always assigns unique ids and marks as _uploaded.
+ * @param {object[]|object} rawSpells - Array of spell objects, or single spell (same shape as spells.json)
+ */
+export function appendSpells(rawSpells) {
+    const arr = Array.isArray(rawSpells) ? rawSpells : [rawSpells];
+    arr.forEach((spell) => {
+        spell.id = getNextSpellId(); // always generate, ignore any id in file
+        spell._uploaded = true;
+    });
+    spells.push(...arr);
+    spells.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Returns a spell in export format (same as spells.json): no id, _modified, or _uploaded.
+ * @param {object} spell - Spell data (e.g. from a card)
+ * @returns {object} Clone suitable for JSON export
+ */
+export function spellToExportFormat(spell) {
+    const s = cloneSpellData(spell);
+    delete s.id;
+    delete s._modified;
+    delete s._uploaded;
+    return s;
 }
 
 /** Renders the spell level circle (cantrip circle or numeric level). */
@@ -989,9 +1028,8 @@ export class SpellCard {
         this.isAlwaysPrepared = false;
         this.foregroundColor = null;
         this.backgroundColor = null;
-        /** When set, card can be reset to original spell from list (name + source). */
-        this.originalName = null;
-        this.originalSource = null;
+        /** When set (list spell id), card can be reset to that spell. */
+        this.originalId = null;
     }
 
     /** Updates spell data and re-renders (used by edit overlay). */
@@ -1002,8 +1040,7 @@ export class SpellCard {
     /** Returns a new SpellCard with cloned spell data and a fresh id. */
     duplicate() {
         const newCard = new SpellCard(cloneSpellData(this.spell));
-        newCard.originalName = this.originalName;
-        newCard.originalSource = this.originalSource;
+        newCard.originalId = this.originalId;
         return newCard;
     }
 
@@ -1208,11 +1245,7 @@ export class SpellCard {
 
         cardActions.appendChild(deleteBtn);
         cardActions.appendChild(duplicateBtn);
-        if (
-            this.spell._modified &&
-            this.originalName != null &&
-            this.originalSource != null
-        ) {
+        if (this.spell._modified && this.originalId != null) {
             const resetBtn = document.createElement("sl-icon-button");
             resetBtn.name = "arrow-counterclockwise";
             resetBtn.title = "Reset to original";
