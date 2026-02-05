@@ -173,6 +173,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     const editCardForm = document.getElementById("edit-card-form");
     const editCardCancel = document.getElementById("edit-card-cancel");
     const editCardSave = document.getElementById("edit-card-save");
+    const srdBanner = document.getElementById("srd-banner");
+    const srdBannerText = document.getElementById("srd-banner-text");
+    const srdBannerInfo = document.getElementById("srd-banner-info");
+    const srdExcludedDialog = document.getElementById("srd-excluded-dialog");
+    const srdExcludedExplanation = document.getElementById(
+        "srd-excluded-explanation"
+    );
+    const srdExcludedList = document.getElementById("srd-excluded-list");
+    const srdExcludedCopy = document.getElementById("srd-excluded-copy");
+    const toastEl = document.getElementById("toast");
+
+    /** When true, spell list shows only SRD spells (or SRD-name variants). Disabled by "knock" easter egg. Resets on page reload. */
+    let onlySRD = true;
 
     let spellClassMap = {};
     let pageWidthPx = 0;
@@ -191,6 +204,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     function getSpellClasses(spell) {
         if (spell.classes && spell.classes.length > 0) return spell.classes;
         return spellClassMap[spell.id] || [];
+    }
+
+    /** List display name: when onlySRD, use SRD name if set; when vault open, always use real name. */
+    function getSpellListDisplayName(spell) {
+        if (!onlySRD) return spell.name;
+        return typeof spell.isSRD === "string" ? spell.isSRD : spell.name;
     }
 
     /** Spells in scope for the current ruleset (2014 = exclude all 2024-only sources, 2024 = all). */
@@ -242,8 +261,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         return set;
     }
 
-    /** Spells matching current class, level, source, school filters and (if on) exclude reprinted. */
-    function getFilteredSpells() {
+    /** Spells matching filters (class, level, source, school, exclude reprinted). Does not apply SRD filter. */
+    function getFilteredSpellsWithoutSrd() {
         const spells = getSpellsForCurrentRuleset();
         const selectedClasses = filterValues.class;
         const selectedLevels = filterValues.level.map((l) =>
@@ -292,6 +311,39 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         return result;
+    }
+
+    /** Spells matching current filters; when onlySRD is true, only SRD spells (or uploaded). */
+    function getFilteredSpells() {
+        let result = getFilteredSpellsWithoutSrd();
+        if (onlySRD) {
+            result = result.filter(
+                (spell) =>
+                    spell._uploaded ||
+                    spell.isSRD === true ||
+                    typeof spell.isSRD === "string"
+            );
+        }
+        return result;
+    }
+
+    /** Spells that would match filters but are excluded because they are not SRD (only when onlySRD; only from data, not uploaded). */
+    function getSrdExcludedSpells() {
+        if (!onlySRD) return [];
+        return getFilteredSpellsWithoutSrd().filter(
+            (spell) =>
+                !spell._uploaded &&
+                spell.isSRD !== true &&
+                typeof spell.isSRD !== "string"
+        );
+    }
+
+    /** Spells in the current filtered list that are shown under their SRD name (isSRD is a string). */
+    function getSpellsWithSrdName() {
+        if (!onlySRD) return [];
+        return getFilteredSpells().filter(
+            (spell) => typeof spell.isSRD === "string"
+        );
     }
 
     /** Active filter chips for display (source, class, level, school). */
@@ -346,15 +398,56 @@ document.addEventListener("DOMContentLoaded", async () => {
     function renderSpellList() {
         const filtered = getFilteredSpells();
         const query = (spellSearchInput.value || "").trim();
-        const list = query
-            ? filtered.filter((s) => fuzzyMatch(query, s.name))
+        let list = query
+            ? filtered.filter((s) =>
+                  fuzzyMatch(query, getSpellListDisplayName(s))
+              )
             : filtered;
+        // Sort by display name so SRD-name variants appear in correct alphabetical position
+        list = [...list].sort((a, b) =>
+            getSpellListDisplayName(a).localeCompare(
+                getSpellListDisplayName(b),
+                undefined,
+                { sensitivity: "base" }
+            )
+        );
         currentSpellResults = list.slice();
 
         spellListCount.textContent = `${list.length} spell${
             list.length !== 1 ? "s" : ""
         }`;
         spellListAddAll.disabled = list.length === 0;
+
+        // SRD banner: show when onlySRD and (excluded non-SRD or some spells show SRD name)
+        const excludedBySrd = getSrdExcludedSpells();
+        const showingSrdNameCount = onlySRD
+            ? list.filter((s) => typeof s.isSRD === "string").length
+            : 0;
+        const showSrdBanner =
+            onlySRD && (excludedBySrd.length > 0 || showingSrdNameCount > 0);
+        if (srdBanner) {
+            if (showSrdBanner) {
+                srdBanner.classList.remove("hidden");
+                srdBanner.setAttribute("aria-hidden", "false");
+                const parts = [];
+                if (excludedBySrd.length > 0)
+                    parts.push(
+                        `${excludedBySrd.length} non-SRD spell${
+                            excludedBySrd.length !== 1 ? "s" : ""
+                        } excluded`
+                    );
+                if (showingSrdNameCount > 0)
+                    parts.push(
+                        `${showingSrdNameCount} shown under SRD name${
+                            showingSrdNameCount !== 1 ? "s" : ""
+                        }`
+                    );
+                srdBannerText.textContent = parts.join("; ") + ".";
+            } else {
+                srdBanner.classList.add("hidden");
+                srdBanner.setAttribute("aria-hidden", "true");
+            }
+        }
 
         spellList.innerHTML = "";
         const maxShow = 400;
@@ -363,9 +456,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             row.type = "button";
             row.className = "spell-list-item";
             const sourceText = SOURCE_MAP[spell.source] || spell.source;
+            const displayName = getSpellListDisplayName(spell);
             const label = document.createElement("span");
             label.className = "spell-list-item-label";
-            label.textContent = `${spell.name}${
+            label.textContent = `${displayName}${
                 spell._uploaded ? " *" : ""
             } (${sourceText})`;
             row.appendChild(label);
@@ -1514,6 +1608,187 @@ document.addEventListener("DOMContentLoaded", async () => {
         }px`;
     }
 
+    /** Builds full non-SRD dialog text for copy (excluded + shown under different name). */
+    function getSrdExcludedListText() {
+        const excluded = getSrdExcludedSpells();
+        const withSrdName = getSpellsWithSrdName();
+        const lines = [];
+
+        if (excluded.length > 0) {
+            lines.push("Excluded (not in SRD)");
+            lines.push("");
+            const bySource = new Map();
+            excluded.forEach((spell) => {
+                const src = spell.source;
+                if (!bySource.has(src)) bySource.set(src, []);
+                bySource.get(src).push(spell.name);
+            });
+            const sourceOrder = [...bySource.keys()].sort((a, b) => {
+                const labelA = SOURCE_MAP[a] || a;
+                const labelB = SOURCE_MAP[b] || b;
+                return labelA.localeCompare(labelB);
+            });
+            sourceOrder.forEach((src) => {
+                const label = SOURCE_MAP[src] || src;
+                lines.push(label);
+                bySource
+                    .get(src)
+                    .sort((a, b) => a.localeCompare(b))
+                    .forEach((name) => {
+                        lines.push(`  ${name}`);
+                    });
+                lines.push("");
+            });
+        }
+
+        if (withSrdName.length > 0) {
+            lines.push("Shown under SRD name");
+            lines.push("");
+            const bySource = new Map();
+            withSrdName.forEach((spell) => {
+                const src = spell.source;
+                if (!bySource.has(src)) bySource.set(src, []);
+                bySource.get(src).push(spell);
+            });
+            const sourceOrder = [...bySource.keys()].sort((a, b) => {
+                const labelA = SOURCE_MAP[a] || a;
+                const labelB = SOURCE_MAP[b] || b;
+                return labelA.localeCompare(labelB);
+            });
+            sourceOrder.forEach((src) => {
+                const label = SOURCE_MAP[src] || src;
+                lines.push(label);
+                bySource
+                    .get(src)
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .forEach((spell) => {
+                        lines.push(`  ${spell.name} (${spell.isSRD})`);
+                    });
+                lines.push("");
+            });
+        }
+
+        return lines.join("\n").trim();
+    }
+
+    /** Opens the non-SRD excluded dialog and populates it. */
+    function openSrdExcludedDialog() {
+        const excluded = getSrdExcludedSpells();
+        const withSrdName = getSpellsWithSrdName();
+        srdExcludedExplanation.textContent =
+            "The following spells would match your filters but are not part of the SRD, or their name differs from the SRD. You can add them manually if you own the corresponding source book.";
+        srdExcludedList.innerHTML = "";
+
+        if (excluded.length > 0) {
+            const sectionTitle = document.createElement("div");
+            sectionTitle.className = "srd-section-title";
+            sectionTitle.textContent = "Excluded (not in SRD)";
+            srdExcludedList.appendChild(sectionTitle);
+            const bySource = new Map();
+            excluded.forEach((spell) => {
+                const src = spell.source;
+                if (!bySource.has(src)) bySource.set(src, []);
+                bySource.get(src).push(spell);
+            });
+            const sourceOrder = [...bySource.keys()].sort((a, b) => {
+                const labelA = SOURCE_MAP[a] || a;
+                const labelB = SOURCE_MAP[b] || b;
+                return labelA.localeCompare(labelB);
+            });
+            sourceOrder.forEach((src) => {
+                const group = document.createElement("div");
+                group.className = "srd-source-group";
+                const label = document.createElement("div");
+                label.className = "srd-source-name";
+                label.textContent = SOURCE_MAP[src] || src;
+                group.appendChild(label);
+                bySource
+                    .get(src)
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .forEach((spell) => {
+                        const div = document.createElement("div");
+                        div.className = "srd-spell-name";
+                        div.textContent = spell.name;
+                        group.appendChild(div);
+                    });
+                srdExcludedList.appendChild(group);
+            });
+        }
+
+        if (withSrdName.length > 0) {
+            const sectionTitle = document.createElement("div");
+            sectionTitle.className = "srd-section-title";
+            sectionTitle.textContent = "Shown under SRD name";
+            srdExcludedList.appendChild(sectionTitle);
+            const bySource = new Map();
+            withSrdName.forEach((spell) => {
+                const src = spell.source;
+                if (!bySource.has(src)) bySource.set(src, []);
+                bySource.get(src).push(spell);
+            });
+            const sourceOrder = [...bySource.keys()].sort((a, b) => {
+                const labelA = SOURCE_MAP[a] || a;
+                const labelB = SOURCE_MAP[b] || b;
+                return labelA.localeCompare(labelB);
+            });
+            sourceOrder.forEach((src) => {
+                const group = document.createElement("div");
+                group.className = "srd-source-group";
+                const label = document.createElement("div");
+                label.className = "srd-source-name";
+                label.textContent = SOURCE_MAP[src] || src;
+                group.appendChild(label);
+                bySource
+                    .get(src)
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .forEach((spell) => {
+                        const div = document.createElement("div");
+                        div.className = "srd-spell-name";
+                        div.textContent = `${spell.name} (${spell.isSRD})`;
+                        group.appendChild(div);
+                    });
+                srdExcludedList.appendChild(group);
+            });
+        }
+
+        if (excluded.length === 0 && withSrdName.length === 0) {
+            const p = document.createElement("p");
+            p.textContent = "None.";
+            srdExcludedList.appendChild(p);
+        }
+
+        if (srdExcludedDialog && typeof srdExcludedDialog.show === "function")
+            srdExcludedDialog.show();
+    }
+
+    /** Shows the "vault opens" toast and disables SRD-only filtering. If already open, shows a different toast. */
+    function disableOnlySrdAndToast() {
+        if (!onlySRD) {
+            if (toastEl) {
+                toastEl.textContent = "The vault is already open.";
+                toastEl.classList.remove("hidden");
+                toastEl.style.fontStyle = "italic";
+                setTimeout(() => {
+                    toastEl.classList.add("hidden");
+                }, 3000);
+            }
+            return;
+        }
+        onlySRD = false;
+        document.body.classList.add("vault-open");
+        if (toastEl) {
+            toastEl.textContent =
+                "With a widely-audible knock, the vault to all spells opens.";
+            toastEl.classList.remove("hidden");
+            toastEl.style.fontStyle = "italic";
+            setTimeout(() => {
+                toastEl.classList.add("hidden");
+            }, 5000);
+        }
+        renderSpellList();
+        renderChips();
+    }
+
     /** Measures page width in px for current page size and sets printable area width. */
     function updatePageWidth() {
         const tempDiv = document.createElement("div");
@@ -1591,6 +1866,64 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // --- Filters and display options ---
+    // --- SRD banner and non-SRD excluded dialog ---
+    if (srdBannerInfo) {
+        srdBannerInfo.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openSrdExcludedDialog();
+        });
+    }
+    if (srdExcludedCopy) {
+        srdExcludedCopy.addEventListener("click", () => {
+            const text = getSrdExcludedListText();
+            if (text)
+                navigator.clipboard
+                    .writeText(text)
+                    .then(() => {})
+                    .catch(() => {});
+        });
+    }
+    // --- Easter egg: "knock" or 7 taps on header disables SRD-only filtering ---
+    const KNOCK_KEY_SEQUENCE = "knock";
+    let knockKeyIndex = 0;
+    document.addEventListener("keydown", (e) => {
+        const active = document.activeElement;
+        const isInput =
+            active &&
+            (active.tagName === "INPUT" ||
+                active.tagName === "TEXTAREA" ||
+                active.isContentEditable);
+        if (isInput) return;
+        const key = e.key.toLowerCase();
+        const expected = KNOCK_KEY_SEQUENCE[knockKeyIndex];
+        if (key === expected) {
+            knockKeyIndex += 1;
+            if (knockKeyIndex === KNOCK_KEY_SEQUENCE.length) {
+                knockKeyIndex = 0;
+                disableOnlySrdAndToast();
+            }
+        } else {
+            knockKeyIndex = 0;
+        }
+    });
+
+    const headerEl = document.querySelector("header");
+    let headerTapTimes = [];
+    const TAP_WINDOW_MS = 2000;
+    if (headerEl) {
+        headerEl.addEventListener("click", () => {
+            const now = Date.now();
+            headerTapTimes = headerTapTimes.filter(
+                (t) => now - t < TAP_WINDOW_MS
+            );
+            headerTapTimes.push(now);
+            if (headerTapTimes.length >= 7) {
+                headerTapTimes = [];
+                disableOnlySrdAndToast();
+            }
+        });
+    }
+
     filterRuleset.addEventListener("sl-change", refreshFiltersAndList);
     excludeReprintedToggle.addEventListener("sl-change", () => {
         renderSpellList();

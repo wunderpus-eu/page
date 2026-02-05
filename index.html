@@ -63,6 +63,18 @@
                                         class="spell-list-chips"
                                     ></div>
                                     <div
+                                        id="srd-banner"
+                                        class="srd-banner hidden"
+                                        aria-hidden="true"
+                                    >
+                                        <span id="srd-banner-text"></span>
+                                        <sl-icon-button
+                                            id="srd-banner-info"
+                                            name="info-circle"
+                                            label="Non-SRD info"
+                                        ></sl-icon-button>
+                                    </div>
+                                    <div
                                         id="spell-list"
                                         class="spell-list"
                                     ></div>
@@ -210,6 +222,22 @@
                 </div>
             </div>
         </div>
+
+        <sl-dialog
+            id="srd-excluded-dialog"
+            label="Non-SRD spells"
+            class="srd-excluded-dialog"
+        >
+            <p id="srd-excluded-explanation"></p>
+            <div id="srd-excluded-list" class="srd-excluded-list"></div>
+            <div class="srd-excluded-actions">
+                <sl-button id="srd-excluded-copy" variant="default"
+                    >Copy to clipboard</sl-button
+                >
+            </div>
+        </sl-dialog>
+
+        <div id="toast" class="toast hidden" aria-live="polite"></div>
 
         <script type="module" src="spell-card.js"></script>
         <script type="module" src="ui.js"></script>

@@ -266,16 +266,27 @@ function render_spell_level(spell, computedColor) {
     return outerCircle;
 }
 
-/** Renders the spell name heading. */
+/** Renders the spell name heading. Outputs both real and SRD name when present; CSS (body.vault-open) controls which is visible. */
 function render_spell_name(spell) {
     const spellNameContainer = document.createElement("div");
     spellNameContainer.className = "spell-name-container";
 
     const spellNameElement = document.createElement("h3");
     spellNameElement.className = "spell-name";
-    spellNameElement.textContent = spell.name;
-    spellNameContainer.appendChild(spellNameElement);
 
+    const realSpan = document.createElement("span");
+    realSpan.className = "spell-name-real";
+    realSpan.textContent = spell.name;
+    spellNameElement.appendChild(realSpan);
+
+    if (typeof spell.isSRD === "string") {
+        const srdSpan = document.createElement("span");
+        srdSpan.className = "spell-name-srd";
+        srdSpan.textContent = spell.isSRD;
+        spellNameElement.appendChild(srdSpan);
+    }
+
+    spellNameContainer.appendChild(spellNameElement);
     return spellNameContainer;
 }
 
@@ -808,13 +819,26 @@ async function render_class_icons(spell, foregroundColor, backgroundColor) {
     return classIconsContainer;
 }
 
-/** Renders the spell source label (e.g. PHB'24). */
+/** Renders the spell source. For SRD spells, outputs "SRD" and full source; CSS (body.vault-open) controls which is visible. */
 function render_spell_source(spell, foregroundColor) {
-    const sourceText = document.createElement("div");
-    sourceText.className = "spell-source-text";
-    sourceText.textContent = SOURCE_MAP[spell.source] || spell.source;
-    sourceText.style.color = foregroundColor;
-    return sourceText;
+    const wrapper = document.createElement("div");
+    wrapper.className = "spell-source-text";
+    wrapper.style.color = foregroundColor;
+
+    const fullSource = SOURCE_MAP[spell.source] || spell.source;
+    const fullSpan = document.createElement("span");
+    fullSpan.className = "source-full";
+    fullSpan.textContent = fullSource;
+    wrapper.appendChild(fullSpan);
+
+    if (spell.isSRD) {
+        const srdSpan = document.createElement("span");
+        srdSpan.className = "source-srd";
+        srdSpan.textContent = "SRD";
+        wrapper.appendChild(srdSpan);
+    }
+
+    return wrapper;
 }
 
 /** Renders the spell school label with per-character styling. */
