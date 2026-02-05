@@ -636,6 +636,10 @@ async function process_text_for_rendering(
                 const iconWrapper = document.createElement("span");
                 iconWrapper.className = "inline-icon-wrapper";
                 iconWrapper.appendChild(icon);
+                const altSpan = document.createElement("span");
+                altSpan.className = "inline-icon-alt";
+                altSpan.textContent = matchedText.slice(1, -1);
+                iconWrapper.appendChild(altSpan);
                 container.appendChild(iconWrapper);
             }
             // Check if it's an icon placeholder
@@ -649,6 +653,10 @@ async function process_text_for_rendering(
                 const iconWrapper = document.createElement("span");
                 iconWrapper.className = "inline-icon-wrapper";
                 iconWrapper.appendChild(icon);
+                const altSpan = document.createElement("span");
+                altSpan.className = "inline-icon-alt";
+                altSpan.textContent = matchedText.slice(1, -1);
+                iconWrapper.appendChild(altSpan);
                 container.appendChild(iconWrapper);
             }
             // Check for action economy placeholders and replace with icons
@@ -678,6 +686,10 @@ async function process_text_for_rendering(
                 const iconWrapper = document.createElement("span");
                 iconWrapper.className = "inline-icon-wrapper";
                 iconWrapper.appendChild(icon);
+                const altSpan = document.createElement("span");
+                altSpan.className = "inline-icon-alt";
+                altSpan.textContent = matchedText.slice(1, -1);
+                iconWrapper.appendChild(altSpan);
                 container.appendChild(iconWrapper);
             }
             // Default: render as plain text (without backticks)
@@ -826,6 +838,50 @@ async function render_condition_text(spell) {
     return null;
 }
 
+/**
+ * Parses text into blocks: markdown tables, lists, named entries, and paragraphs.
+ * Used by both main description and higher-level (upcast) text.
+ */
+async function render_blocks(text) {
+    const container = document.createDocumentFragment();
+    if (!text) return container;
+
+    const blocks = text.split(/\n\n+/);
+
+    for (const block of blocks) {
+        const trimmedBlock = block.trim();
+        if (!trimmedBlock) continue;
+
+        if (trimmedBlock.startsWith("|") && trimmedBlock.includes("| --- |")) {
+            const table = await render_markdown_table(trimmedBlock);
+            container.appendChild(table);
+        } else if (trimmedBlock.startsWith("- ")) {
+            const list = await render_markdown_list(trimmedBlock);
+            container.appendChild(list);
+        } else if (trimmedBlock.match(/^\*\*[^*]+\*\*\n/)) {
+            const lines = trimmedBlock.split("\n");
+            const nameMatch = lines[0].match(/^\*\*([^*]+)\*\*$/);
+            if (nameMatch) {
+                const entryName = nameMatch[1];
+                const entryContent = lines.slice(1).join("\n");
+                const p = document.createElement("p");
+                const nameSpan = document.createElement("span");
+                nameSpan.className = "spell-entry-name";
+                nameSpan.textContent = entryName + " ";
+                p.appendChild(nameSpan);
+                p.appendChild(await process_text_for_rendering(entryContent));
+                container.appendChild(p);
+            }
+        } else {
+            const p = document.createElement("p");
+            p.appendChild(await process_text_for_rendering(trimmedBlock));
+            container.appendChild(p);
+        }
+    }
+
+    return container;
+}
+
 /** Renders the "at higher levels" upcast section. */
 async function render_higher_level_text(
     spell,
@@ -855,61 +911,14 @@ async function render_higher_level_text(
     plus.textContent = "+";
     circle.appendChild(plus);
 
-    higherLevelTextContainer.appendChild(
-        await process_text_for_rendering(upcast)
-    );
+    higherLevelTextContainer.appendChild(await render_blocks(upcast));
 
     return higherLevelTextContainer;
 }
 
 /** Parses description text into paragraphs, lists, tables, and named entries. */
 async function render_description(description) {
-    const container = document.createDocumentFragment();
-
-    if (!description) return container;
-
-    // Split by double newlines to get paragraphs
-    const blocks = description.split(/\n\n+/);
-
-    for (const block of blocks) {
-        const trimmedBlock = block.trim();
-        if (!trimmedBlock) continue;
-
-        // Check if it's a markdown table
-        if (trimmedBlock.startsWith("|") && trimmedBlock.includes("| --- |")) {
-            const table = await render_markdown_table(trimmedBlock);
-            container.appendChild(table);
-        }
-        // Check if it's a markdown list
-        else if (trimmedBlock.startsWith("- ")) {
-            const list = await render_markdown_list(trimmedBlock);
-            container.appendChild(list);
-        }
-        // Check if it's a named entry (starts with **Name**)
-        else if (trimmedBlock.match(/^\*\*[^*]+\*\*\n/)) {
-            const lines = trimmedBlock.split("\n");
-            const nameMatch = lines[0].match(/^\*\*([^*]+)\*\*$/);
-            if (nameMatch) {
-                const entryName = nameMatch[1];
-                const entryContent = lines.slice(1).join("\n");
-                const p = document.createElement("p");
-                const nameSpan = document.createElement("span");
-                nameSpan.className = "spell-entry-name";
-                nameSpan.textContent = entryName + " ";
-                p.appendChild(nameSpan);
-                p.appendChild(await process_text_for_rendering(entryContent));
-                container.appendChild(p);
-            }
-        }
-        // Regular paragraph
-        else {
-            const p = document.createElement("p");
-            p.appendChild(await process_text_for_rendering(trimmedBlock));
-            container.appendChild(p);
-        }
-    }
-
-    return container;
+    return render_blocks(description);
 }
 
 /** Parses markdown table syntax (| col1 | col2 |\n| --- | --- |) into a table element. */

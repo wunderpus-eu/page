@@ -149,6 +149,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const sortSelect = document.getElementById("sort-select");
     const backgroundToggle = document.getElementById("background-toggle");
+    const inlineIconsToggle = document.getElementById("inline-icons-toggle");
     const sideBySideToggle = document.getElementById("side-by-side-toggle");
     const clearAllBtn = document.getElementById("clear-all-btn");
     const printBtn = document.getElementById("print-btn");
@@ -1515,6 +1516,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     backgroundToggle.addEventListener("sl-change", () => {
         sideBySideToggle.disabled = backgroundToggle.checked;
         refreshLayout();
+    });
+    inlineIconsToggle.addEventListener("sl-change", () => {
+        document.body.classList.toggle(
+            "use-inline-text",
+            !inlineIconsToggle.checked
+        );
     });
     sideBySideToggle.addEventListener("sl-change", refreshLayout);
     clearAllBtn.addEventListener("click", async () => {

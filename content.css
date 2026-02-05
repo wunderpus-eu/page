@@ -632,6 +632,24 @@ body.grayscale {
     height: 0.8em;
 }
 
+.inline-icon-wrapper .inline-icon-alt {
+    display: none;
+}
+
+body.use-inline-text .inline-icon-wrapper {
+    width: auto;
+    height: auto;
+    transform: none;
+}
+
+body.use-inline-text .inline-icon-wrapper .inline-icon {
+    display: none;
+}
+
+body.use-inline-text .inline-icon-wrapper .inline-icon-alt {
+    display: inline;
+}
+
 .inline-icon {
     height: 100%;
     width: 100%;
