@@ -1,5 +1,5 @@
-/* Minimal layout only – default Shoelace styling for controls */
-header {
+/* Spell card editor – layout and Web Awesome controls */
+header:not(.header--spell-cards) {
     position: fixed;
     top: 0;
     left: 0;
@@ -72,7 +72,7 @@ header {
     align-items: center;
     gap: 6px;
     font-size: 0.85rem;
-    color: var(--sl-color-neutral-600);
+    color: var(--wa-color-neutral-600);
 }
 .srd-banner.hidden {
     display: none;
@@ -92,7 +92,7 @@ header {
     border: none;
     background: transparent;
     cursor: pointer;
-    border-radius: var(--sl-border-radius-medium);
+    border-radius: var(--wa-border-radius-medium);
     font-size: 0.9rem;
     font-family: inherit;
     color: inherit;
@@ -120,31 +120,31 @@ header {
     height: 1.25rem;
     padding: 0 4px;
     border-radius: 999px;
-    background: var(--sl-color-primary-600);
-    color: var(--sl-color-neutral-0);
+    background: var(--wa-color-primary-600);
+    color: var(--wa-color-neutral-0);
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
 }
 
 .spell-list-count-badge:hover {
-    background: var(--sl-color-primary-700);
+    background: var(--wa-color-primary-700);
 }
 
 .spell-list-item:hover {
-    background: var(--sl-color-primary-100);
-    color: var(--sl-color-primary-700);
+    background: var(--wa-color-primary-100);
+    color: var(--wa-color-primary-700);
 }
 
 .spell-list-item.selected {
-    background: var(--sl-color-primary-200);
-    color: var(--sl-color-primary-800);
+    background: var(--wa-color-primary-200);
+    color: var(--wa-color-primary-800);
 }
 
 .spell-list-more {
     padding: 6px 10px;
     font-size: 0.8rem;
-    color: var(--sl-color-neutral-600);
+    color: var(--wa-color-neutral-600);
 }
 
 .filter-menu-content {
@@ -174,7 +174,7 @@ header {
 .filter-chip-label {
     font-size: 0.85rem;
     font-weight: 500;
-    color: var(--sl-color-neutral-700);
+    color: var(--wa-color-neutral-700);
 }
 
 .filter-chip-list {
@@ -206,7 +206,7 @@ header {
 
 .edit-overlay-panel {
     background: white;
-    border-radius: var(--sl-border-radius-large);
+    border-radius: var(--wa-border-radius-large);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     max-width: 95vw;
     max-height: 90vh;
@@ -217,7 +217,7 @@ header {
 .edit-overlay-preview {
     flex-shrink: 0;
     padding: 24px;
-    background: var(--sl-color-neutral-100);
+    background: var(--wa-color-neutral-100);
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -245,9 +245,9 @@ header {
     gap: 12px;
 }
 
-.edit-overlay-form sl-input,
-.edit-overlay-form sl-textarea,
-.edit-overlay-form sl-select {
+.edit-overlay-form wa-input,
+.edit-overlay-form wa-textarea,
+.edit-overlay-form wa-select {
     width: 100%;
 }
 
@@ -274,7 +274,7 @@ header {
 .edit-overlay-actions {
     flex-shrink: 0;
     padding: 16px 20px;
-    border-top: 1px solid var(--sl-color-neutral-200);
+    border-top: 1px solid var(--wa-color-neutral-200);
     display: flex;
     justify-content: flex-end;
     gap: 10px;
@@ -319,12 +319,12 @@ header {
     left: 50%;
     transform: translateX(-50%);
     padding: 12px 20px;
-    background: var(--sl-color-neutral-800);
-    color: var(--sl-color-neutral-0);
-    border-radius: var(--sl-border-radius-medium);
+    background: var(--wa-color-neutral-800);
+    color: var(--wa-color-neutral-0);
+    border-radius: var(--wa-border-radius-medium);
     font-style: italic;
     z-index: 9999;
-    box-shadow: var(--sl-shadow-large);
+    box-shadow: var(--wa-shadow-large);
 }
 .toast.hidden {
     display: none;

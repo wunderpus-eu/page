@@ -1,5 +1,5 @@
 /**
- * spell-card.js – Spell card rendering and spell data.
+ * card.js – Spell card rendering and spell data.
  *
  * Exports:
  * - SpellCard: class that renders a spell as a printable card front (and optionally back)
@@ -1088,12 +1088,12 @@ export class SpellCard {
         const front = document.createElement("div");
         front.className = "spell-card-front";
 
-        const tooltip = document.createElement("sl-tooltip");
+        const tooltip = document.createElement("wa-tooltip");
         tooltip.content = "Always prepared";
 
         const preparedCheckboxContainer = document.createElement("div");
         preparedCheckboxContainer.className = "prepared-checkbox-container";
-        const preparedCheckbox = document.createElement("sl-checkbox");
+        const preparedCheckbox = document.createElement("wa-checkbox");
         preparedCheckbox.className = "prepared-checkbox";
         preparedCheckbox.checked = this.isAlwaysPrepared;
 
@@ -1206,63 +1206,45 @@ export class SpellCard {
         cardActions.className = "card-actions no-print";
         cardActions.dataset.cardId = this.id;
 
-        const deleteBtn = document.createElement("sl-icon-button");
-        deleteBtn.name = "trash";
-        deleteBtn.title = "Delete card";
-        deleteBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            card.dispatchEvent(
-                new CustomEvent("card-delete", {
-                    bubbles: true,
-                    detail: { cardId: this.id },
-                })
-            );
-        });
-
-        const duplicateBtn = document.createElement("sl-icon-button");
-        duplicateBtn.name = "files";
-        duplicateBtn.title = "Duplicate card";
-        duplicateBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            card.dispatchEvent(
-                new CustomEvent("card-duplicate", {
-                    bubbles: true,
-                    detail: { cardId: this.id },
-                })
-            );
-        });
-
-        const editBtn = document.createElement("sl-icon-button");
-        editBtn.name = "pencil-square";
-        editBtn.title = "Edit card";
-        editBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            card.dispatchEvent(
-                new CustomEvent("card-edit", {
-                    bubbles: true,
-                    detail: { cardId: this.id },
-                })
-            );
-        });
-
-        cardActions.appendChild(deleteBtn);
-        cardActions.appendChild(duplicateBtn);
-        if (this.spell._modified && this.originalId != null) {
-            const resetBtn = document.createElement("sl-icon-button");
-            resetBtn.name = "arrow-counterclockwise";
-            resetBtn.title = "Reset to original";
-            resetBtn.addEventListener("click", (e) => {
+        const cardId = this.id;
+        function makeIconButton(iconName, title, eventName) {
+            const btn = document.createElement("wa-button");
+            btn.setAttribute("variant", "default");
+            btn.setAttribute("size", "small");
+            btn.title = title;
+            const icon = document.createElement("wa-icon");
+            icon.setAttribute("name", iconName);
+            btn.appendChild(icon);
+            btn.addEventListener("click", (e) => {
                 e.stopPropagation();
                 card.dispatchEvent(
-                    new CustomEvent("card-reset", {
+                    new CustomEvent(eventName, {
                         bubbles: true,
-                        detail: { cardId: this.id },
+                        detail: { cardId },
                     })
                 );
             });
-            cardActions.appendChild(resetBtn);
+            return btn;
         }
-        cardActions.appendChild(editBtn);
+
+        cardActions.appendChild(
+            makeIconButton("trash", "Delete card", "card-delete")
+        );
+        cardActions.appendChild(
+            makeIconButton("copy", "Duplicate card", "card-duplicate")
+        );
+        if (this.spell._modified && this.originalId != null) {
+            cardActions.appendChild(
+                makeIconButton(
+                    "arrow-rotate-left",
+                    "Reset to original",
+                    "card-reset"
+                )
+            );
+        }
+        cardActions.appendChild(
+            makeIconButton("pen-to-square", "Edit card", "card-edit")
+        );
         front.appendChild(cardActions);
 
         card.appendChild(front);

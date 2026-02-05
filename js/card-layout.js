@@ -12,14 +12,14 @@ import {
     isGlossaryRef,
     createGlossaryCard,
     getSpellSchoolColor,
-} from "./spell-card.js";
+} from "./card.js";
 
 /**
  * Renders cards into printable pages inside printableArea.
  * Measures cards, builds front+back sequence, applies spacer logic when sideBySide,
  * and fills pages with card containers.
  *
- * @param {(import("./spell-card.js").SpellCard | { type: "glossary"; id: string })[]} cards
+ * @param {(import("./card.js").SpellCard | { type: "glossary"; id: string })[]} cards
  * @param {"a4" | "letter"} pageSize
  * @param {HTMLElement} printableArea - Container to append pages to (cleared first)
  * @param {{ defaultCardBack?: boolean; sideBySide?: boolean }} [options]
@@ -110,9 +110,13 @@ export async function layoutCards(
             const cardActions = document.createElement("div");
             cardActions.className = "card-actions no-print";
             cardActions.dataset.cardId = item.id;
-            const deleteBtn = document.createElement("sl-icon-button");
-            deleteBtn.name = "trash";
+            const deleteBtn = document.createElement("wa-button");
+            deleteBtn.setAttribute("variant", "default");
+            deleteBtn.setAttribute("size", "small");
             deleteBtn.title = "Remove glossary card";
+            const delIcon = document.createElement("wa-icon");
+            delIcon.setAttribute("name", "trash");
+            deleteBtn.appendChild(delIcon);
             deleteBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
                 frontCard.dispatchEvent(
@@ -237,7 +241,7 @@ function getPxPerMm() {
  * If the description overflows, creates a back card and moves content there.
  * Tries shrinking font first; if still overflow, splits content front→back.
  * May recurse with smaller font if back also overflows.
- * @param {import("./spell-card.js").SpellCard} spellCard
+ * @param {import("./card.js").SpellCard} spellCard
  * @param {HTMLElement} tempContainer - Off-screen parent for measuring
  * @param {number} [fontLevel] - 0=normal, 1=6pt, 2=5.5pt
  */

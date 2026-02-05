@@ -1,55 +1,57 @@
+/* Spell card layout and print styling (card faces, pages, glossary) */
+
 @font-face {
     font-family: "Source Sans 3";
-    src: url("assets/fonts/SourceSans3-Regular.ttf") format("truetype");
+    src: url("../assets/fonts/SourceSans3-Regular.ttf") format("truetype");
     font-weight: 400;
     font-style: normal;
 }
 
 @font-face {
     font-family: "Source Sans 3";
-    src: url("assets/fonts/SourceSans3-Italic.ttf") format("truetype");
+    src: url("../assets/fonts/SourceSans3-Italic.ttf") format("truetype");
     font-weight: 400;
     font-style: italic;
 }
 
 @font-face {
     font-family: "Source Sans 3";
-    src: url("assets/fonts/SourceSans3-Bold.ttf") format("truetype");
+    src: url("../assets/fonts/SourceSans3-Bold.ttf") format("truetype");
     font-weight: 700;
     font-style: normal;
 }
 
 @font-face {
     font-family: "Source Sans 3";
-    src: url("assets/fonts/SourceSans3-ExtraBold.ttf") format("truetype");
+    src: url("../assets/fonts/SourceSans3-ExtraBold.ttf") format("truetype");
     font-weight: 800;
     font-style: normal;
 }
 
 @font-face {
     font-family: "Source Sans 3";
-    src: url("assets/fonts/SourceSans3-Black.ttf") format("truetype");
+    src: url("../assets/fonts/SourceSans3-Black.ttf") format("truetype");
     font-weight: 900;
     font-style: normal;
 }
 
 @font-face {
     font-family: "Source Sans 3";
-    src: url("assets/fonts/SourceSans3-BoldItalic.ttf") format("truetype");
+    src: url("../assets/fonts/SourceSans3-BoldItalic.ttf") format("truetype");
     font-weight: 700;
     font-style: italic;
 }
 
 @font-face {
     font-family: "Source Sans 3";
-    src: url("assets/fonts/SourceSans3-ExtraBoldItalic.ttf") format("truetype");
+    src: url("../assets/fonts/SourceSans3-ExtraBoldItalic.ttf") format("truetype");
     font-weight: 800;
     font-style: italic;
 }
 
 @font-face {
     font-family: "Source Sans 3";
-    src: url("assets/fonts/SourceSans3-BlackItalic.ttf") format("truetype");
+    src: url("../assets/fonts/SourceSans3-BlackItalic.ttf") format("truetype");
     font-weight: 900;
     font-style: italic;
 }
@@ -229,9 +231,9 @@ body.grayscale {
     opacity: 1;
 }
 
-.card-actions sl-icon-button {
+.card-actions wa-button {
     font-size: 12pt;
-    --sl-color-neutral-600: currentColor;
+    --wa-color-neutral-600: currentColor;
 }
 
 .prepared-checkbox-container {
@@ -430,11 +432,6 @@ body.vault-open .spell-name-real {
     margin-right: 0;
 }
 
-/* .spell-range span,
-.spell-duration span {
-    vertical-align: middle;
-} */
-
 .spell-component-icons {
     height: var(--chip-size);
     width: 33pt;
@@ -568,7 +565,6 @@ body.vault-open .spell-name-real {
 .spell-description-list {
     margin-top: 0em;
     margin-bottom: 0.5em;
-    /* margin-left: 0.5em; */
     padding-left: 0;
     list-style-type: none;
     text-align: justify;
@@ -580,8 +576,8 @@ body.vault-open .spell-name-real {
 
 .spell-description-list li {
     position: relative;
-    padding-left: 0.5em; /* Creates space for the bullet. Adjust to move text. */
-    margin-bottom: 0.25em; /* Adjust to control vertical spacing between items */
+    padding-left: 0.5em;
+    margin-bottom: 0.25em;
 }
 
 .spell-description-list li:last-child {

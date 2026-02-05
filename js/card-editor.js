@@ -1,5 +1,5 @@
 /**
- * ui.js – Main UI: spell picker, filters, card list, layout refresh, edit overlay.
+ * card-editor.js – Spell card editor UI: spell picker, filters, card list, layout refresh, edit overlay.
  *
  * Sets up DOMContentLoaded with all controls, event handlers, and layout wiring.
  * Card list holds SpellCard instances or glossary refs; layoutCards renders them.
@@ -16,7 +16,7 @@ import {
     appendSpells,
     createGlossaryCardRef,
     isGlossaryRef,
-} from "./spell-card.js";
+} from "./card.js";
 import { layoutCards } from "./card-layout.js";
 
 /** In the filter menu we show a single "PHB" for whichever PHB source is active (ruleset-dependent). */
@@ -190,7 +190,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let spellClassMap = {};
     let pageWidthPx = 0;
     let scale = 1;
-    /** @type {(import("./spell-card.js").SpellCard | { type: "glossary"; id: string })[]} */
+    /** @type {(import("./card.js").SpellCard | { type: "glossary"; id: string })[]} */
     let cardList = [];
     let editingCard = null;
     let editPreviewCard = null;
@@ -383,10 +383,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const chips = getActiveFilterChips();
         spellListChips.innerHTML = "";
         chips.forEach(({ key, value, label }) => {
-            const tag = document.createElement("sl-tag");
+            const tag = document.createElement("wa-tag");
             tag.removable = true;
             tag.textContent = label;
-            tag.addEventListener("sl-remove", (event) => {
+            tag.addEventListener("wa-remove", (event) => {
                 event.preventDefault();
                 clearFilter(key, value);
             });
@@ -667,48 +667,48 @@ document.addEventListener("DOMContentLoaded", async () => {
             lab.htmlFor = `edit-${name}`;
             wrap.appendChild(lab);
             if (type === "textarea") {
-                const ta = document.createElement("sl-textarea");
+                const ta = document.createElement("wa-textarea");
                 ta.id = `edit-${name}`;
                 ta.name = name;
                 ta.value = value ?? "";
                 ta.rows = options.rows || 3;
                 wrap.appendChild(ta);
-                ta.addEventListener("sl-input", () => updateEditPreview());
+                ta.addEventListener("wa-input", () => updateEditPreview());
             } else if (type === "number") {
-                const inp = document.createElement("sl-input");
+                const inp = document.createElement("wa-input");
                 inp.type = "number";
                 inp.id = `edit-${name}`;
                 inp.name = name;
                 inp.value = String(value ?? "");
                 wrap.appendChild(inp);
-                inp.addEventListener("sl-input", () => updateEditPreview());
+                inp.addEventListener("wa-input", () => updateEditPreview());
             } else if (type === "select") {
-                const sel = document.createElement("sl-select");
+                const sel = document.createElement("wa-select");
                 sel.id = `edit-${name}`;
                 sel.name = name;
                 (options.choices || []).forEach((opt) => {
-                    const o = document.createElement("sl-option");
+                    const o = document.createElement("wa-option");
                     o.value = opt.value;
                     o.textContent = opt.label;
                     sel.appendChild(o);
                 });
                 sel.value = value ?? "";
                 wrap.appendChild(sel);
-                sel.addEventListener("sl-change", () => updateEditPreview());
+                sel.addEventListener("wa-change", () => updateEditPreview());
             } else if (type === "checkbox") {
-                const cb = document.createElement("sl-checkbox");
+                const cb = document.createElement("wa-checkbox");
                 cb.id = `edit-${name}`;
                 cb.name = name;
                 cb.checked = !!value;
                 wrap.appendChild(cb);
-                cb.addEventListener("sl-change", () => updateEditPreview());
+                cb.addEventListener("wa-change", () => updateEditPreview());
             } else {
-                const inp = document.createElement("sl-input");
+                const inp = document.createElement("wa-input");
                 inp.id = `edit-${name}`;
                 inp.name = name;
                 inp.value = value ?? "";
                 wrap.appendChild(inp);
-                inp.addEventListener("sl-input", () => updateEditPreview());
+                inp.addEventListener("wa-input", () => updateEditPreview());
             }
             editCardForm.appendChild(wrap);
         };
@@ -755,14 +755,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         timeNumberLab.textContent = "Amount";
         timeNumberLab.htmlFor = "edit-time_number";
         timeNumberWrap.appendChild(timeNumberLab);
-        const timeNumberInp = document.createElement("sl-input");
+        const timeNumberInp = document.createElement("wa-input");
         timeNumberInp.type = "number";
         timeNumberInp.min = "1";
         timeNumberInp.id = "edit-time_number";
         timeNumberInp.name = "time_number";
         timeNumberInp.value = String(Math.max(1, spell.time?.number ?? 1));
         timeNumberWrap.appendChild(timeNumberInp);
-        timeNumberInp.addEventListener("sl-input", () => updateEditPreview());
+        timeNumberInp.addEventListener("wa-input", () => updateEditPreview());
         editCardForm.appendChild(timeNumberWrap);
         const timeUnitSel = editCardForm.querySelector("#edit-time_unit");
         const showHideTimeNumber = () => {
@@ -778,13 +778,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         timeConditionLab.textContent = "Reaction condition";
         timeConditionLab.htmlFor = "edit-time_condition";
         timeConditionWrap.appendChild(timeConditionLab);
-        const timeConditionInp = document.createElement("sl-textarea");
+        const timeConditionInp = document.createElement("wa-textarea");
         timeConditionInp.id = "edit-time_condition";
         timeConditionInp.name = "time_condition";
         timeConditionInp.value = spell.time?.condition ?? "";
         timeConditionInp.rows = 2;
         timeConditionWrap.appendChild(timeConditionInp);
-        timeConditionInp.addEventListener("sl-input", () =>
+        timeConditionInp.addEventListener("wa-input", () =>
             updateEditPreview()
         );
         editCardForm.appendChild(timeConditionWrap);
@@ -794,7 +794,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             timeConditionWrap.style.display = show ? "" : "none";
             if (!show) timeConditionInp.value = "";
         };
-        timeUnitSel?.addEventListener("sl-change", () => {
+        timeUnitSel?.addEventListener("wa-change", () => {
             showHideTimeNumber();
             showHideTimeCondition();
             updateEditPreview();
@@ -822,14 +822,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         rangeDistLab.textContent = "Distance";
         rangeDistLab.htmlFor = "edit-range_distance";
         rangeDistanceWrap.appendChild(rangeDistLab);
-        const rangeDistInp = document.createElement("sl-input");
+        const rangeDistInp = document.createElement("wa-input");
         rangeDistInp.type = "number";
         rangeDistInp.min = "1";
         rangeDistInp.id = "edit-range_distance";
         rangeDistInp.name = "range_distance";
         rangeDistInp.value = String(Math.max(1, spell.range?.distance ?? 1));
         rangeDistanceWrap.appendChild(rangeDistInp);
-        rangeDistInp.addEventListener("sl-input", () => updateEditPreview());
+        rangeDistInp.addEventListener("wa-input", () => updateEditPreview());
         editCardForm.appendChild(rangeDistanceWrap);
         const rangeUnitWrap = document.createElement("div");
         rangeUnitWrap.className = "form-field form-field-range-unit";
@@ -838,11 +838,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         rangeUnitLab.textContent = "Unit";
         rangeUnitLab.htmlFor = "edit-range_unit";
         rangeUnitWrap.appendChild(rangeUnitLab);
-        const rangeUnitSel = document.createElement("sl-select");
+        const rangeUnitSel = document.createElement("wa-select");
         rangeUnitSel.id = "edit-range_unit";
         rangeUnitSel.name = "range_unit";
         RANGE_UNITS.forEach((opt) => {
-            const o = document.createElement("sl-option");
+            const o = document.createElement("wa-option");
             o.value = opt.value;
             o.textContent = opt.label;
             rangeUnitSel.appendChild(o);
@@ -865,11 +865,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 rangeDistInp.value = "0";
             }
         };
-        rangeOriginSel?.addEventListener("sl-change", () => {
+        rangeOriginSel?.addEventListener("wa-change", () => {
             showHideRangeDistance();
             updateEditPreview();
         });
-        rangeUnitSel?.addEventListener("sl-change", () => {
+        rangeUnitSel?.addEventListener("wa-change", () => {
             showHideRangeDistance();
             updateEditPreview();
         });
@@ -888,14 +888,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         areaPrimaryLab.htmlFor = "edit-area_distance";
         areaPrimaryLab.textContent = "Size";
         areaPrimaryWrap.appendChild(areaPrimaryLab);
-        const areaDistInp = document.createElement("sl-input");
+        const areaDistInp = document.createElement("wa-input");
         areaDistInp.type = "number";
         areaDistInp.min = "1";
         areaDistInp.id = "edit-area_distance";
         areaDistInp.name = "area_distance";
         areaDistInp.value = String(Math.max(1, spell.range?.areaDistance ?? 5));
         areaPrimaryWrap.appendChild(areaDistInp);
-        areaDistInp.addEventListener("sl-input", () => updateEditPreview());
+        areaDistInp.addEventListener("wa-input", () => updateEditPreview());
         const areaUnitWrap = document.createElement("div");
         areaUnitWrap.className = "form-field form-field-area-unit";
         const areaUnitLab = document.createElement("label");
@@ -903,21 +903,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         areaUnitLab.textContent = "Unit";
         areaUnitLab.htmlFor = "edit-area_unit";
         areaUnitWrap.appendChild(areaUnitLab);
-        const areaUnitSel = document.createElement("sl-select");
+        const areaUnitSel = document.createElement("wa-select");
         areaUnitSel.id = "edit-area_unit";
         areaUnitSel.name = "area_unit";
         [
             { value: "feet", label: "Feet" },
             { value: "miles", label: "Miles" },
         ].forEach((opt) => {
-            const o = document.createElement("sl-option");
+            const o = document.createElement("wa-option");
             o.value = opt.value;
             o.textContent = opt.label;
             areaUnitSel.appendChild(o);
         });
         areaUnitSel.value = spell.range?.areaUnit ?? "feet";
         areaUnitWrap.appendChild(areaUnitSel);
-        areaUnitSel.addEventListener("sl-change", () => updateEditPreview());
+        areaUnitSel.addEventListener("wa-change", () => updateEditPreview());
         areaDimsWrap.appendChild(areaPrimaryWrap);
         areaDimsWrap.appendChild(areaUnitWrap);
         const areaHeightWrap = document.createElement("div");
@@ -927,35 +927,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         areaHeightLab.textContent = "Height";
         areaHeightLab.htmlFor = "edit-area_height";
         areaHeightWrap.appendChild(areaHeightLab);
-        const areaHeightInp = document.createElement("sl-input");
+        const areaHeightInp = document.createElement("wa-input");
         areaHeightInp.type = "number";
         areaHeightInp.min = "1";
         areaHeightInp.id = "edit-area_height";
         areaHeightInp.name = "area_height";
         areaHeightInp.value = String(Math.max(1, spell.range?.areaHeight ?? 5));
         areaHeightWrap.appendChild(areaHeightInp);
-        areaHeightInp.addEventListener("sl-input", () => updateEditPreview());
+        areaHeightInp.addEventListener("wa-input", () => updateEditPreview());
         const areaHeightUnitWrap = document.createElement("div");
         areaHeightUnitWrap.className = "form-field form-field-area-height-unit";
         const areaHeightUnitLab = document.createElement("label");
         areaHeightUnitLab.textContent = "Height unit";
         areaHeightUnitLab.htmlFor = "edit-area_height_unit";
         areaHeightUnitWrap.appendChild(areaHeightUnitLab);
-        const areaHeightUnitSel = document.createElement("sl-select");
+        const areaHeightUnitSel = document.createElement("wa-select");
         areaHeightUnitSel.id = "edit-area_height_unit";
         areaHeightUnitSel.name = "area_height_unit";
         [
             { value: "feet", label: "Feet" },
             { value: "miles", label: "Miles" },
         ].forEach((opt) => {
-            const o = document.createElement("sl-option");
+            const o = document.createElement("wa-option");
             o.value = opt.value;
             o.textContent = opt.label;
             areaHeightUnitSel.appendChild(o);
         });
         areaHeightUnitSel.value = spell.range?.areaHeightUnit ?? "feet";
         areaHeightUnitWrap.appendChild(areaHeightUnitSel);
-        areaHeightUnitSel.addEventListener("sl-change", () =>
+        areaHeightUnitSel.addEventListener("wa-change", () =>
             updateEditPreview()
         );
         areaHeightWrap.appendChild(areaHeightUnitWrap);
@@ -1007,7 +1007,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 areaDistInp.value = "5";
             }
         };
-        rangeAreaSel?.addEventListener("sl-change", () => {
+        rangeAreaSel?.addEventListener("wa-change", () => {
             showHideAreaDims();
             updateEditPreview();
         });
@@ -1040,7 +1040,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         durationAmountLab.textContent = "Amount";
         durationAmountLab.htmlFor = "edit-duration_amount";
         durationAmountWrap.appendChild(durationAmountLab);
-        const durationAmountInp = document.createElement("sl-input");
+        const durationAmountInp = document.createElement("wa-input");
         durationAmountInp.type = "number";
         durationAmountInp.min = "1";
         durationAmountInp.id = "edit-duration_amount";
@@ -1049,7 +1049,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             Math.max(1, spell.duration?.amount ?? 1)
         );
         durationAmountWrap.appendChild(durationAmountInp);
-        durationAmountInp.addEventListener("sl-input", () =>
+        durationAmountInp.addEventListener("wa-input", () =>
             updateEditPreview()
         );
         editCardForm.appendChild(durationAmountWrap);
@@ -1060,18 +1060,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         durationUnitLab.textContent = "Unit";
         durationUnitLab.htmlFor = "edit-duration_unit";
         durationUnitWrap.appendChild(durationUnitLab);
-        const durationUnitSel = document.createElement("sl-select");
+        const durationUnitSel = document.createElement("wa-select");
         durationUnitSel.id = "edit-duration_unit";
         durationUnitSel.name = "duration_unit";
         DURATION_UNITS.forEach((opt) => {
-            const o = document.createElement("sl-option");
+            const o = document.createElement("wa-option");
             o.value = opt.value;
             o.textContent = opt.label;
             durationUnitSel.appendChild(o);
         });
         durationUnitSel.value = spell.duration?.unit ?? "minute";
         durationUnitWrap.appendChild(durationUnitSel);
-        durationUnitSel.addEventListener("sl-change", () =>
+        durationUnitSel.addEventListener("wa-change", () =>
             updateEditPreview()
         );
         editCardForm.appendChild(durationUnitWrap);
@@ -1085,7 +1085,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         durationEndsList.className = "duration-ends-tokens";
         const durationEnds = spell.duration?.ends ?? [];
         DURATION_END_OPTIONS.forEach(({ value, label }) => {
-            const tag = document.createElement("sl-tag");
+            const tag = document.createElement("wa-tag");
             tag.className = "duration-end-tag";
             tag.dataset.value = value;
             tag.textContent = label;
@@ -1128,7 +1128,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 durationUnitSel.value = "minute";
             }
         };
-        durationTypeSel?.addEventListener("sl-change", () => {
+        durationTypeSel?.addEventListener("wa-change", () => {
             showHideDurationExtras();
             updateEditPreview();
         });
@@ -1159,13 +1159,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         const componentsHasCostLab = document.createElement("label");
         componentsHasCostLab.htmlFor = "edit-components_has_cost";
         componentsHasCostLab.textContent = "Material has cost";
-        const componentsHasCostCb = document.createElement("sl-checkbox");
+        const componentsHasCostCb = document.createElement("wa-checkbox");
         componentsHasCostCb.id = "edit-components_has_cost";
         componentsHasCostCb.name = "components_has_cost";
         componentsHasCostCb.checked = !!spell.components?.hasCost;
         componentsMaterialWrap.appendChild(componentsHasCostLab);
         componentsMaterialWrap.appendChild(componentsHasCostCb);
-        componentsHasCostCb.addEventListener("sl-change", () => {
+        componentsHasCostCb.addEventListener("wa-change", () => {
             showHideComponentsConsumed();
             updateEditPreview();
         });
@@ -1177,13 +1177,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         const componentsConsumedLab = document.createElement("label");
         componentsConsumedLab.htmlFor = "edit-components_is_consumed";
         componentsConsumedLab.textContent = "Consumed";
-        const componentsConsumedCb = document.createElement("sl-checkbox");
+        const componentsConsumedCb = document.createElement("wa-checkbox");
         componentsConsumedCb.id = "edit-components_is_consumed";
         componentsConsumedCb.name = "components_is_consumed";
         componentsConsumedCb.checked = !!spell.components?.isConsumed;
         componentsConsumedWrap.appendChild(componentsConsumedLab);
         componentsConsumedWrap.appendChild(componentsConsumedCb);
-        componentsConsumedCb.addEventListener("sl-change", () =>
+        componentsConsumedCb.addEventListener("wa-change", () =>
             updateEditPreview()
         );
         editCardForm.appendChild(componentsConsumedWrap);
@@ -1195,12 +1195,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         componentsDescLab.textContent = "Component description";
         componentsDescLab.htmlFor = "edit-components_description";
         componentsDescWrap.appendChild(componentsDescLab);
-        const componentsDescInp = document.createElement("sl-input");
+        const componentsDescInp = document.createElement("wa-input");
         componentsDescInp.id = "edit-components_description";
         componentsDescInp.name = "components_description";
         componentsDescInp.value = spell.components?.description ?? "";
         componentsDescWrap.appendChild(componentsDescInp);
-        componentsDescInp.addEventListener("sl-input", () =>
+        componentsDescInp.addEventListener("wa-input", () =>
             updateEditPreview()
         );
         editCardForm.appendChild(componentsDescWrap);
@@ -1223,7 +1223,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 componentsMCb?.checked && hasCost ? "" : "none";
             if (!hasCost) componentsConsumedCb.checked = false;
         };
-        componentsMCb?.addEventListener("sl-change", () => {
+        componentsMCb?.addEventListener("wa-change", () => {
             showHideComponentsMaterial();
             updateEditPreview();
         });
@@ -1245,7 +1245,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         classesTokens.className = "edit-classes-tokens";
         const spellClasses = spell.classes || [];
         SPELL_CLASSES.forEach((className) => {
-            const tag = document.createElement("sl-tag");
+            const tag = document.createElement("wa-tag");
             tag.className = "edit-class-tag";
             tag.dataset.value = className;
             tag.textContent = className;
@@ -1512,7 +1512,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /** Creates a clickable filter chip that toggles selection. */
     function createFilterChip(key, value, label) {
-        const tag = document.createElement("sl-tag");
+        const tag = document.createElement("wa-tag");
         tag.className = "filter-chip";
         tag.dataset.value = value;
         tag.textContent = label;
@@ -1789,6 +1789,66 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderChips();
     }
 
+    /** Opens a new window with only the card pages and triggers print (Save as PDF). */
+    function openPrintWindow() {
+        const pages = printableArea.querySelectorAll(".page");
+        if (!pages.length) {
+            if (toastEl) {
+                toastEl.textContent = "No cards to print.";
+                toastEl.classList.remove("hidden");
+                setTimeout(() => toastEl.classList.add("hidden"), 3000);
+            }
+            return;
+        }
+        const pageSize = pageSizeSelect.value;
+        const isLetter = pageSize === "letter";
+        const baseUrl = new URL(".", window.location.href).href;
+        const contentHref = baseUrl + "css/card.css";
+        const printHref = baseUrl + "css/card-print.css";
+
+        const pageSizeCss = isLetter ? "279.4mm 215.9mm" : "297mm 210mm";
+        const inlinePrintStyle = `
+            @page { size: ${pageSizeCss}; margin: 0; }
+            body { margin: 0; padding: 0; background: white; }
+        `;
+
+        const contentHtml = printableArea.innerHTML;
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spell Cards</title>
+<link rel="stylesheet" href="${contentHref}">
+<link rel="stylesheet" href="${printHref}">
+<style>${inlinePrintStyle}</style>
+</head>
+<body>
+<div id="printable-area">${contentHtml}</div>
+<script>
+window.onload = function() {
+  window.print();
+};
+window.onafterprint = function() {
+  window.close();
+};
+<\/script>
+</body>
+</html>`;
+
+        const w = window.open("", "_blank");
+        if (!w) {
+            if (toastEl) {
+                toastEl.textContent =
+                    "Pop-up blocked. Allow pop-ups for this site to print.";
+                toastEl.classList.remove("hidden");
+                setTimeout(() => toastEl.classList.add("hidden"), 4000);
+            }
+            return;
+        }
+        w.document.write(html);
+        w.document.close();
+    }
+
     /** Measures page width in px for current page size and sets printable area width. */
     function updatePageWidth() {
         const tempDiv = document.createElement("div");
@@ -1803,7 +1863,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // --- Spell picker: search, list, keyboard nav ---
-    spellSearchInput.addEventListener("sl-focus", () => {
+    spellSearchInput.addEventListener("wa-focus", () => {
         /* Defer open so the initial click isn’t treated as “outside” and close the panel */
         requestAnimationFrame(() => {
             spellCombobox.open = true;
@@ -1813,7 +1873,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     spellSearchInput.addEventListener("click", (e) => {
         if (spellCombobox.open) e.stopPropagation();
     });
-    spellSearchInput.addEventListener("sl-input", () => {
+    spellSearchInput.addEventListener("wa-input", () => {
         renderSpellList();
         if (!spellCombobox.open) spellCombobox.open = true;
     });
@@ -1846,7 +1906,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    spellCombobox.addEventListener("sl-show", () => {
+    spellCombobox.addEventListener("wa-show", () => {
         renderSpellList();
         renderChips();
         /* Don’t call focus() here – it can cause a focus cycle that closes the panel on first open */
@@ -1924,8 +1984,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    filterRuleset.addEventListener("sl-change", refreshFiltersAndList);
-    excludeReprintedToggle.addEventListener("sl-change", () => {
+    filterRuleset.addEventListener("wa-change", refreshFiltersAndList);
+    excludeReprintedToggle.addEventListener("wa-change", () => {
         renderSpellList();
     });
     filterClearBtn.addEventListener("click", () => {
@@ -1940,23 +2000,23 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
     });
 
-    pageSizeSelect.addEventListener("sl-change", () => {
+    pageSizeSelect.addEventListener("wa-change", () => {
         updatePageWidth();
         refreshLayout();
     });
-    sortSelect.addEventListener("sl-change", refreshLayout);
-    colorToggle.addEventListener("sl-change", refreshLayout);
-    backgroundToggle.addEventListener("sl-change", () => {
+    sortSelect.addEventListener("wa-change", refreshLayout);
+    colorToggle.addEventListener("wa-change", refreshLayout);
+    backgroundToggle.addEventListener("wa-change", () => {
         sideBySideToggle.disabled = backgroundToggle.checked;
         refreshLayout();
     });
-    inlineIconsToggle.addEventListener("sl-change", () => {
+    inlineIconsToggle.addEventListener("wa-change", () => {
         document.body.classList.toggle(
             "use-inline-text",
             !inlineIconsToggle.checked
         );
     });
-    sideBySideToggle.addEventListener("sl-change", refreshLayout);
+    sideBySideToggle.addEventListener("wa-change", refreshLayout);
     clearAllBtn.addEventListener("click", async () => {
         cardList = [];
         renderSpellList();
@@ -1998,10 +2058,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    printBtn.addEventListener("click", () => window.print());
+    printBtn.addEventListener("click", () => openPrintWindow());
 
     // --- Card actions: prepared checkbox, delete, duplicate, edit ---
-    printableArea.addEventListener("sl-change", async (event) => {
+    printableArea.addEventListener("wa-change", async (event) => {
         if (!event.target.classList.contains("prepared-checkbox")) return;
         const cardEl = event.target.closest(".spell-card");
         if (!cardEl?.dataset.cardId) return;

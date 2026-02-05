@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { Spell, SCHOOL_MAP } from "./spell.js";
+import { Spell, SCHOOL_MAP } from "./js/spell.js";
 
 /**
  * List of text patterns that should be wrapped as icon placeholders.

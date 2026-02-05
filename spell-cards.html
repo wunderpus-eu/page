@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Spell cards – Wunderpus</title>
+        <meta
+            name="description"
+            content="Generate and print DnD 5e spell cards. Customize and export as PDF."
+        />
+        <link rel="icon" href="assets/logo_color.svg" type="image/svg+xml" />
+        <link
+            rel="alternate icon"
+            href="assets/favicon.png"
+            type="image/png"
+            sizes="48x48"
+        />
+        <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+        <link rel="stylesheet" href="css/style.css" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+            crossorigin="anonymous"
+        />
+        <script
+            src="https://kit.webawesome.com/09159e6f02cb41ba.js"
+            crossorigin="anonymous"
+        ></script>
+        <link rel="stylesheet" href="css/card-editor.css" />
+        <link rel="stylesheet" id="main-css" href="css/card.css" />
+        <link rel="stylesheet" href="css/card-print.css" media="print" />
+        <script type="importmap">
+            {
+                "imports": {
+                    "colord": "https://cdn.jsdelivr.net/npm/colord/+esm"
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <header class="header header--spell-cards">
+            <div class="container header__top">
+                <a href="index.html">
+                    <img
+                        src="assets/wordmark_color.svg"
+                        alt="Wunderpus Wordmark"
+                        class="wordmark"
+                    />
+                </a>
+                <nav class="header-nav" aria-label="Main">
+                    <button
+                        type="button"
+                        class="header-nav-toggle"
+                        aria-expanded="false"
+                        aria-controls="header-nav-menu"
+                        aria-label="Open menu"
+                    >
+                        <i class="fa-solid fa-bars header-nav-toggle-icon" aria-hidden="true"></i>
+                    </button>
+                    <div id="header-nav-menu" class="header-nav-menu">
+                        <a href="character-sheet.html">Character sheet</a>
+                        <a href="spell-cards.html">Spell cards</a>
+                    </div>
+                </nav>
+            </div>
+            <div id="header-content" class="header__controls">
+                <div class="controls">
+                    <div id="add-cards-row">
+                        <div
+                            id="spell-search-wrapper"
+                            class="spell-search-wrapper"
+                        >
+                            <wa-dropdown
+                                id="spell-combobox"
+                                stay-open-on-select
+                                hoist
+                            >
+                                <wa-input
+                                    slot="trigger"
+                                    id="spell-search-input"
+                                    placeholder="Select a spell..."
+                                    clearable
+                                ></wa-input>
+                                <div
+                                    id="spell-list-popover"
+                                    class="spell-list-popover"
+                                >
+                                    <div class="spell-list-header">
+                                        <span
+                                            id="spell-list-count"
+                                            class="spell-list-count"
+                                        ></span>
+                                        <wa-button
+                                            id="spell-list-add-all"
+                                            size="small"
+                                            variant="default"
+                                            >Add all</wa-button
+                                        >
+                                    </div>
+                                    <div
+                                        id="spell-list-chips"
+                                        class="spell-list-chips"
+                                    ></div>
+                                    <div
+                                        id="srd-banner"
+                                        class="srd-banner hidden"
+                                        aria-hidden="true"
+                                    >
+                                        <span id="srd-banner-text"></span>
+                                        <wa-button
+                                            id="srd-banner-info"
+                                            variant="default"
+                                            size="small"
+                                            title="Non-SRD info"
+                                        >
+                                            <wa-icon name="circle-info"></wa-icon>
+                                        </wa-button>
+                                    </div>
+                                    <div
+                                        id="spell-list"
+                                        class="spell-list"
+                                    ></div>
+                                </div>
+                            </wa-dropdown>
+                            <wa-dropdown id="filter-dropdown" hoist>
+                                <wa-button
+                                    slot="trigger"
+                                    variant="default"
+                                    size="small"
+                                    title="Filters"
+                                >
+                                    <wa-icon name="filter"></wa-icon>
+                                </wa-button>
+                                <div
+                                    id="filter-menu-content"
+                                    class="filter-menu-content"
+                                >
+                                    <div class="filter-menu-row">
+                                        <span>Rules</span>
+                                        <wa-switch id="filter-ruleset" checked
+                                            >2024</wa-switch
+                                        >
+                                    </div>
+                                    <div class="filter-menu-row">
+                                        <span>Exclude reprinted</span>
+                                        <wa-switch
+                                            id="filter-exclude-reprinted"
+                                            checked
+                                        ></wa-switch>
+                                    </div>
+                                    <div class="filter-chip-group">
+                                        <span class="filter-chip-label"
+                                            >Source</span
+                                        >
+                                        <div
+                                            id="filter-source-chips"
+                                            class="filter-chip-list"
+                                        ></div>
+                                    </div>
+                                    <div class="filter-chip-group">
+                                        <span class="filter-chip-label"
+                                            >Class</span
+                                        >
+                                        <div
+                                            id="filter-class-chips"
+                                            class="filter-chip-list"
+                                        ></div>
+                                    </div>
+                                    <div class="filter-chip-group">
+                                        <span class="filter-chip-label"
+                                            >Level</span
+                                        >
+                                        <div
+                                            id="filter-level-chips"
+                                            class="filter-chip-list"
+                                        ></div>
+                                    </div>
+                                    <div class="filter-chip-group">
+                                        <span class="filter-chip-label"
+                                            >School</span
+                                        >
+                                        <div
+                                            id="filter-school-chips"
+                                            class="filter-chip-list"
+                                        ></div>
+                                    </div>
+                                    <wa-button
+                                        id="filter-clear-btn"
+                                        variant="default"
+                                        size="small"
+                                        >Clear filters</wa-button
+                                    >
+                                </div>
+                            </wa-dropdown>
+                        </div>
+
+                        <wa-button id="add-empty-btn" variant="default"
+                            >Empty card</wa-button
+                        >
+                        <wa-button id="add-glossary-btn" variant="default"
+                            >Glossary</wa-button
+                        >
+                    </div>
+
+                    <div id="display-row">
+                        <wa-switch id="color-toggle">Grayscale</wa-switch>
+                        <wa-select id="page-size-select" value="letter">
+                            <wa-option value="letter">Letter</wa-option>
+                            <wa-option value="a4">A4</wa-option>
+                        </wa-select>
+                        <wa-select id="sort-select" value="level">
+                            <wa-option value="alphabetical">A–Z</wa-option>
+                            <wa-option value="level">By level</wa-option>
+                            <wa-option value="school">By school</wa-option>
+                        </wa-select>
+                        <wa-switch id="background-toggle">Card back</wa-switch>
+                        <wa-switch id="inline-icons-toggle" checked
+                            >Inline icons</wa-switch
+                        >
+                        <wa-switch id="side-by-side-toggle"
+                            >Side by side</wa-switch
+                        >
+                        <wa-button id="clear-all-btn" variant="default"
+                            >Clear all</wa-button
+                        >
+                        <wa-button id="download-custom-btn" variant="default"
+                            >Download custom</wa-button
+                        >
+                        <input
+                            type="file"
+                            id="upload-spells-input"
+                            accept=".json,application/json"
+                            hidden
+                        />
+                        <wa-button id="upload-spells-btn" variant="default"
+                            >Upload spells</wa-button
+                        >
+                        <wa-button id="print-btn" variant="primary"
+                            >Print / Save as PDF</wa-button
+                        >
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div id="main-container">
+            <div id="printable-area-wrapper">
+                <main id="printable-area"></main>
+            </div>
+        </div>
+
+        <div id="edit-card-overlay" class="overlay hidden" aria-hidden="true">
+            <div class="edit-overlay-panel">
+                <div class="edit-overlay-preview">
+                    <div id="edit-card-preview"></div>
+                </div>
+                <div class="edit-overlay-form-wrapper">
+                    <div id="edit-card-form" class="edit-overlay-form"></div>
+                    <div class="edit-overlay-actions">
+                        <wa-button id="edit-card-cancel" variant="default"
+                            >Cancel</wa-button
+                        >
+                        <wa-button id="edit-card-save" variant="primary"
+                            >Save</wa-button
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <wa-dialog
+            id="srd-excluded-dialog"
+            label="Non-SRD spells"
+            class="srd-excluded-dialog"
+        >
+            <p id="srd-excluded-explanation"></p>
+            <div id="srd-excluded-list" class="srd-excluded-list"></div>
+            <div class="srd-excluded-actions">
+                <wa-button id="srd-excluded-copy" variant="default"
+                    >Copy to clipboard</wa-button
+                >
+            </div>
+        </wa-dialog>
+
+        <div id="toast" class="toast hidden" aria-live="polite"></div>
+
+        <footer class="footer">
+            <div class="container">
+                <p>
+                    © 2025 Wunderpus. The Wunderpus logo and spell cards
+                    are copyright Wunderpus.
+                </p>
+                <p>
+                    The spell cards and the spell card generator are licensed under a
+                <a
+                    href="http://creativecommons.org/licenses/by/4.0/"
+                    target="_blank"
+                    >Creative Commons Attribution 4.0 International
+                    License</a
+                    >.
+                <br />
+                    This work is not affiliated with, endorsed, or sponsored by
+                    Wizards of the Coast LLC.
+                </p>
+            </div>
+        </footer>
+
+        <script src="js/nav.js"></script>
+        <script type="module" src="js/card-editor.js"></script>
+    </body>
+</html>

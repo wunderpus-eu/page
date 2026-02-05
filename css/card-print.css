@@ -1,3 +1,9 @@
+/* Print / save as PDF: spell cards – force colors, hide chrome */
+* {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
 body {
     background-color: white !important;
 }
@@ -17,4 +23,8 @@ header {
 
 .page {
     margin: 0 !important;
+}
+
+.spell-casting-time {
+    background-clip: border-box !important;
 }
