@@ -84,34 +84,42 @@
                                             >2024</sl-switch
                                         >
                                     </div>
-                                    <sl-select
-                                        id="filter-source"
-                                        placeholder="Source..."
-                                        multiple
-                                        clearable
-                                        max-options-visible="1"
-                                    ></sl-select>
-                                    <sl-select
-                                        id="filter-class"
-                                        placeholder="Class..."
-                                        multiple
-                                        clearable
-                                        max-options-visible="1"
-                                    ></sl-select>
-                                    <sl-select
-                                        id="filter-level"
-                                        placeholder="Level..."
-                                        multiple
-                                        clearable
-                                        max-options-visible="1"
-                                    ></sl-select>
-                                    <sl-select
-                                        id="filter-school"
-                                        placeholder="School..."
-                                        multiple
-                                        clearable
-                                        max-options-visible="1"
-                                    ></sl-select>
+                                    <div class="filter-chip-group">
+                                        <span class="filter-chip-label"
+                                            >Source</span
+                                        >
+                                        <div
+                                            id="filter-source-chips"
+                                            class="filter-chip-list"
+                                        ></div>
+                                    </div>
+                                    <div class="filter-chip-group">
+                                        <span class="filter-chip-label"
+                                            >Class</span
+                                        >
+                                        <div
+                                            id="filter-class-chips"
+                                            class="filter-chip-list"
+                                        ></div>
+                                    </div>
+                                    <div class="filter-chip-group">
+                                        <span class="filter-chip-label"
+                                            >Level</span
+                                        >
+                                        <div
+                                            id="filter-level-chips"
+                                            class="filter-chip-list"
+                                        ></div>
+                                    </div>
+                                    <div class="filter-chip-group">
+                                        <span class="filter-chip-label"
+                                            >School</span
+                                        >
+                                        <div
+                                            id="filter-school-chips"
+                                            class="filter-chip-list"
+                                        ></div>
+                                    </div>
                                     <sl-button
                                         id="filter-clear-btn"
                                         variant="default"
@@ -144,6 +152,9 @@
                         <sl-switch id="background-toggle">Card back</sl-switch>
                         <sl-switch id="side-by-side-toggle"
                             >Side by side</sl-switch
+                        >
+                        <sl-button id="clear-all-btn" variant="default"
+                            >Clear all</sl-button
                         >
                         <sl-button id="print-btn" variant="primary"
                             >Print / Save as PDF</sl-button

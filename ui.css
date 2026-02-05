@@ -86,6 +86,38 @@ header {
     font-family: inherit;
     color: inherit;
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.spell-list-item-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.spell-list-count-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--sl-color-primary-600);
+    color: var(--sl-color-neutral-0);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.spell-list-count-badge:hover {
+    background: var(--sl-color-primary-700);
 }
 
 .spell-list-item:hover {
@@ -98,20 +130,6 @@ header {
     color: var(--sl-color-primary-800);
 }
 
-.spell-list-item .spell-list-check {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--sl-color-success-600);
-    animation: spell-check-fade 0.6s ease-out forwards;
-}
-
-@keyframes spell-check-fade {
-    0% { opacity: 1; }
-    100% { opacity: 0; }
-}
-
 .spell-list-more {
     padding: 6px 10px;
     font-size: 0.8rem;
@@ -120,10 +138,13 @@ header {
 
 .filter-menu-content {
     padding: 12px;
-    min-width: 200px;
+    min-width: 260px;
+    max-width: 360px;
+    max-height: 70vh;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .filter-menu-row {
@@ -133,8 +154,26 @@ header {
     gap: 10px;
 }
 
-.filter-menu-content sl-select {
-    width: 100%;
+.filter-chip-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-chip-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--sl-color-neutral-700);
+}
+
+.filter-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.filter-chip-list .filter-chip {
+    margin: 0;
 }
 
 /* Edit card overlay */
@@ -199,6 +238,26 @@ header {
 .edit-overlay-form sl-textarea,
 .edit-overlay-form sl-select {
     width: 100%;
+}
+
+.duration-ends-tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.duration-ends-tokens .duration-end-tag {
+    margin: 0;
+}
+
+.edit-classes-tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.edit-classes-tokens .edit-class-tag {
+    margin: 0;
 }
 
 .edit-overlay-actions {

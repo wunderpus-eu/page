@@ -28,6 +28,85 @@ const SCHOOLS = [
     "Transmutation",
 ];
 
+/** Range origin options for the edit form. */
+const RANGE_ORIGINS = [
+    { value: "touch", label: "Touch" },
+    { value: "point", label: "Point" },
+    { value: "self", label: "Self" },
+    { value: "special", label: "Special" },
+];
+
+/** Range distance unit options (when origin is point). */
+const RANGE_UNITS = [
+    { value: "feet", label: "Feet" },
+    { value: "miles", label: "Miles" },
+    { value: "unlimited", label: "Unlimited" },
+];
+
+/** Area of effect types; empty string = None. */
+const AREA_TYPES = [
+    { value: "", label: "None" },
+    { value: "line", label: "Line" },
+    { value: "cone", label: "Cone" },
+    { value: "cube", label: "Cube" },
+    { value: "cylinder", label: "Cylinder" },
+    { value: "sphere", label: "Sphere" },
+    { value: "emanation", label: "Emanation" },
+    { value: "hemisphere", label: "Hemisphere" },
+    { value: "wall", label: "Wall" },
+    { value: "circle", label: "Circle" },
+    { value: "square", label: "Square" },
+];
+
+/** Primary dimension label by area type (e.g. Radius, Length, Side length). */
+const AREA_DIMENSION_LABELS = {
+    line: "Length",
+    cone: "Length",
+    cube: "Side length",
+    cylinder: "Radius",
+    sphere: "Radius",
+    emanation: "Radius",
+    hemisphere: "Radius",
+    wall: "Length",
+    circle: "Radius",
+    square: "Side length",
+};
+
+/** Duration type options for the edit form. */
+const DURATION_TYPES = [
+    { value: "instant", label: "Instant" },
+    { value: "timed", label: "Timed" },
+    { value: "permanent", label: "Permanent" },
+    { value: "special", label: "Special" },
+];
+
+/** Duration unit options (when type is timed). */
+const DURATION_UNITS = [
+    { value: "minute", label: "Minute(s)" },
+    { value: "hour", label: "Hour(s)" },
+    { value: "day", label: "Day(s)" },
+    { value: "round", label: "Round(s)" },
+];
+
+/** Ending condition options for permanent duration. */
+const DURATION_END_OPTIONS = [
+    { value: "dispel", label: "Dispel" },
+    { value: "trigger", label: "Trigger" },
+];
+
+/** Spell class options for the edit form (clickable tokens). */
+const SPELL_CLASSES = [
+    "Artificer",
+    "Bard",
+    "Cleric",
+    "Druid",
+    "Paladin",
+    "Ranger",
+    "Sorcerer",
+    "Warlock",
+    "Wizard",
+];
+
 /** True if all chars in query appear in str in order (subsequence match). */
 function fuzzyMatch(query, str) {
     if (!query.trim()) return true;
@@ -62,15 +141,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const filterDropdown = document.getElementById("filter-dropdown");
     const filterRuleset = document.getElementById("filter-ruleset");
-    const filterSource = document.getElementById("filter-source");
-    const filterClass = document.getElementById("filter-class");
-    const filterLevel = document.getElementById("filter-level");
-    const filterSchool = document.getElementById("filter-school");
+    const filterSourceChips = document.getElementById("filter-source-chips");
+    const filterClassChips = document.getElementById("filter-class-chips");
+    const filterLevelChips = document.getElementById("filter-level-chips");
+    const filterSchoolChips = document.getElementById("filter-school-chips");
     const filterClearBtn = document.getElementById("filter-clear-btn");
 
     const sortSelect = document.getElementById("sort-select");
     const backgroundToggle = document.getElementById("background-toggle");
     const sideBySideToggle = document.getElementById("side-by-side-toggle");
+    const clearAllBtn = document.getElementById("clear-all-btn");
     const printBtn = document.getElementById("print-btn");
     const editOverlay = document.getElementById("edit-card-overlay");
     const editCardPreview = document.getElementById("edit-card-preview");
@@ -88,6 +168,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     let selectedListIndex = -1;
     let currentSpellResults = [];
 
+    /** Selected filter values (source, class, level, school). Empty = no filter. */
+    const filterValues = { source: [], class: [], level: [], school: [] };
+
     /** Spell classes for a spell (from spell.classes or spellClassMap). */
     function getSpellClasses(spell, index) {
         if (spell.classes && spell.classes.length > 0) return spell.classes;
@@ -97,12 +180,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     /** Spells matching current class, level, source, school filters. */
     function getFilteredSpells() {
         const spells = getSpells();
-        const selectedClasses = filterClass.value || [];
-        const selectedLevels = (filterLevel.value || []).map((l) =>
+        const selectedClasses = filterValues.class;
+        const selectedLevels = filterValues.level.map((l) =>
             l === "Cantrip" ? 0 : parseInt(l, 10)
         );
-        const selectedSources = filterSource.value || [];
-        const selectedSchools = filterSchool.value || [];
+        const selectedSources = filterValues.source;
+        const selectedSchools = filterValues.school;
 
         return spells.filter((spell, index) => {
             const spellClasses = getSpellClasses(spell, index);
@@ -131,10 +214,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     /** Active filter chips for display (source, class, level, school). */
     function getActiveFilterChips() {
         const chips = [];
-        const sources = filterSource.value || [];
-        const classes = filterClass.value || [];
-        const levels = filterLevel.value || [];
-        const schools = filterSchool.value || [];
+        const sources = filterValues.source;
+        const classes = filterValues.class;
+        const levels = filterValues.level;
+        const schools = filterValues.school;
         sources.forEach((s) =>
             chips.push({ key: "source", value: s, label: SOURCE_MAP[s] || s })
         );
@@ -150,24 +233,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /** Removes a filter and re-renders spell list and chips. */
     function clearFilter(key, value) {
-        if (key === "source")
-            filterSource.value = (filterSource.value || []).filter(
-                (v) => v !== value
-            );
-        if (key === "class")
-            filterClass.value = (filterClass.value || []).filter(
-                (v) => v !== value
-            );
-        if (key === "level")
-            filterLevel.value = (filterLevel.value || []).filter(
-                (v) => v !== value
-            );
-        if (key === "school")
-            filterSchool.value = (filterSchool.value || []).filter(
-                (v) => v !== value
-            );
+        filterValues[key] = filterValues[key].filter((v) => v !== value);
         renderSpellList();
         renderChips();
+        updateFilterChipSelection(key);
     }
 
     /** Renders active filter chips with remove buttons. */
@@ -184,15 +253,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
             spellListChips.appendChild(tag);
         });
-    }
-
-    /** Shows a transient checkmark on a spell list row after add. */
-    function showCheckmark(rowEl) {
-        const check = document.createElement("sl-icon");
-        check.name = "check2";
-        check.className = "spell-list-check";
-        rowEl.appendChild(check);
-        setTimeout(() => check.remove(), 600);
     }
 
     /** Renders filtered/searched spell list; caches result for "Add all". */
@@ -216,12 +276,29 @@ document.addEventListener("DOMContentLoaded", async () => {
             row.type = "button";
             row.className = "spell-list-item";
             const sourceText = SOURCE_MAP[spell.source] || spell.source;
-            row.textContent = `${spell.name} (${sourceText})`;
+            const label = document.createElement("span");
+            label.className = "spell-list-item-label";
+            label.textContent = `${spell.name} (${sourceText})`;
+            row.appendChild(label);
+            const count = countUnmodifiedInDeck(spell);
+            if (count > 0) {
+                const badge = document.createElement("span");
+                badge.className = "spell-list-count-badge";
+                badge.textContent = String(count);
+                badge.title = "Remove one from deck";
+                badge.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    removeOneUnmodifiedCard(spell);
+                });
+                row.appendChild(badge);
+            }
             row.dataset.index = String(idx);
             row.addEventListener("click", async (e) => {
+                if (e.target.classList.contains("spell-list-count-badge"))
+                    return;
                 e.stopPropagation();
                 await addCard(cloneSpellData(spell));
-                showCheckmark(row);
+                renderSpellList();
                 spellSearchInput.focus();
             });
             spellList.appendChild(row);
@@ -246,11 +323,50 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    /** Adds a SpellCard to cardList, renders it, and refreshes layout. */
-    async function addCard(spellData) {
+    /** Adds a SpellCard to cardList, renders it, and refreshes layout.
+     * @param {object} spellData - Spell data for the card
+     * @param {object} [originalSpell] - When adding from list, the list spell; stores name/source for reset
+     */
+    async function addCard(spellData, originalSpell) {
         const card = new SpellCard(spellData);
+        if (originalSpell) {
+            card.originalName = originalSpell.name;
+            card.originalSource = originalSpell.source;
+        }
         await card.render();
         cardList.push(card);
+        await refreshLayout();
+    }
+
+    /**
+     * Count of unmodified cards in the deck matching this list spell (same name + source).
+     * Only counts SpellCards whose spell data has not been edited (no _modified flag).
+     */
+    function countUnmodifiedInDeck(listSpell) {
+        return cardList.filter(
+            (c) =>
+                c instanceof SpellCard &&
+                c.spell.name === listSpell.name &&
+                c.spell.source === listSpell.source &&
+                !c.spell._modified
+        ).length;
+    }
+
+    /**
+     * Removes one unmodified card matching the list spell from the deck.
+     * Only removes SpellCards that match name + source and are not modified.
+     */
+    async function removeOneUnmodifiedCard(listSpell) {
+        const idx = cardList.findIndex(
+            (c) =>
+                c instanceof SpellCard &&
+                c.spell.name === listSpell.name &&
+                c.spell.source === listSpell.source &&
+                !c.spell._modified
+        );
+        if (idx === -1) return;
+        cardList.splice(idx, 1);
+        renderSpellList();
         await refreshLayout();
     }
 
@@ -413,39 +529,426 @@ document.addEventListener("DOMContentLoaded", async () => {
         };
 
         addField("Name", "name", spell.name);
-        addField("Level", "level", spell.level, "number");
+        addField(
+            "Level",
+            "level",
+            spell.level === 0 ? "0" : String(spell.level),
+            "select",
+            {
+                choices: [
+                    { value: "0", label: "Cantrip" },
+                    ...Array.from({ length: 9 }, (_, i) => ({
+                        value: String(i + 1),
+                        label: String(i + 1),
+                    })),
+                ],
+            }
+        );
         addField("School", "school", spell.school, "select", {
             choices: SCHOOLS.map((s) => ({ value: s, label: s })),
         });
         addField("Source", "source", spell.source);
         addField(
-            "Casting time (number)",
-            "time_number",
-            spell.time?.number,
-            "number"
-        );
-        addField(
             "Casting time (unit)",
             "time_unit",
-            spell.time?.unit,
+            spell.time?.unit ?? "action",
             "select",
             {
                 choices: [
                     { value: "action", label: "Action" },
-                    { value: "bonus", label: "Bonus" },
+                    { value: "bonus", label: "Bonus action" },
                     { value: "reaction", label: "Reaction" },
                     { value: "minute", label: "Minute(s)" },
                     { value: "hour", label: "Hour(s)" },
                 ],
             }
         );
-        addField("Range origin", "range_origin", spell.range?.origin);
+        const timeNumberWrap = document.createElement("div");
+        timeNumberWrap.className = "form-field form-field-time-number";
+        timeNumberWrap.id = "edit-time-number-wrap";
+        const timeNumberLab = document.createElement("label");
+        timeNumberLab.textContent = "Amount";
+        timeNumberLab.htmlFor = "edit-time_number";
+        timeNumberWrap.appendChild(timeNumberLab);
+        const timeNumberInp = document.createElement("sl-input");
+        timeNumberInp.type = "number";
+        timeNumberInp.min = "1";
+        timeNumberInp.id = "edit-time_number";
+        timeNumberInp.name = "time_number";
+        timeNumberInp.value = String(Math.max(1, spell.time?.number ?? 1));
+        timeNumberWrap.appendChild(timeNumberInp);
+        timeNumberInp.addEventListener("sl-input", () => updateEditPreview());
+        editCardForm.appendChild(timeNumberWrap);
+        const timeUnitSel = editCardForm.querySelector("#edit-time_unit");
+        const showHideTimeNumber = () => {
+            const unit = timeUnitSel?.value ?? "action";
+            const showNumber = unit === "minute" || unit === "hour";
+            timeNumberWrap.style.display = showNumber ? "" : "none";
+            if (!showNumber) timeNumberInp.value = "1";
+        };
+        const timeConditionWrap = document.createElement("div");
+        timeConditionWrap.className = "form-field form-field-time-condition";
+        timeConditionWrap.id = "edit-time-condition-wrap";
+        const timeConditionLab = document.createElement("label");
+        timeConditionLab.textContent = "Reaction condition";
+        timeConditionLab.htmlFor = "edit-time_condition";
+        timeConditionWrap.appendChild(timeConditionLab);
+        const timeConditionInp = document.createElement("sl-textarea");
+        timeConditionInp.id = "edit-time_condition";
+        timeConditionInp.name = "time_condition";
+        timeConditionInp.value = spell.time?.condition ?? "";
+        timeConditionInp.rows = 2;
+        timeConditionWrap.appendChild(timeConditionInp);
+        timeConditionInp.addEventListener("sl-input", () =>
+            updateEditPreview()
+        );
+        editCardForm.appendChild(timeConditionWrap);
+        const showHideTimeCondition = () => {
+            const unit = timeUnitSel?.value ?? "action";
+            const show = unit === "reaction";
+            timeConditionWrap.style.display = show ? "" : "none";
+            if (!show) timeConditionInp.value = "";
+        };
+        timeUnitSel?.addEventListener("sl-change", () => {
+            showHideTimeNumber();
+            showHideTimeCondition();
+            updateEditPreview();
+        });
+        showHideTimeNumber();
+        showHideTimeCondition();
         addField(
-            "Range distance",
-            "range_distance",
-            spell.range?.distance,
+            "Concentration",
+            "isConcentration",
+            spell.isConcentration,
+            "checkbox"
+        );
+        addField("Ritual", "isRitual", spell.isRitual, "checkbox");
+        addField(
+            "Range (origin)",
+            "range_origin",
+            spell.range?.origin ?? "point",
+            "select",
+            { choices: RANGE_ORIGINS }
+        );
+        const rangeDistanceWrap = document.createElement("div");
+        rangeDistanceWrap.className = "form-field form-field-range-distance";
+        rangeDistanceWrap.id = "edit-range-distance-wrap";
+        const rangeDistLab = document.createElement("label");
+        rangeDistLab.textContent = "Distance";
+        rangeDistLab.htmlFor = "edit-range_distance";
+        rangeDistanceWrap.appendChild(rangeDistLab);
+        const rangeDistInp = document.createElement("sl-input");
+        rangeDistInp.type = "number";
+        rangeDistInp.min = "1";
+        rangeDistInp.id = "edit-range_distance";
+        rangeDistInp.name = "range_distance";
+        rangeDistInp.value = String(Math.max(1, spell.range?.distance ?? 1));
+        rangeDistanceWrap.appendChild(rangeDistInp);
+        rangeDistInp.addEventListener("sl-input", () => updateEditPreview());
+        editCardForm.appendChild(rangeDistanceWrap);
+        const rangeUnitWrap = document.createElement("div");
+        rangeUnitWrap.className = "form-field form-field-range-unit";
+        rangeUnitWrap.id = "edit-range-unit-wrap";
+        const rangeUnitLab = document.createElement("label");
+        rangeUnitLab.textContent = "Unit";
+        rangeUnitLab.htmlFor = "edit-range_unit";
+        rangeUnitWrap.appendChild(rangeUnitLab);
+        const rangeUnitSel = document.createElement("sl-select");
+        rangeUnitSel.id = "edit-range_unit";
+        rangeUnitSel.name = "range_unit";
+        RANGE_UNITS.forEach((opt) => {
+            const o = document.createElement("sl-option");
+            o.value = opt.value;
+            o.textContent = opt.label;
+            rangeUnitSel.appendChild(o);
+        });
+        rangeUnitSel.value = spell.range?.unit ?? "feet";
+        rangeUnitWrap.appendChild(rangeUnitSel);
+        editCardForm.appendChild(rangeUnitWrap);
+        const rangeOriginSel = editCardForm.querySelector("#edit-range_origin");
+        const showHideRangeDistance = () => {
+            const origin = rangeOriginSel?.value ?? "point";
+            const unit = rangeUnitSel?.value ?? "feet";
+            const showOriginPoint = origin === "point";
+            const showDistance = showOriginPoint && unit !== "unlimited";
+            rangeDistanceWrap.style.display = showDistance ? "" : "none";
+            rangeUnitWrap.style.display = showOriginPoint ? "" : "none";
+            if (!showOriginPoint) {
+                rangeDistInp.value = "0";
+                rangeUnitSel.value = "feet";
+            } else if (unit === "unlimited") {
+                rangeDistInp.value = "0";
+            }
+        };
+        rangeOriginSel?.addEventListener("sl-change", () => {
+            showHideRangeDistance();
+            updateEditPreview();
+        });
+        rangeUnitSel?.addEventListener("sl-change", () => {
+            showHideRangeDistance();
+            updateEditPreview();
+        });
+        showHideRangeDistance();
+
+        addField("Area", "range_area", spell.range?.area ?? "", "select", {
+            choices: AREA_TYPES,
+        });
+        const areaDimsWrap = document.createElement("div");
+        areaDimsWrap.className = "form-field form-field-area-dims";
+        areaDimsWrap.id = "edit-area-dims-wrap";
+        const areaPrimaryWrap = document.createElement("div");
+        areaPrimaryWrap.className = "form-field form-field-area-primary";
+        const areaPrimaryLab = document.createElement("label");
+        areaPrimaryLab.id = "edit-area-primary-label";
+        areaPrimaryLab.htmlFor = "edit-area_distance";
+        areaPrimaryLab.textContent = "Size";
+        areaPrimaryWrap.appendChild(areaPrimaryLab);
+        const areaDistInp = document.createElement("sl-input");
+        areaDistInp.type = "number";
+        areaDistInp.min = "1";
+        areaDistInp.id = "edit-area_distance";
+        areaDistInp.name = "area_distance";
+        areaDistInp.value = String(Math.max(1, spell.range?.areaDistance ?? 5));
+        areaPrimaryWrap.appendChild(areaDistInp);
+        areaDistInp.addEventListener("sl-input", () => updateEditPreview());
+        const areaUnitWrap = document.createElement("div");
+        areaUnitWrap.className = "form-field form-field-area-unit";
+        const areaUnitLab = document.createElement("label");
+        areaUnitLab.id = "edit-area-unit-label";
+        areaUnitLab.textContent = "Unit";
+        areaUnitLab.htmlFor = "edit-area_unit";
+        areaUnitWrap.appendChild(areaUnitLab);
+        const areaUnitSel = document.createElement("sl-select");
+        areaUnitSel.id = "edit-area_unit";
+        areaUnitSel.name = "area_unit";
+        [
+            { value: "feet", label: "Feet" },
+            { value: "miles", label: "Miles" },
+        ].forEach((opt) => {
+            const o = document.createElement("sl-option");
+            o.value = opt.value;
+            o.textContent = opt.label;
+            areaUnitSel.appendChild(o);
+        });
+        areaUnitSel.value = spell.range?.areaUnit ?? "feet";
+        areaUnitWrap.appendChild(areaUnitSel);
+        areaUnitSel.addEventListener("sl-change", () => updateEditPreview());
+        areaDimsWrap.appendChild(areaPrimaryWrap);
+        areaDimsWrap.appendChild(areaUnitWrap);
+        const areaHeightWrap = document.createElement("div");
+        areaHeightWrap.className = "form-field form-field-area-height";
+        areaHeightWrap.id = "edit-area-height-wrap";
+        const areaHeightLab = document.createElement("label");
+        areaHeightLab.textContent = "Height";
+        areaHeightLab.htmlFor = "edit-area_height";
+        areaHeightWrap.appendChild(areaHeightLab);
+        const areaHeightInp = document.createElement("sl-input");
+        areaHeightInp.type = "number";
+        areaHeightInp.min = "1";
+        areaHeightInp.id = "edit-area_height";
+        areaHeightInp.name = "area_height";
+        areaHeightInp.value = String(Math.max(1, spell.range?.areaHeight ?? 5));
+        areaHeightWrap.appendChild(areaHeightInp);
+        areaHeightInp.addEventListener("sl-input", () => updateEditPreview());
+        const areaHeightUnitWrap = document.createElement("div");
+        areaHeightUnitWrap.className = "form-field form-field-area-height-unit";
+        const areaHeightUnitLab = document.createElement("label");
+        areaHeightUnitLab.textContent = "Height unit";
+        areaHeightUnitLab.htmlFor = "edit-area_height_unit";
+        areaHeightUnitWrap.appendChild(areaHeightUnitLab);
+        const areaHeightUnitSel = document.createElement("sl-select");
+        areaHeightUnitSel.id = "edit-area_height_unit";
+        areaHeightUnitSel.name = "area_height_unit";
+        [
+            { value: "feet", label: "Feet" },
+            { value: "miles", label: "Miles" },
+        ].forEach((opt) => {
+            const o = document.createElement("sl-option");
+            o.value = opt.value;
+            o.textContent = opt.label;
+            areaHeightUnitSel.appendChild(o);
+        });
+        areaHeightUnitSel.value = spell.range?.areaHeightUnit ?? "feet";
+        areaHeightUnitWrap.appendChild(areaHeightUnitSel);
+        areaHeightUnitSel.addEventListener("sl-change", () =>
+            updateEditPreview()
+        );
+        areaHeightWrap.appendChild(areaHeightUnitWrap);
+        areaDimsWrap.appendChild(areaHeightWrap);
+        editCardForm.appendChild(areaDimsWrap);
+        const rangeAreaSel = editCardForm.querySelector("#edit-range_area");
+        const showHideAreaDims = () => {
+            const area = rangeAreaSel?.value ?? "";
+            const show = area !== "";
+            areaDimsWrap.style.display = show ? "" : "none";
+            if (show) {
+                const primaryLabel = document.getElementById(
+                    "edit-area-primary-label"
+                );
+                if (primaryLabel)
+                    primaryLabel.textContent =
+                        AREA_DIMENSION_LABELS[area] ?? "Size";
+                const areaUnitLabel = document.getElementById(
+                    "edit-area-unit-label"
+                );
+                if (areaUnitLabel)
+                    areaUnitLabel.textContent =
+                        area === "cylinder" ? "Radius unit" : "Unit";
+                areaHeightWrap.style.display =
+                    area === "cylinder" ? "" : "none";
+                if (area === "cylinder") {
+                    if (
+                        areaHeightInp.value === "0" ||
+                        areaHeightInp.value === ""
+                    ) {
+                        areaHeightInp.value = "5";
+                        areaHeightUnitSel.value = "feet";
+                    }
+                } else {
+                    areaHeightInp.value = "5";
+                    areaHeightUnitSel.value = "feet";
+                }
+            } else {
+                areaDistInp.value = "0";
+                areaUnitSel.value = "feet";
+                areaHeightInp.value = "0";
+                areaHeightUnitSel.value = "feet";
+            }
+            if (
+                show &&
+                area &&
+                (areaDistInp.value === "0" || areaDistInp.value === "")
+            ) {
+                areaDistInp.value = "5";
+            }
+        };
+        rangeAreaSel?.addEventListener("sl-change", () => {
+            showHideAreaDims();
+            updateEditPreview();
+        });
+        showHideAreaDims();
+
+        addField(
+            "Requires sight",
+            "range_requires_sight",
+            spell.range?.requiresSight ?? false,
+            "checkbox"
+        );
+        addField(
+            "Number of targets",
+            "range_targets",
+            spell.range?.targets ?? 0,
             "number"
         );
+
+        addField(
+            "Duration (type)",
+            "duration_type",
+            spell.duration?.type ?? "timed",
+            "select",
+            { choices: DURATION_TYPES }
+        );
+        const durationAmountWrap = document.createElement("div");
+        durationAmountWrap.className = "form-field form-field-duration-amount";
+        durationAmountWrap.id = "edit-duration-amount-wrap";
+        const durationAmountLab = document.createElement("label");
+        durationAmountLab.textContent = "Amount";
+        durationAmountLab.htmlFor = "edit-duration_amount";
+        durationAmountWrap.appendChild(durationAmountLab);
+        const durationAmountInp = document.createElement("sl-input");
+        durationAmountInp.type = "number";
+        durationAmountInp.min = "1";
+        durationAmountInp.id = "edit-duration_amount";
+        durationAmountInp.name = "duration_amount";
+        durationAmountInp.value = String(
+            Math.max(1, spell.duration?.amount ?? 1)
+        );
+        durationAmountWrap.appendChild(durationAmountInp);
+        durationAmountInp.addEventListener("sl-input", () =>
+            updateEditPreview()
+        );
+        editCardForm.appendChild(durationAmountWrap);
+        const durationUnitWrap = document.createElement("div");
+        durationUnitWrap.className = "form-field form-field-duration-unit";
+        durationUnitWrap.id = "edit-duration-unit-wrap";
+        const durationUnitLab = document.createElement("label");
+        durationUnitLab.textContent = "Unit";
+        durationUnitLab.htmlFor = "edit-duration_unit";
+        durationUnitWrap.appendChild(durationUnitLab);
+        const durationUnitSel = document.createElement("sl-select");
+        durationUnitSel.id = "edit-duration_unit";
+        durationUnitSel.name = "duration_unit";
+        DURATION_UNITS.forEach((opt) => {
+            const o = document.createElement("sl-option");
+            o.value = opt.value;
+            o.textContent = opt.label;
+            durationUnitSel.appendChild(o);
+        });
+        durationUnitSel.value = spell.duration?.unit ?? "minute";
+        durationUnitWrap.appendChild(durationUnitSel);
+        durationUnitSel.addEventListener("sl-change", () =>
+            updateEditPreview()
+        );
+        editCardForm.appendChild(durationUnitWrap);
+        const durationEndsWrap = document.createElement("div");
+        durationEndsWrap.className = "form-field form-field-duration-ends";
+        durationEndsWrap.id = "edit-duration-ends-wrap";
+        const durationEndsLab = document.createElement("label");
+        durationEndsLab.textContent = "Ending conditions";
+        durationEndsWrap.appendChild(durationEndsLab);
+        const durationEndsList = document.createElement("div");
+        durationEndsList.className = "duration-ends-tokens";
+        const durationEnds = spell.duration?.ends ?? [];
+        DURATION_END_OPTIONS.forEach(({ value, label }) => {
+            const tag = document.createElement("sl-tag");
+            tag.className = "duration-end-tag";
+            tag.dataset.value = value;
+            tag.textContent = label;
+            tag.variant = durationEnds.includes(value) ? "primary" : "neutral";
+            tag.style.cursor = "pointer";
+            tag.addEventListener("click", () => {
+                const container = document.getElementById(
+                    "edit-duration-ends-wrap"
+                );
+                const tags = container.querySelectorAll(".duration-end-tag");
+                const ends = Array.from(tags)
+                    .filter((t) => t.variant === "primary")
+                    .map((t) => t.dataset.value);
+                const idx = ends.indexOf(value);
+                if (idx >= 0) ends.splice(idx, 1);
+                else ends.push(value);
+                tags.forEach((t) => {
+                    t.variant = ends.includes(t.dataset.value)
+                        ? "primary"
+                        : "neutral";
+                });
+                updateEditPreview();
+            });
+            durationEndsList.appendChild(tag);
+        });
+        durationEndsWrap.appendChild(durationEndsList);
+        editCardForm.appendChild(durationEndsWrap);
+        const durationTypeSel = editCardForm.querySelector(
+            "#edit-duration_type"
+        );
+        const showHideDurationExtras = () => {
+            const type = durationTypeSel?.value ?? "timed";
+            const showAmount = type === "timed";
+            const showEnds = type === "permanent";
+            durationAmountWrap.style.display = showAmount ? "" : "none";
+            durationUnitWrap.style.display = showAmount ? "" : "none";
+            durationEndsWrap.style.display = showEnds ? "" : "none";
+            if (!showAmount) {
+                durationAmountInp.value = "1";
+                durationUnitSel.value = "minute";
+            }
+        };
+        durationTypeSel?.addEventListener("sl-change", () => {
+            showHideDurationExtras();
+            updateEditPreview();
+        });
+        showHideDurationExtras();
+
         addField(
             "Components V",
             "components_v",
@@ -464,37 +967,126 @@ document.addEventListener("DOMContentLoaded", async () => {
             spell.components?.m,
             "checkbox"
         );
-        addField("Duration type", "duration_type", spell.duration?.type);
-        addField(
-            "Duration amount",
-            "duration_amount",
-            spell.duration?.amount,
-            "number"
+        const componentsMaterialWrap = document.createElement("div");
+        componentsMaterialWrap.className =
+            "form-field form-field-components-material";
+        componentsMaterialWrap.id = "edit-components-material-wrap";
+        const componentsHasCostLab = document.createElement("label");
+        componentsHasCostLab.htmlFor = "edit-components_has_cost";
+        componentsHasCostLab.textContent = "Material has cost";
+        const componentsHasCostCb = document.createElement("sl-checkbox");
+        componentsHasCostCb.id = "edit-components_has_cost";
+        componentsHasCostCb.name = "components_has_cost";
+        componentsHasCostCb.checked = !!spell.components?.hasCost;
+        componentsMaterialWrap.appendChild(componentsHasCostLab);
+        componentsMaterialWrap.appendChild(componentsHasCostCb);
+        componentsHasCostCb.addEventListener("sl-change", () => {
+            showHideComponentsConsumed();
+            updateEditPreview();
+        });
+        editCardForm.appendChild(componentsMaterialWrap);
+        const componentsConsumedWrap = document.createElement("div");
+        componentsConsumedWrap.className =
+            "form-field form-field-components-consumed";
+        componentsConsumedWrap.id = "edit-components-consumed-wrap";
+        const componentsConsumedLab = document.createElement("label");
+        componentsConsumedLab.htmlFor = "edit-components_is_consumed";
+        componentsConsumedLab.textContent = "Consumed";
+        const componentsConsumedCb = document.createElement("sl-checkbox");
+        componentsConsumedCb.id = "edit-components_is_consumed";
+        componentsConsumedCb.name = "components_is_consumed";
+        componentsConsumedCb.checked = !!spell.components?.isConsumed;
+        componentsConsumedWrap.appendChild(componentsConsumedLab);
+        componentsConsumedWrap.appendChild(componentsConsumedCb);
+        componentsConsumedCb.addEventListener("sl-change", () =>
+            updateEditPreview()
         );
+        editCardForm.appendChild(componentsConsumedWrap);
+        const componentsDescWrap = document.createElement("div");
+        componentsDescWrap.className =
+            "form-field form-field-components-description";
+        componentsDescWrap.id = "edit-components-description-wrap";
+        const componentsDescLab = document.createElement("label");
+        componentsDescLab.textContent = "Component description";
+        componentsDescLab.htmlFor = "edit-components_description";
+        componentsDescWrap.appendChild(componentsDescLab);
+        const componentsDescInp = document.createElement("sl-input");
+        componentsDescInp.id = "edit-components_description";
+        componentsDescInp.name = "components_description";
+        componentsDescInp.value = spell.components?.description ?? "";
+        componentsDescWrap.appendChild(componentsDescInp);
+        componentsDescInp.addEventListener("sl-input", () =>
+            updateEditPreview()
+        );
+        editCardForm.appendChild(componentsDescWrap);
+        const componentsMCb = editCardForm.querySelector("#edit-components_m");
+        const showHideComponentsMaterial = () => {
+            const material = componentsMCb?.checked ?? false;
+            componentsMaterialWrap.style.display = material ? "" : "none";
+            componentsConsumedWrap.style.display = material ? "" : "none";
+            componentsDescWrap.style.display = material ? "" : "none";
+            if (!material) {
+                componentsHasCostCb.checked = false;
+                componentsConsumedCb.checked = false;
+                componentsDescInp.value = "";
+            }
+            showHideComponentsConsumed();
+        };
+        const showHideComponentsConsumed = () => {
+            const hasCost = componentsHasCostCb?.checked ?? false;
+            componentsConsumedWrap.style.display =
+                componentsMCb?.checked && hasCost ? "" : "none";
+            if (!hasCost) componentsConsumedCb.checked = false;
+        };
+        componentsMCb?.addEventListener("sl-change", () => {
+            showHideComponentsMaterial();
+            updateEditPreview();
+        });
+        showHideComponentsMaterial();
+
         addField("Description", "description", spell.description, "textarea", {
             rows: 6,
         });
-        addField(
-            "Concentration",
-            "isConcentration",
-            spell.isConcentration,
-            "checkbox"
-        );
-        addField("Ritual", "isRitual", spell.isRitual, "checkbox");
         addField("At higher levels", "upcast", spell.upcast || "", "textarea", {
             rows: 2,
         });
         const classesWrap = document.createElement("div");
-        classesWrap.className = "form-field";
+        classesWrap.className = "form-field form-field-classes";
+        classesWrap.id = "edit-classes-wrap";
         const classesLab = document.createElement("label");
-        classesLab.textContent = "Classes (comma-separated)";
+        classesLab.textContent = "Classes";
         classesWrap.appendChild(classesLab);
-        const classesInp = document.createElement("sl-input");
-        classesInp.id = "edit-classes";
-        classesInp.name = "classes";
-        classesInp.value = (spell.classes || []).join(", ");
-        classesWrap.appendChild(classesInp);
-        classesInp.addEventListener("sl-input", () => updateEditPreview());
+        const classesTokens = document.createElement("div");
+        classesTokens.className = "edit-classes-tokens";
+        const spellClasses = spell.classes || [];
+        SPELL_CLASSES.forEach((className) => {
+            const tag = document.createElement("sl-tag");
+            tag.className = "edit-class-tag";
+            tag.dataset.value = className;
+            tag.textContent = className;
+            tag.variant = spellClasses.includes(className)
+                ? "primary"
+                : "neutral";
+            tag.style.cursor = "pointer";
+            tag.addEventListener("click", () => {
+                const wrap = document.getElementById("edit-classes-wrap");
+                const tags = wrap.querySelectorAll(".edit-class-tag");
+                const selected = Array.from(tags)
+                    .filter((t) => t.variant === "primary")
+                    .map((t) => t.dataset.value);
+                const idx = selected.indexOf(className);
+                if (idx >= 0) selected.splice(idx, 1);
+                else selected.push(className);
+                tags.forEach((t) => {
+                    t.variant = selected.includes(t.dataset.value)
+                        ? "primary"
+                        : "neutral";
+                });
+                updateEditPreview();
+            });
+            classesTokens.appendChild(tag);
+        });
+        classesWrap.appendChild(classesTokens);
         editCardForm.appendChild(classesWrap);
     }
 
@@ -514,18 +1106,80 @@ document.addEventListener("DOMContentLoaded", async () => {
         spell.source =
             editCardForm.querySelector("#edit-source")?.value ?? spell.source;
         spell.time = spell.time || { number: 1, unit: "action" };
-        spell.time.number = parseInt(
-            editCardForm.querySelector("#edit-time_number")?.value ?? "1",
-            10
+        spell.time.number = Math.max(
+            1,
+            parseInt(
+                editCardForm.querySelector("#edit-time_number")?.value ?? "1",
+                10
+            )
         );
         spell.time.unit =
             editCardForm.querySelector("#edit-time_unit")?.value ?? "action";
+        spell.time.condition =
+            spell.time.unit === "reaction"
+                ? (
+                      editCardForm.querySelector("#edit-time_condition")
+                          ?.value ?? ""
+                  ).trim()
+                : "";
         spell.range = spell.range || {};
         spell.range.origin =
             editCardForm.querySelector("#edit-range_origin")?.value ??
             spell.range.origin;
-        spell.range.distance = parseInt(
-            editCardForm.querySelector("#edit-range_distance")?.value ?? "0",
+        const rangeOrigin = spell.range.origin;
+        if (rangeOrigin === "point") {
+            spell.range.unit =
+                editCardForm.querySelector("#edit-range_unit")?.value ?? "feet";
+            spell.range.distance =
+                spell.range.unit === "unlimited"
+                    ? 0
+                    : Math.max(
+                          1,
+                          parseInt(
+                              editCardForm.querySelector("#edit-range_distance")
+                                  ?.value ?? "1",
+                              10
+                          )
+                      );
+        } else {
+            spell.range.distance = 0;
+            spell.range.unit = "";
+        }
+        spell.range.area =
+            editCardForm.querySelector("#edit-range_area")?.value ?? "";
+        if (spell.range.area) {
+            spell.range.areaDistance = Math.max(
+                1,
+                parseInt(
+                    editCardForm.querySelector("#edit-area_distance")?.value ??
+                        "1",
+                    10
+                )
+            );
+            spell.range.areaUnit =
+                editCardForm.querySelector("#edit-area_unit")?.value ?? "feet";
+            spell.range.areaHeight = Math.max(
+                1,
+                parseInt(
+                    editCardForm.querySelector("#edit-area_height")?.value ??
+                        "1",
+                    10
+                )
+            );
+            spell.range.areaHeightUnit =
+                editCardForm.querySelector("#edit-area_height_unit")?.value ??
+                "feet";
+        } else {
+            spell.range.areaDistance = 0;
+            spell.range.areaUnit = "";
+            spell.range.areaHeight = 0;
+            spell.range.areaHeightUnit = "";
+        }
+        spell.range.requiresSight =
+            editCardForm.querySelector("#edit-range_requires_sight")?.checked ??
+            false;
+        spell.range.targets = parseInt(
+            editCardForm.querySelector("#edit-range_targets")?.value ?? "0",
             10
         );
         spell.components = spell.components || {
@@ -542,19 +1196,53 @@ document.addEventListener("DOMContentLoaded", async () => {
             editCardForm.querySelector("#edit-components_s")?.checked ?? false;
         spell.components.m =
             editCardForm.querySelector("#edit-components_m")?.checked ?? false;
+        spell.components.hasCost =
+            editCardForm.querySelector("#edit-components_has_cost")?.checked ??
+            false;
+        spell.components.isConsumed =
+            editCardForm.querySelector("#edit-components_is_consumed")
+                ?.checked ?? false;
+        spell.components.description =
+            editCardForm.querySelector("#edit-components_description")?.value ??
+            "";
         spell.duration = spell.duration || {
             type: "timed",
-            amount: 0,
-            unit: "",
+            amount: 1,
+            unit: "minute",
             ends: [],
         };
         spell.duration.type =
             editCardForm.querySelector("#edit-duration_type")?.value ??
             spell.duration.type;
-        spell.duration.amount = parseInt(
-            editCardForm.querySelector("#edit-duration_amount")?.value ?? "0",
-            10
-        );
+        const durationType = spell.duration.type;
+        if (durationType === "timed") {
+            spell.duration.amount = Math.max(
+                1,
+                parseInt(
+                    editCardForm.querySelector("#edit-duration_amount")
+                        ?.value ?? "1",
+                    10
+                )
+            );
+            spell.duration.unit =
+                editCardForm.querySelector("#edit-duration_unit")?.value ??
+                "minute";
+        } else {
+            spell.duration.amount = 0;
+            spell.duration.unit = "";
+        }
+        if (durationType === "permanent") {
+            const endsWrap = editCardForm.querySelector(
+                "#edit-duration-ends-wrap"
+            );
+            spell.duration.ends = endsWrap
+                ? Array.from(endsWrap.querySelectorAll(".duration-end-tag"))
+                      .filter((t) => t.variant === "primary")
+                      .map((t) => t.dataset.value)
+                : [];
+        } else {
+            spell.duration.ends = [];
+        }
         spell.description =
             editCardForm.querySelector("#edit-description")?.value ?? "";
         spell.isConcentration =
@@ -563,12 +1251,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         spell.isRitual =
             editCardForm.querySelector("#edit-isRitual")?.checked ?? false;
         spell.upcast = editCardForm.querySelector("#edit-upcast")?.value ?? "";
-        const classesStr =
-            editCardForm.querySelector("#edit-classes")?.value ?? "";
-        spell.classes = classesStr
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
+        const classesWrap = editCardForm.querySelector("#edit-classes-wrap");
+        spell.classes = classesWrap
+            ? Array.from(classesWrap.querySelectorAll(".edit-class-tag"))
+                  .filter((t) => t.variant === "primary")
+                  .map((t) => t.dataset.value)
+            : [];
+        spell._modified = true;
         return spell;
     }
 
@@ -606,18 +1295,55 @@ document.addEventListener("DOMContentLoaded", async () => {
         const use2024 = filterRuleset.checked;
         const loaded = await loadSpells(use2024);
         spellClassMap = loaded.spellClassMap;
-        populateFilterSelects();
+        populateFilterChips();
         renderSpellList();
         renderChips();
         await refreshLayout();
     }
 
-    /** Populates filter dropdowns from current spells; preserves valid selections. */
-    function populateFilterSelects() {
-        const prevSources = filterSource.value ? [...filterSource.value] : [];
-        const prevClasses = filterClass.value ? [...filterClass.value] : [];
-        const prevLevels = filterLevel.value ? [...filterLevel.value] : [];
-        const prevSchools = filterSchool.value ? [...filterSchool.value] : [];
+    /** Updates the selected visual state of chips for a filter key. */
+    function updateFilterChipSelection(key) {
+        const container =
+            key === "source"
+                ? filterSourceChips
+                : key === "class"
+                ? filterClassChips
+                : key === "level"
+                ? filterLevelChips
+                : filterSchoolChips;
+        const selected = new Set(filterValues[key]);
+        container.querySelectorAll(".filter-chip").forEach((chip) => {
+            const val = chip.dataset.value;
+            chip.variant = selected.has(val) ? "primary" : "neutral";
+        });
+    }
+
+    /** Creates a clickable filter chip that toggles selection. */
+    function createFilterChip(key, value, label) {
+        const tag = document.createElement("sl-tag");
+        tag.className = "filter-chip";
+        tag.dataset.value = value;
+        tag.textContent = label;
+        tag.variant = filterValues[key].includes(value) ? "primary" : "neutral";
+        tag.style.cursor = "pointer";
+        tag.addEventListener("click", () => {
+            const arr = filterValues[key];
+            const idx = arr.indexOf(value);
+            if (idx >= 0) arr.splice(idx, 1);
+            else arr.push(value);
+            renderSpellList();
+            renderChips();
+            updateFilterChipSelection(key);
+        });
+        return tag;
+    }
+
+    /** Populates filter chip lists from current spells; preserves valid selections. */
+    function populateFilterChips() {
+        const prevSources = [...filterValues.source];
+        const prevClasses = [...filterValues.class];
+        const prevLevels = [...filterValues.level];
+        const prevSchools = [...filterValues.school];
 
         const spells = getSpells();
         const allClasses = new Set();
@@ -634,36 +1360,42 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (spell.school) allSchools.add(spell.school);
         });
 
-        const fillSelect = (
-            el,
+        const sanitizeValues = (values, allowed) =>
+            (values || []).filter((val) => allowed.has(val));
+        filterValues.source = sanitizeValues(prevSources, allSources);
+        filterValues.class = sanitizeValues(prevClasses, allClasses);
+        filterValues.level = sanitizeValues(prevLevels, allLevels);
+        filterValues.school = sanitizeValues(prevSchools, allSchools);
+
+        const fillChips = (
+            container,
             options,
-            sortFn = (a, b) => a.localeCompare(b)
+            key,
+            sortFn,
+            labelFn = (v) => v
         ) => {
-            el.innerHTML = "";
+            container.innerHTML = "";
             [...options].sort(sortFn).forEach((val) => {
-                const opt = document.createElement("sl-option");
-                opt.value = val;
-                opt.textContent = val;
-                el.appendChild(opt);
+                container.appendChild(createFilterChip(key, val, labelFn(val)));
             });
         };
 
-        fillSelect(filterClass, allClasses);
-        fillSelect(filterLevel, allLevels, (a, b) => {
+        const levelSort = (a, b) => {
             if (a === "Cantrip") return -1;
             if (b === "Cantrip") return 1;
             return parseInt(a, 10) - parseInt(b, 10);
-        });
-        fillSelect(filterSource, allSources);
-        fillSelect(filterSchool, allSchools);
+        };
 
-        const sanitizeValues = (values, allowed) =>
-            (values || []).filter((val) => allowed.has(val));
-
-        filterSource.value = sanitizeValues(prevSources, allSources);
-        filterClass.value = sanitizeValues(prevClasses, allClasses);
-        filterLevel.value = sanitizeValues(prevLevels, allLevels);
-        filterSchool.value = sanitizeValues(prevSchools, allSchools);
+        fillChips(filterClassChips, allClasses, "class");
+        fillChips(filterLevelChips, allLevels, "level", levelSort);
+        fillChips(
+            filterSourceChips,
+            allSources,
+            "source",
+            undefined,
+            (s) => SOURCE_MAP[s] || s
+        );
+        fillChips(filterSchoolChips, allSchools, "school");
     }
 
     /** Adjusts main container size for header height. */
@@ -750,7 +1482,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     spellListAddAll.addEventListener("click", async (e) => {
         e.stopPropagation();
         const toAdd = currentSpellResults;
-        for (const spell of toAdd) await addCard(cloneSpellData(spell));
+        for (const spell of toAdd) await addCard(cloneSpellData(spell), spell);
         spellSearchInput.focus();
     });
 
@@ -762,29 +1494,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // --- Filters and display options ---
     filterRuleset.addEventListener("sl-change", reloadData);
-    filterSource.addEventListener("sl-change", () => {
-        renderSpellList();
-        renderChips();
-    });
-    filterClass.addEventListener("sl-change", () => {
-        renderSpellList();
-        renderChips();
-    });
-    filterLevel.addEventListener("sl-change", () => {
-        renderSpellList();
-        renderChips();
-    });
-    filterSchool.addEventListener("sl-change", () => {
-        renderSpellList();
-        renderChips();
-    });
     filterClearBtn.addEventListener("click", () => {
-        filterSource.value = [];
-        filterClass.value = [];
-        filterLevel.value = [];
-        filterSchool.value = [];
+        filterValues.source = [];
+        filterValues.class = [];
+        filterValues.level = [];
+        filterValues.school = [];
         renderSpellList();
         renderChips();
+        ["source", "class", "level", "school"].forEach(
+            updateFilterChipSelection
+        );
     });
 
     pageSizeSelect.addEventListener("sl-change", () => {
@@ -798,6 +1517,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         refreshLayout();
     });
     sideBySideToggle.addEventListener("sl-change", refreshLayout);
+    clearAllBtn.addEventListener("click", async () => {
+        cardList = [];
+        renderSpellList();
+        await refreshLayout();
+    });
     printBtn.addEventListener("click", () => window.print());
 
     // --- Card actions: prepared checkbox, delete, duplicate, edit ---
@@ -857,6 +1581,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             (c) => c instanceof SpellCard && c.id === event.detail.cardId
         );
         if (card) openEditOverlay(card);
+    });
+    printableArea.addEventListener("card-reset", async (event) => {
+        event.stopPropagation();
+        const card = cardList.find(
+            (c) => c instanceof SpellCard && c.id === event.detail.cardId
+        );
+        if (!card || card.originalName == null || card.originalSource == null)
+            return;
+        const spells = getSpells();
+        const original = spells.find(
+            (s) =>
+                s.name === card.originalName && s.source === card.originalSource
+        );
+        if (!original) return;
+        card.setSpellData(cloneSpellData(original));
+        await card.render();
+        renderSpellList();
+        await refreshLayout();
     });
 
     editCardCancel.addEventListener("click", closeEditOverlay);

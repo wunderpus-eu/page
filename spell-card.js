@@ -43,7 +43,7 @@ export function emptySpellTemplate() {
     return {
         name: "Custom Spell",
         subtitle: "",
-        source: "Custom",
+        source: "Homebrew",
         page: 0,
         isSRD: false,
         level: 0,
@@ -376,7 +376,7 @@ async function render_range(spell, foregroundColor, backgroundColor) {
             rangeContainer.appendChild(areaIcon);
         }
     }
-    // Case 3: Other cases - show origin/distance as before, optionally with area icon
+    // Case 3: Other cases - show origin/distance as before, optionally with area size and icon
     else {
         let rangeText = "";
         if (origin === "self") {
@@ -385,6 +385,8 @@ async function render_range(spell, foregroundColor, backgroundColor) {
             rangeText = "Touch";
         } else if (origin === "special") {
             rangeText = "Special";
+        } else if (origin === "point" && unit && unit !== "unlimited") {
+            rangeText = `${distance} ${unitAbbrev[unit] || unit}`;
         } else if (unit === "unlimited") {
             rangeText = "Unlimited";
         } else if (distance > 0) {
@@ -394,8 +396,14 @@ async function render_range(spell, foregroundColor, backgroundColor) {
         }
         rangeContainer.appendChild(document.createTextNode(rangeText));
 
-        // Add area icon if there's an area type (even without parsed dimensions)
+        // If there's an area type, always show ", <area size> <unit>" then the area icon
         if (validAreaTypes.includes(area)) {
+            const areaSize = areaDistance > 0 ? areaDistance : 0;
+            const areaUnitStr = areaUnit || "feet";
+            const areaText = `, ${areaSize} ${
+                unitAbbrev[areaUnitStr] || areaUnitStr
+            }`;
+            rangeContainer.appendChild(document.createTextNode(areaText));
             const areaIconURL = await load_icon(
                 `icon-${area}`,
                 "white",
@@ -972,6 +980,9 @@ export class SpellCard {
         this.isAlwaysPrepared = false;
         this.foregroundColor = null;
         this.backgroundColor = null;
+        /** When set, card can be reset to original spell from list (name + source). */
+        this.originalName = null;
+        this.originalSource = null;
     }
 
     /** Updates spell data and re-renders (used by edit overlay). */
@@ -981,7 +992,10 @@ export class SpellCard {
 
     /** Returns a new SpellCard with cloned spell data and a fresh id. */
     duplicate() {
-        return new SpellCard(cloneSpellData(this.spell));
+        const newCard = new SpellCard(cloneSpellData(this.spell));
+        newCard.originalName = this.originalName;
+        newCard.originalSource = this.originalSource;
+        return newCard;
     }
 
     /** Sets foregroundColor (school or grayscale) and backgroundColor (prepared highlight). */
@@ -1185,6 +1199,25 @@ export class SpellCard {
 
         cardActions.appendChild(deleteBtn);
         cardActions.appendChild(duplicateBtn);
+        if (
+            this.spell._modified &&
+            this.originalName != null &&
+            this.originalSource != null
+        ) {
+            const resetBtn = document.createElement("sl-icon-button");
+            resetBtn.name = "arrow-counterclockwise";
+            resetBtn.title = "Reset to original";
+            resetBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                card.dispatchEvent(
+                    new CustomEvent("card-reset", {
+                        bubbles: true,
+                        detail: { cardId: this.id },
+                    })
+                );
+            });
+            cardActions.appendChild(resetBtn);
+        }
         cardActions.appendChild(editBtn);
         front.appendChild(cardActions);
 
