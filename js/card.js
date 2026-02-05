@@ -28,6 +28,27 @@ export const SOURCE_MAP = {
     PHB: "PHB'14",
 };
 
+/** Full display names for filter menu (abbreviation → full name). Spell list chips keep abbreviation. */
+export const SOURCE_DISPLAY_NAMES = {
+    PHB: "Player's Handbook",
+    XPHB: "Player's Handbook",
+    AAG: "Astral Adventurer's Guide",
+    AI: "Acquisitions Incorporated",
+    "AitFR-AVT": "Adventures in the Forgotten Realms: A Verdant Tomb",
+    BMT: "Bigby Presents: Glory of the Giants",
+    EFA: "Eberron: Forge of the Artificer",
+    EGW: "Explorer's Guide to Wildemount",
+    FRHoF: "Forgotten Realms: Heroes of Faerûn",
+    FTD: "Fizban's Treasury of Dragons",
+    GGR: "Guildmasters' Guide to Ravnica",
+    IDRotF: "Icewind Dale: Rime of the Frostmaiden",
+    LLK: "Lost Laboratory of Kwalish",
+    SatO: "Sigil and the Outlands",
+    SCC: "Strixhaven: A Curriculum of Chaos",
+    TCE: "Tasha's Cauldron of Everything",
+    XGE: "Xanathar's Guide to Everything",
+};
+
 /** Source abbreviations for 2024-only books. When 2014 ruleset is selected, spells from these sources are excluded. */
 export const SOURCES_2024 = ["XPHB"];
 

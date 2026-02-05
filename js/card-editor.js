@@ -9,6 +9,7 @@ import {
     getSpells,
     SpellCard,
     SOURCE_MAP,
+    SOURCE_DISPLAY_NAMES,
     SOURCES_2024,
     emptySpellTemplate,
     cloneSpellData,
@@ -16,10 +17,12 @@ import {
     appendSpells,
     createGlossaryCardRef,
     isGlossaryRef,
+    load_icon,
+    schoolColorMap,
 } from "./card.js";
 import { layoutCards } from "./card-layout.js";
 
-/** In the filter menu we show a single "PHB" for whichever PHB source is active (ruleset-dependent). */
+/** In the spell list chips we show abbreviation (e.g. "PHB"). */
 function getFilterSourceLabel(source) {
     if (source === "PHB" || source === "XPHB") return "PHB";
     return source;
@@ -1479,15 +1482,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function reloadData() {
         const loaded = await loadSpells();
         spellClassMap = loaded.spellClassMap;
-        populateFilterChips();
+        await populateFilterChips();
         renderSpellList();
         renderChips();
         await refreshLayout();
     }
 
     /** Refreshes filter options and spell list from current data (e.g. after ruleset change). No reload from file. */
-    function refreshFiltersAndList() {
-        populateFilterChips();
+    async function refreshFiltersAndList() {
+        await populateFilterChips();
         renderSpellList();
         renderChips();
         refreshLayout();
@@ -1506,17 +1509,46 @@ document.addEventListener("DOMContentLoaded", async () => {
         const selected = new Set(filterValues[key]);
         container.querySelectorAll(".filter-chip").forEach((chip) => {
             const val = chip.dataset.value;
-            chip.variant = selected.has(val) ? "primary" : "neutral";
+            const isSelected = selected.has(val);
+            chip.variant = isSelected ? "primary" : "neutral";
+            chip.classList.toggle("filter-chip--selected", isSelected);
+            if (key === "class" && chip.dataset.iconUrl) {
+                const img = chip.querySelector(".filter-class-icon img");
+                if (img && chip.dataset.iconUrlSelected)
+                    img.src = isSelected ? chip.dataset.iconUrlSelected : chip.dataset.iconUrl;
+            }
         });
     }
 
     /** Creates a clickable filter chip that toggles selection. */
-    function createFilterChip(key, value, label) {
+    function createFilterChip(key, value, label, options = {}) {
         const tag = document.createElement("wa-tag");
-        tag.className = "filter-chip";
+        tag.className = "filter-chip filter-chip--" + key;
         tag.dataset.value = value;
-        tag.textContent = label;
-        tag.variant = filterValues[key].includes(value) ? "primary" : "neutral";
+        if (key === "class" && options.iconUrl) {
+            tag.textContent = "";
+            tag.dataset.iconUrl = options.iconUrl;
+            if (options.iconUrlSelected) tag.dataset.iconUrlSelected = options.iconUrlSelected;
+            const iconSpan = document.createElement("span");
+            iconSpan.className = "filter-class-icon";
+            const img = document.createElement("img");
+            const isSelected = filterValues[key].includes(value);
+            img.src = isSelected && options.iconUrlSelected
+                ? options.iconUrlSelected
+                : options.iconUrl;
+            img.alt = "";
+            iconSpan.appendChild(img);
+            tag.appendChild(iconSpan);
+            tag.appendChild(document.createTextNode(" " + label));
+        } else {
+            tag.textContent = label;
+        }
+        if (key === "school" && schoolColorMap[value]) {
+            tag.style.setProperty("--chip-school-color", schoolColorMap[value]);
+        }
+        const isSelected = filterValues[key].includes(value);
+        tag.variant = isSelected ? "primary" : "neutral";
+        if (isSelected) tag.classList.add("filter-chip--selected");
         tag.style.cursor = "pointer";
         tag.addEventListener("click", () => {
             const arr = filterValues[key];
@@ -1526,12 +1558,23 @@ document.addEventListener("DOMContentLoaded", async () => {
             renderSpellList();
             renderChips();
             updateFilterChipSelection(key);
+            updateClearFilterButtonVisibility();
         });
         return tag;
     }
 
+    /** Show or hide the clear-filters button based on whether any chip filter is set. */
+    function updateClearFilterButtonVisibility() {
+        const anySet =
+            filterValues.source.length > 0 ||
+            filterValues.class.length > 0 ||
+            filterValues.level.length > 0 ||
+            filterValues.school.length > 0;
+        filterClearBtn.classList.toggle("hidden", !anySet);
+    }
+
     /** Populates filter chip lists from current spells; preserves valid selections. */
-    function populateFilterChips() {
+    async function populateFilterChips() {
         const prevSources = [...filterValues.source];
         const prevClasses = [...filterValues.class];
         const prevLevels = [...filterValues.level];
@@ -1564,11 +1607,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             options,
             key,
             sortFn,
-            labelFn = (v) => v
+            labelFn = (v) => v,
+            extraOpts = (v) => ({})
         ) => {
             container.innerHTML = "";
             [...options].sort(sortFn).forEach((val) => {
-                container.appendChild(createFilterChip(key, val, labelFn(val)));
+                container.appendChild(
+                    createFilterChip(key, val, labelFn(val), extraOpts(val))
+                );
             });
         };
 
@@ -1578,16 +1624,46 @@ document.addEventListener("DOMContentLoaded", async () => {
             return parseInt(a, 10) - parseInt(b, 10);
         };
 
-        fillChips(filterClassChips, allClasses, "class");
-        fillChips(filterLevelChips, allLevels, "level", levelSort);
+        /** Full source name for filter menu (ruleset-dependent for PHB). */
+        const getFilterSourceLabelFull = (source) => {
+            if (source === "PHB")
+                return filterRuleset.checked
+                    ? SOURCE_DISPLAY_NAMES.XPHB
+                    : SOURCE_DISPLAY_NAMES.PHB;
+            return SOURCE_DISPLAY_NAMES[source] || SOURCE_MAP[source] || source;
+        };
+
         fillChips(
             filterSourceChips,
             allSources,
             "source",
             undefined,
-            getFilterSourceLabel
+            getFilterSourceLabelFull
         );
+        const classList = [...allClasses].sort();
+        const classIconUrls = {};
+        const chipTextColor = "#374151";
+        await Promise.all(
+            classList.map(async (c) => {
+                const iconName = "icon-" + c.toLowerCase();
+                classIconUrls[c] = {
+                    default: await load_icon(iconName, "transparent", chipTextColor),
+                    selected: await load_icon(iconName, "transparent", "#fff"),
+                };
+            })
+        );
+        filterClassChips.innerHTML = "";
+        classList.forEach((c) => {
+            filterClassChips.appendChild(
+                createFilterChip("class", c, c, {
+                    iconUrl: classIconUrls[c].default,
+                    iconUrlSelected: classIconUrls[c].selected,
+                })
+            );
+        });
+        fillChips(filterLevelChips, allLevels, "level", levelSort);
         fillChips(filterSchoolChips, allSchools, "school");
+        updateClearFilterButtonVisibility();
     }
 
     /** Adjusts main container size for header height (only when header is fixed). */
@@ -2006,6 +2082,7 @@ window.onafterprint = function() {
         ["source", "class", "level", "school"].forEach(
             updateFilterChipSelection
         );
+        updateClearFilterButtonVisibility();
     });
 
     pageSizeSelect.addEventListener("wa-change", () => {
@@ -2060,7 +2137,7 @@ window.onafterprint = function() {
             if (arr.length === 0) return;
             appendSpells(arr);
             renderSpellList();
-            populateFilterChips();
+            await populateFilterChips();
         } catch (err) {
             console.error("Upload spells error:", err);
         }

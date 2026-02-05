@@ -82,7 +82,7 @@
                                 <wa-input
                                     slot="trigger"
                                     id="spell-search-input"
-                                    placeholder="Select a spell..."
+                                    placeholder="Search spells to add..."
                                     clearable
                                 ></wa-input>
                                 <div
@@ -129,38 +129,50 @@
                             <wa-dropdown id="filter-dropdown" hoist class="filter-dropdown">
                                 <wa-button
                                     slot="trigger"
+                                    class="filter-trigger-btn"
                                     variant="default"
                                     size="small"
                                     title="Filters"
                                     aria-label="Filters"
                                 >
-                                    <wa-icon name="filter"></wa-icon>
+                                    <i class="fa-solid fa-sliders" aria-hidden="true"></i>
                                 </wa-button>
                                 <div
                                     id="filter-menu-content"
                                     class="filter-menu-content"
                                 >
-                                    <div class="filter-menu-row">
-                                        <span>Rules</span>
-                                        <wa-switch id="filter-ruleset" checked
-                                            >2024</wa-switch
-                                        >
-                                    </div>
-                                    <div class="filter-menu-row">
-                                        <span>Exclude reprinted</span>
-                                        <wa-switch
-                                            id="filter-exclude-reprinted"
-                                            checked
-                                        ></wa-switch>
-                                    </div>
-                                    <div class="filter-chip-group">
-                                        <span class="filter-chip-label"
-                                            >Source</span
-                                        >
+                                    <div class="filter-chip-group filter-chip-group--source">
+                                        <div class="filter-chip-group__header">
+                                            <span class="filter-chip-label"
+                                                >Source</span
+                                            >
+                                            <wa-button
+                                                id="filter-clear-btn"
+                                                class="filter-clear-btn hidden"
+                                                variant="default"
+                                                size="small"
+                                                title="Clear filters"
+                                                aria-label="Clear filters"
+                                            >
+                                                <i class="fa-solid fa-broom" aria-hidden="true"></i>
+                                                Clear Filters
+                                            </wa-button>
+                                        </div>
                                         <div
                                             id="filter-source-chips"
                                             class="filter-chip-list"
                                         ></div>
+                                        <div class="filter-menu-row filter-menu-row--toggle">
+                                            <wa-switch id="filter-ruleset" checked></wa-switch>
+                                            <span class="filter-menu-row__label">Use 2024 rules</span>
+                                        </div>
+                                        <div class="filter-menu-row filter-menu-row--toggle">
+                                            <wa-switch
+                                                id="filter-exclude-reprinted"
+                                                checked
+                                            ></wa-switch>
+                                            <span class="filter-menu-row__label">Exclude reprinted</span>
+                                        </div>
                                     </div>
                                     <div class="filter-chip-group">
                                         <span class="filter-chip-label"
@@ -189,12 +201,6 @@
                                             class="filter-chip-list"
                                         ></div>
                                     </div>
-                                    <wa-button
-                                        id="filter-clear-btn"
-                                        variant="default"
-                                        size="small"
-                                        >Clear filters</wa-button
-                                    >
                                 </div>
                             </wa-dropdown>
                         </div>

@@ -33,14 +33,14 @@ header:not(.header--spell-cards) {
     flex-wrap: wrap;
 }
 
-/* Row 1: search grows, filter fixed */
+/* Row 1: search grows, filter fixed – center-aligned */
 .controls-row--search {
     gap: 0.5rem;
 }
 
 .spell-search-wrapper {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     gap: 0.5rem;
     min-width: 200px;
     flex: 1;
@@ -56,19 +56,73 @@ header:not(.header--spell-cards) {
     min-width: 0;
 }
 
+/* Search bar: pill shape */
 .spell-search-wrapper #spell-search-input {
+    --wa-input-border-radius: 9999px;
+    border-radius: 9999px;
     width: 100%;
+}
+.spell-search-wrapper #spell-search-input::part(base) {
+    border-radius: 9999px;
+}
+
+/* Search bar and dropdowns: white focus ring to match nav (no blue) */
+.header__controls #spell-search-input::part(base):focus-within,
+.header__controls #spell-search-input::part(base):focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+/* Dropdown triggers (spell combobox uses the input above; filter button has its own rule) */
+.header__controls wa-dropdown::part(trigger):focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+    box-shadow: none;
 }
 
 .spell-search-wrapper .filter-dropdown {
     flex-shrink: 0;
 }
 
-/* Dropdown panels match menu width when hoisted (same as nav strip) */
+/* Filter button: circular, same height as search box (43px), white icon, nav-bar–style hover/active */
+.header__controls .filter-trigger-btn::part(base) {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.9);
+    border-color: transparent;
+    height: 43px;
+    min-height: 43px;
+    width: 43px;
+    min-width: 43px;
+    padding: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.header__controls .filter-trigger-btn::part(base):hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border-color: transparent;
+}
+
+.header__controls .filter-trigger-btn::part(base):active,
+.header__controls .filter-trigger-btn::part(base):focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+}
+
+.header__controls .filter-trigger-btn wa-icon,
+.header__controls .filter-trigger-btn i {
+    color: inherit;
+}
+
+/* Dropdown panels: same width as menu content (container minus 24px padding each side, minus panels’ own 4px padding each side) */
 .spell-list-popover,
 .filter-menu-content {
-    width: min(var(--container-width), calc(100vw - 3rem));
-    max-width: var(--container-width);
+    width: min(calc(var(--container-width) - 56px), calc(100vw - 56px));
     box-sizing: border-box;
 }
 
@@ -78,12 +132,8 @@ header:not(.header--spell-cards) {
     flex-direction: column;
     gap: 8px;
     max-height: 70vh;
-    min-width: 280px;
 }
 
-.filter-menu-content {
-    min-width: 260px;
-}
 
 .spell-list-header {
     display: flex;
@@ -101,7 +151,6 @@ header:not(.header--spell-cards) {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.85rem;
     color: var(--wa-color-neutral-600);
 }
 .srd-banner.hidden {
@@ -123,7 +172,6 @@ header:not(.header--spell-cards) {
     background: transparent;
     cursor: pointer;
     border-radius: var(--wa-border-radius-medium);
-    font-size: 0.9rem;
     font-family: inherit;
     color: inherit;
     position: relative;
@@ -226,13 +274,59 @@ header:not(.header--spell-cards) {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    position: relative;
+}
+
+.filter-chip-group__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.filter-clear-btn.hidden {
+    display: none !important;
+}
+
+/* Clear Filters: text-only look by default, light grey on hover/active */
+.filter-menu-content .filter-clear-btn::part(base) {
+    background: transparent;
+    border: none;
+    color: var(--wa-color-neutral-700);
+    font-size: 1rem;
+    font-weight: 500;
+    height: 21.75px;
+    min-height: 21.75px;
+    padding: 0;
+    align-items: center;
+}
+.filter-menu-content .filter-clear-btn::part(base):hover,
+.filter-menu-content .filter-clear-btn::part(base):active,
+.filter-menu-content .filter-clear-btn::part(base):focus-visible {
+    background: var(--wa-color-neutral-200);
+    border: none;
+}
+
+.filter-menu-content .filter-chip-group:first-of-type {
+    margin-top: 0;
+}
+
+.filter-chip-group--source .filter-menu-row--toggle {
+    margin-top: 6px;
+}
+
+.filter-menu-row__label {
+    color: var(--wa-color-neutral-800);
 }
 
 .filter-menu-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+}
+
+/* Filter menu toggles: hero color when on (unchecked uses default via .switch / --wa-form-control-activated-color) */
+.filter-menu-content wa-switch {
+    --wa-form-control-activated-color: var(--hero-color);
 }
 
 .filter-chip-group {
@@ -242,7 +336,6 @@ header:not(.header--spell-cards) {
 }
 
 .filter-chip-label {
-    font-size: 0.85rem;
     font-weight: 500;
     color: var(--wa-color-neutral-700);
 }
@@ -255,6 +348,81 @@ header:not(.header--spell-cards) {
 
 .filter-chip-list .filter-chip {
     margin: 0;
+    cursor: pointer;
+}
+
+.filter-chip-list .filter-chip,
+.filter-chip-list .filter-chip::part(base) {
+    border: none;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Chip hover/selected: hero color (and shades) for source/class/level; school chips use their own color below */
+.filter-chip-list .filter-chip:not(.filter-chip--school):hover,
+.filter-chip-list .filter-chip:not(.filter-chip--school):hover::part(base),
+.filter-chip-list .filter-chip:not(.filter-chip--school)::part(base):hover {
+    background-color: color-mix(in srgb, var(--hero-color) 18%, white);
+}
+
+.filter-chip-list .filter-chip:not(.filter-chip--school)[variant="primary"],
+.filter-chip-list .filter-chip:not(.filter-chip--school).filter-chip--selected,
+.filter-chip-list .filter-chip:not(.filter-chip--school)[variant="primary"]::part(base),
+.filter-chip-list .filter-chip:not(.filter-chip--school).filter-chip--selected::part(base) {
+    background-color: var(--hero-color);
+    color: #fff;
+}
+
+/* Selected chip hover: lighten like nav bar buttons */
+.filter-chip-list .filter-chip:not(.filter-chip--school)[variant="primary"]:hover,
+.filter-chip-list .filter-chip:not(.filter-chip--school).filter-chip--selected:hover,
+.filter-chip-list .filter-chip:not(.filter-chip--school)[variant="primary"]:hover::part(base),
+.filter-chip-list .filter-chip:not(.filter-chip--school).filter-chip--selected:hover::part(base) {
+    background-color: color-mix(in srgb, var(--hero-color) 85%, white);
+}
+
+/* Spell school chips: same behaviour but use each school's color (--chip-school-color set in JS) */
+.filter-chip-list .filter-chip.filter-chip--school:hover,
+.filter-chip-list .filter-chip.filter-chip--school:hover::part(base),
+.filter-chip-list .filter-chip.filter-chip--school::part(base):hover {
+    background-color: color-mix(in srgb, var(--chip-school-color) 18%, white);
+}
+
+.filter-chip-list .filter-chip.filter-chip--school[variant="primary"],
+.filter-chip-list .filter-chip.filter-chip--school.filter-chip--selected,
+.filter-chip-list .filter-chip.filter-chip--school[variant="primary"]::part(base),
+.filter-chip-list .filter-chip.filter-chip--school.filter-chip--selected::part(base) {
+    background-color: var(--chip-school-color);
+    color: #fff;
+}
+
+.filter-chip-list .filter-chip.filter-chip--school[variant="primary"]:hover,
+.filter-chip-list .filter-chip.filter-chip--school.filter-chip--selected:hover,
+.filter-chip-list .filter-chip.filter-chip--school[variant="primary"]:hover::part(base),
+.filter-chip-list .filter-chip.filter-chip--school.filter-chip--selected:hover::part(base) {
+    background-color: color-mix(in srgb, var(--chip-school-color) 85%, white);
+}
+
+.filter-chip.filter-chip--class {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.filter-chip.filter-chip--class .filter-class-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25em;
+    height: 1.25em;
+    flex-shrink: 0;
+}
+
+.filter-chip.filter-chip--class .filter-class-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    vertical-align: middle;
 }
 
 /* Edit card overlay */
@@ -355,7 +523,6 @@ header:not(.header--spell-cards) {
     max-height: 50vh;
     overflow-y: auto;
     margin: 12px 0;
-    font-size: 0.9rem;
 }
 .srd-excluded-list .srd-section-title {
     font-weight: 700;
