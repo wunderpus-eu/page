@@ -28,6 +28,9 @@ export const SOURCE_MAP = {
     PHB: "PHB'14",
 };
 
+/** Source abbreviations for 2024-only books. When 2014 ruleset is selected, spells from these sources are excluded. */
+export const SOURCES_2024 = ["XPHB"];
+
 let spells = [];
 const iconCache = {};
 let nextCardId = 0;
@@ -179,56 +182,31 @@ export async function load_icon(
 }
 
 /**
- * Loads spells from data/spells.json and applies ruleset filtering.
- * 2024 rules: prefer XPHB when the same spell exists in multiple sources.
- * Non-2024: exclude XPHB, dedupe by name preferring non-PHB sources.
- * @param {boolean} [use2024Rules=true]
- * @returns {Promise<{ spells: object[]; spellClassMap: Record<number, string[]> }>}
+ * Loads all spells from data/spells.json once. Ruleset (2014 vs 2024) is applied in the UI by excluding XPHB when 2014 is selected.
+ * @returns {Promise<{ spells: object[]; spellClassMap: Record<string, string[]> }>}
  */
-export async function loadSpells(use2024Rules = true) {
+export async function loadSpells() {
     try {
         const response = await fetch("data/spells.json");
         const allSpells = await response.json();
 
-        if (use2024Rules) {
-            // Prefer XPHB over other sources when same spell name exists
-            spells = allSpells.filter(
-                (spell) =>
-                    spell.source === "XPHB" ||
-                    !allSpells.some(
-                        (s) => s.name === spell.name && s.source === "XPHB"
-                    )
-            );
-        } else {
-            // No XPHB; when same spell in multiple sources (e.g. TCE and PHB), prefer newer source (e.g. Tasha's) over PHB
-            const withoutXphb = allSpells.filter(
-                (spell) => spell.source !== "XPHB"
-            );
-            const byName = {};
-            withoutXphb.forEach((spell) => {
-                const existing = byName[spell.name];
-                if (!existing) {
-                    byName[spell.name] = spell;
-                } else if (existing.source === "PHB") {
-                    byName[spell.name] = spell;
-                }
-                // else keep existing (non-PHB)
-            });
-            spells = Object.values(byName);
-        }
-
-        spells.sort((a, b) => a.name.localeCompare(b.name));
+        spells = allSpells;
+        spells.sort(
+            (a, b) =>
+                a.name.localeCompare(b.name) ||
+                (a.source || "").localeCompare(b.source || "")
+        );
 
         // Always assign a unique id to every spell (overwrites any from file)
         spells.forEach((spell) => {
             spell.id = getNextSpellId();
         });
 
-        // Build spellClassMap from spell.classes for backwards compatibility
+        // Build spellClassMap keyed by spell.id for class lookups (works with filtered lists in UI)
         const spellClassMap = {};
-        spells.forEach((spell, index) => {
+        spells.forEach((spell) => {
             if (spell.classes && spell.classes.length > 0) {
-                spellClassMap[index] = spell.classes;
+                spellClassMap[spell.id] = spell.classes;
             }
         });
 

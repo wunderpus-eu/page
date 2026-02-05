@@ -9,6 +9,7 @@ import {
     getSpells,
     SpellCard,
     SOURCE_MAP,
+    SOURCES_2024,
     emptySpellTemplate,
     cloneSpellData,
     spellToExportFormat,
@@ -17,6 +18,12 @@ import {
     isGlossaryRef,
 } from "./spell-card.js";
 import { layoutCards } from "./card-layout.js";
+
+/** In the filter menu we show a single "PHB" for whichever PHB source is active (ruleset-dependent). */
+function getFilterSourceLabel(source) {
+    if (source === "PHB" || source === "XPHB") return "PHB";
+    return source;
+}
 
 /** Spell schools for the edit form dropdown. */
 const SCHOOLS = [
@@ -143,6 +150,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const filterDropdown = document.getElementById("filter-dropdown");
     const filterRuleset = document.getElementById("filter-ruleset");
+    const excludeReprintedToggle = document.getElementById(
+        "filter-exclude-reprinted"
+    );
     const filterSourceChips = document.getElementById("filter-source-chips");
     const filterClassChips = document.getElementById("filter-class-chips");
     const filterLevelChips = document.getElementById("filter-level-chips");
@@ -178,14 +188,63 @@ document.addEventListener("DOMContentLoaded", async () => {
     const filterValues = { source: [], class: [], level: [], school: [] };
 
     /** Spell classes for a spell (from spell.classes or spellClassMap). */
-    function getSpellClasses(spell, index) {
+    function getSpellClasses(spell) {
         if (spell.classes && spell.classes.length > 0) return spell.classes;
-        return spellClassMap[index] || [];
+        return spellClassMap[spell.id] || [];
     }
 
-    /** Spells matching current class, level, source, school filters. */
+    /** Spells in scope for the current ruleset (2014 = exclude all 2024-only sources, 2024 = all). */
+    function getSpellsForCurrentRuleset() {
+        const list = getSpells();
+        if (filterRuleset.checked) return list;
+        return list.filter((spell) => !SOURCES_2024.includes(spell.source));
+    }
+
+    /**
+     * For each spell name, the "preferred" source (newest reprint) for current ruleset.
+     * 2024: XPHB if present, else first source for that name. Non-2024: prefer non-PHB over PHB.
+     */
+    function getPreferredSourceBySpellName() {
+        const spellList = getSpellsForCurrentRuleset();
+        const use2024 = filterRuleset.checked;
+        const byName = new Map();
+        spellList.forEach((spell) => {
+            const name = spell.name;
+            const existing = byName.get(name);
+            if (!existing) {
+                byName.set(name, spell.source);
+                return;
+            }
+            if (use2024) {
+                if (spell.source === "XPHB") byName.set(name, "XPHB");
+            } else {
+                if (existing === "PHB" && spell.source !== "PHB")
+                    byName.set(name, spell.source);
+            }
+        });
+        return byName;
+    }
+
+    /** Selected source values (spell.source). PHB chip = PHB + XPHB when 2024 ruleset, only PHB when 2014. */
+    function getSelectedActualSources() {
+        const spellList = getSpellsForCurrentRuleset();
+        const chipSources = filterValues.source;
+        if (chipSources.length === 0)
+            return new Set(spellList.map((s) => s.source));
+        const set = new Set();
+        const use2024 = filterRuleset.checked;
+        chipSources.forEach((src) => {
+            if (src === "PHB") {
+                set.add("PHB");
+                if (use2024) set.add("XPHB");
+            } else set.add(src);
+        });
+        return set;
+    }
+
+    /** Spells matching current class, level, source, school filters and (if on) exclude reprinted. */
     function getFilteredSpells() {
-        const spells = getSpells();
+        const spells = getSpellsForCurrentRuleset();
         const selectedClasses = filterValues.class;
         const selectedLevels = filterValues.level.map((l) =>
             l === "Cantrip" ? 0 : parseInt(l, 10)
@@ -193,8 +252,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         const selectedSources = filterValues.source;
         const selectedSchools = filterValues.school;
 
-        return spells.filter((spell, index) => {
-            const spellClasses = getSpellClasses(spell, index);
+        let result = spells.filter((spell) => {
+            const spellClasses = getSpellClasses(spell);
             const classMatch =
                 selectedClasses.length === 0 ||
                 selectedClasses.some((c) => spellClasses.includes(c));
@@ -204,10 +263,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             const sourceMatch =
                 selectedSources.length === 0 ||
                 selectedSources.some((src) => {
-                    if (src === "PHB")
-                        return (
-                            spell.source === "PHB" || spell.source === "XPHB"
-                        );
+                    if (src === "PHB") {
+                        if (filterRuleset.checked)
+                            return (
+                                spell.source === "PHB" ||
+                                spell.source === "XPHB"
+                            );
+                        return spell.source === "PHB";
+                    }
                     return spell.source === src;
                 });
             const schoolMatch =
@@ -215,6 +278,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                 selectedSchools.includes(spell.school);
             return classMatch && levelMatch && sourceMatch && schoolMatch;
         });
+
+        if (excludeReprintedToggle.checked) {
+            const preferredByName = getPreferredSourceBySpellName();
+            const selectedActual = getSelectedActualSources();
+            result = result.filter((spell) => {
+                const preferred = preferredByName.get(spell.name);
+                if (!preferred) return true;
+                if (spell.source === preferred) return true;
+                if (!selectedActual.has(preferred)) return true;
+                return false;
+            });
+        }
+
+        return result;
     }
 
     /** Active filter chips for display (source, class, level, school). */
@@ -225,7 +302,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         const levels = filterValues.level;
         const schools = filterValues.school;
         sources.forEach((s) =>
-            chips.push({ key: "source", value: s, label: SOURCE_MAP[s] || s })
+            chips.push({
+                key: "source",
+                value: s,
+                label: getFilterSourceLabel(s),
+            })
         );
         classes.forEach((c) =>
             chips.push({ key: "class", value: c, label: c })
@@ -1300,15 +1381,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         await refreshLayout();
     }
 
-    /** Reloads spells for current ruleset, repopulates filters, refreshes layout. */
+    /** Loads all spells from file, repopulates filters, refreshes layout. */
     async function reloadData() {
-        const use2024 = filterRuleset.checked;
-        const loaded = await loadSpells(use2024);
+        const loaded = await loadSpells();
         spellClassMap = loaded.spellClassMap;
         populateFilterChips();
         renderSpellList();
         renderChips();
         await refreshLayout();
+    }
+
+    /** Refreshes filter options and spell list from current data (e.g. after ruleset change). No reload from file. */
+    function refreshFiltersAndList() {
+        populateFilterChips();
+        renderSpellList();
+        renderChips();
+        refreshLayout();
     }
 
     /** Updates the selected visual state of chips for a filter key. */
@@ -1355,14 +1443,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         const prevLevels = [...filterValues.level];
         const prevSchools = [...filterValues.school];
 
-        const spells = getSpells();
+        const spells = getSpellsForCurrentRuleset();
         const allClasses = new Set();
         const allLevels = new Set();
         const allSources = new Set();
         const allSchools = new Set();
 
-        spells.forEach((spell, index) => {
-            getSpellClasses(spell, index).forEach((c) => allClasses.add(c));
+        spells.forEach((spell) => {
+            getSpellClasses(spell).forEach((c) => allClasses.add(c));
             allLevels.add(spell.level === 0 ? "Cantrip" : String(spell.level));
             if (spell.source === "XPHB" || spell.source === "PHB")
                 allSources.add("PHB");
@@ -1403,7 +1491,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             allSources,
             "source",
             undefined,
-            (s) => SOURCE_MAP[s] || s
+            getFilterSourceLabel
         );
         fillChips(filterSchoolChips, allSchools, "school");
     }
@@ -1503,7 +1591,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // --- Filters and display options ---
-    filterRuleset.addEventListener("sl-change", reloadData);
+    filterRuleset.addEventListener("sl-change", refreshFiltersAndList);
+    excludeReprintedToggle.addEventListener("sl-change", () => {
+        renderSpellList();
+    });
     filterClearBtn.addEventListener("click", () => {
         filterValues.source = [];
         filterValues.class = [];
