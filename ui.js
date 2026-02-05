@@ -1789,6 +1789,78 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderChips();
     }
 
+    /** Exports card pages as a PDF (one layout page per PDF page). No print dialog. */
+    async function exportPdf() {
+        if (typeof window.html2canvas !== "function") {
+            if (toastEl) {
+                toastEl.textContent =
+                    "PDF export failed: html2canvas not loaded.";
+                toastEl.classList.remove("hidden");
+                setTimeout(() => toastEl.classList.add("hidden"), 4000);
+            }
+            return;
+        }
+        printBtn.loading = true;
+        printBtn.disabled = true;
+        await document.fonts.ready;
+        const pages = printableArea.querySelectorAll(".page");
+        if (!pages.length) {
+            printBtn.loading = false;
+            printBtn.disabled = false;
+            if (toastEl) {
+                toastEl.textContent = "No cards to export.";
+                toastEl.classList.remove("hidden");
+                setTimeout(() => toastEl.classList.add("hidden"), 3000);
+            }
+            return;
+        }
+        const format = pageSizeSelect.value === "a4" ? "a4" : "letter";
+        document.body.classList.add("exporting-pdf");
+        const savedZoom = scale;
+        try {
+            scale = 1;
+            printableArea.style.transform = "scale(1)";
+            updateWrapperSizeAndPosition();
+
+            const { jsPDF } = window.jspdf || {};
+            if (!jsPDF) {
+                throw new Error("jsPDF not loaded");
+            }
+            const pdf = new jsPDF({
+                orientation: "l",
+                unit: "mm",
+                format,
+            });
+            const captureScale = 4;
+            for (let i = 0; i < pages.length; i++) {
+                if (i > 0) pdf.addPage(format, "l");
+                const canvas = await window.html2canvas(pages[i], {
+                    scale: captureScale,
+                    useCORS: true,
+                    logging: false,
+                });
+                const w = pdf.internal.pageSize.getWidth();
+                const h = pdf.internal.pageSize.getHeight();
+                pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, w, h);
+            }
+            pdf.save("spell-cards.pdf");
+        } catch (err) {
+            console.error("PDF export error:", err);
+            if (toastEl) {
+                toastEl.textContent = "PDF export failed.";
+                toastEl.classList.remove("hidden");
+                setTimeout(() => toastEl.classList.add("hidden"), 4000);
+            }
+        } finally {
+            scale = savedZoom;
+            printableArea.style.transform = `scale(${savedZoom})`;
+            updateWrapperSizeAndPosition();
+            document.body.classList.remove("exporting-pdf");
+            printBtn.loading = false;
+            printBtn.disabled = false;
+        }
+    }
+
     /** Measures page width in px for current page size and sets printable area width. */
     function updatePageWidth() {
         const tempDiv = document.createElement("div");
@@ -1998,7 +2070,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    printBtn.addEventListener("click", () => window.print());
+    printBtn.addEventListener("click", () => exportPdf());
 
     // --- Card actions: prepared checkbox, delete, duplicate, edit ---
     printableArea.addEventListener("sl-change", async (event) => {
