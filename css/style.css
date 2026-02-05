@@ -179,7 +179,7 @@ h2 {
 }
 
 /* Header: hamburger only when nav links + logo + gap wouldn’t fit (under 900px) */
-@media (max-width: 599px) {
+@media (max-width: 650px) {
     .header-nav-toggle {
         display: flex;
     }

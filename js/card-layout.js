@@ -90,6 +90,7 @@ export async function layoutCards(
             const spellCard = item;
             tempContainer.appendChild(spellCard.frontElement);
             await handleOverflow(spellCard, tempContainer); // May add backElement for overflow text
+            closePopoversIn(spellCard.frontElement);
             tempContainer.removeChild(spellCard.frontElement);
 
             if (spellCard.backElement) {
@@ -222,6 +223,16 @@ function createPage(pageSize, containerWidth, containerHeight) {
     page.appendChild(cardContainer);
 
     return page;
+}
+
+/** Close any tooltips/popovers in the subtree so WaPopup doesn't throw on disconnect. */
+function closePopoversIn(element) {
+    element.querySelectorAll("wa-tooltip").forEach((el) => {
+        if ("open" in el) el.open = false;
+    });
+    element.querySelectorAll("[popover]").forEach((el) => {
+        if (typeof el.hidePopover === "function") el.hidePopover();
+    });
 }
 
 /** Returns the browser's px-per-mm for layout calculations. */

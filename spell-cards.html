@@ -37,7 +37,7 @@
             }
         </script>
     </head>
-    <body>
+    <body class="spell-cards-page">
         <header class="header header--spell-cards">
             <div class="container header__top">
                 <a href="index.html">
@@ -60,12 +60,15 @@
                     <div id="header-nav-menu" class="header-nav-menu">
                         <a href="character-sheet.html">Character sheet</a>
                         <a href="spell-cards.html">Spell cards</a>
+                        <a href="https://ko-fi.com/wunderpus" target="_blank" rel="noopener noreferrer" class="header-nav-kofi">Support me</a>
                     </div>
                 </nav>
             </div>
             <div id="header-content" class="header__controls">
+                <div class="container">
                 <div class="controls">
-                    <div id="add-cards-row">
+                    <!-- Row 1: spell search (grows) + filter (fixed) -->
+                    <div class="controls-row controls-row--search">
                         <div
                             id="spell-search-wrapper"
                             class="spell-search-wrapper"
@@ -74,6 +77,7 @@
                                 id="spell-combobox"
                                 stay-open-on-select
                                 hoist
+                                class="spell-combobox-dropdown"
                             >
                                 <wa-input
                                     slot="trigger"
@@ -122,12 +126,13 @@
                                     ></div>
                                 </div>
                             </wa-dropdown>
-                            <wa-dropdown id="filter-dropdown" hoist>
+                            <wa-dropdown id="filter-dropdown" hoist class="filter-dropdown">
                                 <wa-button
                                     slot="trigger"
                                     variant="default"
                                     size="small"
                                     title="Filters"
+                                    aria-label="Filters"
                                 >
                                     <wa-icon name="filter"></wa-icon>
                                 </wa-button>
@@ -193,52 +198,110 @@
                                 </div>
                             </wa-dropdown>
                         </div>
-
-                        <wa-button id="add-empty-btn" variant="default"
-                            >Empty card</wa-button
-                        >
-                        <wa-button id="add-glossary-btn" variant="default"
-                            >Glossary</wa-button
-                        >
                     </div>
 
-                    <div id="display-row">
+                    <!-- Row 2: upload/download left, add/clear right (icon-only) -->
+                    <div class="controls-row controls-row--actions">
+                        <div class="controls-row__group">
+                            <input
+                                type="file"
+                                id="upload-spells-input"
+                                class="visually-hidden-file-input"
+                                accept=".json,application/json"
+                                tabindex="-1"
+                                aria-hidden="true"
+                            />
+                            <wa-button
+                                id="upload-spells-btn"
+                                variant="default"
+                                size="small"
+                                title="Upload spells"
+                                aria-label="Upload spells"
+                            >
+                                <wa-icon name="upload"></wa-icon>
+                            </wa-button>
+                            <wa-button
+                                id="download-custom-btn"
+                                variant="default"
+                                size="small"
+                                title="Download custom"
+                                aria-label="Download custom JSON"
+                            >
+                                <wa-icon name="download"></wa-icon>
+                            </wa-button>
+                        </div>
+                        <div class="controls-row__group">
+                            <wa-button
+                                id="add-empty-btn"
+                                variant="default"
+                                size="small"
+                                title="Add empty card"
+                                aria-label="Add empty card"
+                            >
+                                <i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i>
+                            </wa-button>
+                            <wa-button
+                                id="add-glossary-btn"
+                                variant="default"
+                                size="small"
+                                title="Add glossary"
+                                aria-label="Add glossary card"
+                            >
+                                <wa-icon name="book"></wa-icon>
+                            </wa-button>
+                            <wa-button
+                                id="clear-all-btn"
+                                variant="default"
+                                size="small"
+                                title="Clear all"
+                                aria-label="Clear all cards"
+                            >
+                                <wa-icon name="trash"></wa-icon>
+                            </wa-button>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: card options (toggles) -->
+                    <div class="controls-row controls-row--card-options">
                         <wa-switch id="color-toggle">Grayscale</wa-switch>
-                        <wa-select id="page-size-select" value="letter">
-                            <wa-option value="letter">Letter</wa-option>
-                            <wa-option value="a4">A4</wa-option>
-                        </wa-select>
-                        <wa-select id="sort-select" value="level">
-                            <wa-option value="alphabetical">A–Z</wa-option>
-                            <wa-option value="level">By level</wa-option>
-                            <wa-option value="school">By school</wa-option>
-                        </wa-select>
-                        <wa-switch id="background-toggle">Card back</wa-switch>
                         <wa-switch id="inline-icons-toggle" checked
                             >Inline icons</wa-switch
                         >
+                        <wa-switch id="background-toggle">Card back</wa-switch>
+                    </div>
+
+                    <!-- Row 4: layout options -->
+                    <div class="controls-row controls-row--layout">
+                        <span class="controls-select-with-icon" title="Page size">
+                            <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+                            <wa-select id="page-size-select" value="letter">
+                                <wa-option value="letter">Letter</wa-option>
+                                <wa-option value="a4">A4</wa-option>
+                            </wa-select>
+                        </span>
+                        <span class="controls-select-with-icon" title="Sort order">
+                            <i class="fa-solid fa-arrows-up-down" aria-hidden="true"></i>
+                            <wa-select id="sort-select" value="level">
+                                <wa-option value="alphabetical">A–Z</wa-option>
+                                <wa-option value="level">By level</wa-option>
+                                <wa-option value="school">By school</wa-option>
+                            </wa-select>
+                        </span>
                         <wa-switch id="side-by-side-toggle"
                             >Side by side</wa-switch
                         >
-                        <wa-button id="clear-all-btn" variant="default"
-                            >Clear all</wa-button
-                        >
-                        <wa-button id="download-custom-btn" variant="default"
-                            >Download custom</wa-button
-                        >
-                        <input
-                            type="file"
-                            id="upload-spells-input"
-                            accept=".json,application/json"
-                            hidden
-                        />
-                        <wa-button id="upload-spells-btn" variant="default"
-                            >Upload spells</wa-button
-                        >
-                        <wa-button id="print-btn" variant="primary"
-                            >Print / Save as PDF</wa-button
-                        >
                     </div>
+
+                    <!-- Row 5: print -->
+                    <div class="controls-row controls-row--print">
+                        <wa-button id="print-btn" variant="primary"
+                            title="Print or save as PDF"
+                        >
+                            <wa-icon name="print" slot="prefix"></wa-icon>
+                            Print / Save as PDF
+                        </wa-button>
+                    </div>
+                </div>
                 </div>
             </div>
         </header>

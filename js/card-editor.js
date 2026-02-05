@@ -1590,11 +1590,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         fillChips(filterSchoolChips, allSchools, "school");
     }
 
-    /** Adjusts main container size for header height. */
+    /** Adjusts main container size for header height (only when header is fixed). */
     function handleZoom() {
-        const headerHeight = header.getBoundingClientRect().height;
-        mainContainer.style.marginTop = `${headerHeight}px`;
-        mainContainer.style.height = `calc(100vh - ${headerHeight}px)`;
+        const isSpellCards = header.classList.contains("header--spell-cards");
+        if (isSpellCards) {
+            mainContainer.style.marginTop = "";
+            mainContainer.style.height = "";
+        } else {
+            const headerHeight = header.getBoundingClientRect().height;
+            mainContainer.style.marginTop = `${headerHeight}px`;
+            mainContainer.style.height = `calc(100vh - ${headerHeight}px)`;
+        }
     }
 
     /** Updates printable-area wrapper dimensions for zoom/scale. */
@@ -1873,10 +1879,12 @@ window.onafterprint = function() {
     spellSearchInput.addEventListener("click", (e) => {
         if (spellCombobox.open) e.stopPropagation();
     });
-    spellSearchInput.addEventListener("wa-input", () => {
+    function onSearchInput() {
         renderSpellList();
         if (!spellCombobox.open) spellCombobox.open = true;
-    });
+    }
+    spellSearchInput.addEventListener("wa-input", onSearchInput);
+    spellSearchInput.addEventListener("input", onSearchInput);
     spellSearchInput.addEventListener("keydown", (e) => {
         if (e.key === " ") {
             e.stopPropagation();
