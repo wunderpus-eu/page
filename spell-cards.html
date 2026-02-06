@@ -381,15 +381,18 @@
             class="srd-excluded-dialog"
             light-dismiss
         >
-            <button
-                type="button"
-                class="srd-dialog-icon-btn"
+            <wa-button
                 slot="header-actions"
                 id="srd-excluded-copy"
+                appearance="plain"
+                variant="neutral"
+                size="small"
+                pill
+                title="Copy to clipboard"
                 aria-label="Copy to clipboard"
             >
                 <wa-icon name="copy" aria-hidden="true"></wa-icon>
-            </button>
+            </wa-button>
             <p id="srd-excluded-explanation"></p>
             <div id="srd-excluded-list" class="srd-excluded-list"></div>
         </wa-dialog>

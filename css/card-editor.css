@@ -565,66 +565,13 @@ header:not(.header--spell-cards) {
     margin-left: 12px;
     padding: 2px 0;
 }
-/* Dialog header: copy and close as round icon buttons (nav-bar style) */
-.srd-excluded-dialog::part(close-button),
 .srd-excluded-dialog::part(close-button__base) {
-    width: 2rem;
-    height: 2rem;
-    min-width: 2rem;
-    min-height: 2rem;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--wa-color-neutral-600);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s ease, color 0.15s ease;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    border-radius: 9999px;
 }
-.srd-excluded-dialog::part(close-button):hover,
-.srd-excluded-dialog::part(close-button__base):hover {
-    background: rgba(0, 0, 0, 0.08);
-    color: var(--wa-color-neutral-800);
-}
-.srd-excluded-dialog::part(close-button):active,
-.srd-excluded-dialog::part(close-button__base):active,
-.srd-excluded-dialog::part(close-button):focus-visible,
-.srd-excluded-dialog::part(close-button__base):focus-visible {
-    background: rgba(0, 0, 0, 0.14);
-    color: var(--wa-color-neutral-900);
-}
-.srd-dialog-icon-btn {
-    width: 2rem;
-    height: 2rem;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--wa-color-neutral-600);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s ease, color 0.15s ease;
-}
-.srd-dialog-icon-btn:hover {
-    background: rgba(0, 0, 0, 0.08);
-    color: var(--wa-color-neutral-800);
-}
-.srd-dialog-icon-btn:active,
-.srd-dialog-icon-btn:focus-visible {
-    background: rgba(0, 0, 0, 0.14);
-    color: var(--wa-color-neutral-900);
-}
-.srd-dialog-icon-btn:focus-visible {
-    outline: 2px solid var(--wa-color-neutral-600);
-    outline-offset: 2px;
-}
-.srd-dialog-icon-btn i {
-    font-size: 0.9rem;
-}
-
 /* Toast (easter egg) */
 .toast {
     position: fixed;

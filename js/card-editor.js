@@ -1867,8 +1867,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             srdExcludedList.appendChild(p);
         }
 
-        if (srdExcludedDialog && typeof srdExcludedDialog.show === "function")
-            srdExcludedDialog.show();
+        if (srdExcludedDialog) srdExcludedDialog.open = true;
     }
 
     /** Shows the "vault opens" toast and disables SRD-only filtering. If already open, shows a different toast. */
@@ -2117,9 +2116,11 @@ window.onafterprint = function() {
             navigator.clipboard.writeText(text).then(() => {
                 if (icon) icon.setAttribute("name", "check");
                 srdExcludedCopy.setAttribute("aria-label", "Copied");
+                srdExcludedCopy.setAttribute("title", "Copied");
                 setTimeout(() => {
                     if (icon) icon.setAttribute("name", "copy");
                     srdExcludedCopy.setAttribute("aria-label", originalLabel);
+                    srdExcludedCopy.setAttribute("title", "Copy to clipboard");
                 }, 1500);
             }).catch(() => {});
         });
