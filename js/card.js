@@ -155,6 +155,17 @@ export function getSpellSchoolColor(spell) {
     return resolveCssVariable(colorVar);
 }
 
+/** Close tooltips and popovers in the subtree so WA components don't throw on disconnect (e.g. when clearing innerHTML). */
+function closePopoversAndTooltipsIn(element) {
+    if (!element || !element.querySelectorAll) return;
+    element.querySelectorAll("wa-tooltip").forEach((el) => {
+        if ("open" in el) el.open = false;
+    });
+    element.querySelectorAll("[popover]").forEach((el) => {
+        if (typeof el.hidePopover === "function") el.hidePopover();
+    });
+}
+
 /** Builds the decorative border frame for a spell card front. */
 async function render_front_border(spell, foregroundColor, backgroundColor) {
     const frontBorderContainer = document.createElement("div");
@@ -172,34 +183,64 @@ async function render_front_border(spell, foregroundColor, backgroundColor) {
 }
 
 /**
- * Loads an SVG from assets/, swaps #333333/#ffffff with given colors, caches and returns a data URL.
+ * Normalize color for generated icon filename (must match scripts/generate-icons.js).
+ * @param {string} c
+ * @returns {string}
+ */
+function iconColorSlug(c) {
+    const s = String(c).trim().replace(/^#/, "").toLowerCase();
+    return s || "transparent";
+}
+
+/**
+ * Normalize any CSS color to the form used in the icon manifest: 6-char hex (no #), or "transparent".
+ * Matches scripts/icon-manifest.json and generated filenames (no literals like "white").
+ * @param {string} c
+ * @returns {string}
+ */
+function normalizeColorForIcon(c) {
+    if (c == null || c === "") return "transparent";
+    const s = String(c).trim().toLowerCase();
+    if (s === "transparent") return "transparent";
+    if (s === "white" || s === "#ffffff" || s === "ffffff") return "ffffff";
+    const parsed = colord(c);
+    if (parsed.isValid()) return parsed.toHex();
+    return s.replace(/^#/, "") || "transparent";
+}
+
+/**
+ * Loads a pre-generated SVG from assets/generated/{icon}_{fg}_{bg}.svg (see scripts/icon-manifest.json and scripts/generate-icons.js).
+ * If the file is missing, throws so you can add the combo to the manifest and run the generator.
+ * Colors are normalized to 6-char hex (or "transparent") so computed values like rgb(r,g,b) match the manifest.
  * @param {string} iconName - Filename without .svg (e.g. "icon-fire")
  * @param {string} [foregroundColor] - Color for #333333
  * @param {string} [backgroundColor] - Color for #ffffff
- * @returns {Promise<string|null>}
+ * @returns {Promise<string>} Data URL of the SVG
  */
 export async function load_icon(
     iconName,
     foregroundColor = "#333333",
     backgroundColor = "white"
 ) {
-    const cacheKey = `${iconName}-${foregroundColor}-${backgroundColor}`;
+    const fg = normalizeColorForIcon(foregroundColor);
+    const bg = normalizeColorForIcon(backgroundColor);
+    const cacheKey = `${iconName}-${fg}-${bg}`;
     if (iconCache[cacheKey]) {
         return iconCache[cacheKey];
     }
 
-    try {
-        const response = await fetch(`assets/${iconName}.svg`);
-        let svgText = await response.text();
-        svgText = svgText.replace(/#333333/g, foregroundColor);
-        svgText = svgText.replace(/#ffffff/g, backgroundColor);
-        const dataUrl = `data:image/svg+xml;base64,${btoa(svgText)}`;
-        iconCache[cacheKey] = dataUrl;
-        return dataUrl;
-    } catch (error) {
-        console.error(`Error loading icon: ${iconName}`, error);
-        return null;
+    const generatedSlug = `${iconName}_${iconColorSlug(fg)}_${iconColorSlug(bg)}.svg`;
+    const url = `assets/generated/${generatedSlug}`;
+    const genResponse = await fetch(url);
+    if (!genResponse.ok) {
+        throw new Error(
+            `Missing icon: ${url} — add { "icon": "${iconName}", "fg": "...", "bg": "..." } to scripts/icon-manifest.json and run node scripts/generate-icons.js`
+        );
     }
+    const svgText = await genResponse.text();
+    const dataUrl = `data:image/svg+xml;base64,${btoa(svgText)}`;
+    iconCache[cacheKey] = dataUrl;
+    return dataUrl;
 }
 
 /**
@@ -1095,6 +1136,7 @@ export class SpellCard {
 
         let card = this.frontElement;
         if (card) {
+            closePopoversAndTooltipsIn(card);
             card.innerHTML = ""; // Clear existing content for redraw
         } else {
             card = document.createElement("div");

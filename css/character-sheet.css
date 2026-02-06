@@ -13,31 +13,13 @@
 
 wa-callout.printing-tip {
     margin-top: 1rem;
-    --wa-color-fill-quiet: #e4d8f3;
-}
-
-wa-callout.printing-tip::part(icon) {
-    color: var(--hero-color);
 }
 
 .sheet-image {
     flex: 1;
     max-width: 50%;
     border-radius: var(--border-radius);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.sheet-image-placeholder {
-    flex: 1;
-    border: 2px dashed #ccc;
-    border-radius: var(--border-radius);
-    padding: 2rem;
-    text-align: center;
-    min-height: 400px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f9f9f9;
+    box-shadow: var(--wa-shadow-m);
 }
 
 .sheet-text {
@@ -69,26 +51,6 @@ wa-callout.printing-tip::part(icon) {
     justify-content: center;
     gap: 1rem;
     flex-wrap: wrap;
-}
-
-wa-button.hero-button::part(base) {
-    background: var(--hero-color);
-    border-color: var(--hero-color);
-    box-shadow: 0 2px 10px #0002;
-    transition: all var(--wa-transition-slow) var(--wa-transition-easing);
-}
-
-wa-button.hero-button::part(base):hover {
-    transform: scale(1.05);
-}
-
-wa-button.hero-button::part(base):active {
-    transform: translateY(1px);
-}
-
-wa-button.hero-button::part(base):focus-visible {
-    outline: dashed 2px var(--hero-color);
-    outline-offset: 4px;
 }
 
 @media (max-width: 768px) {

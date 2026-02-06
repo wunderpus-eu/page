@@ -18,11 +18,6 @@
         <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
         <link rel="stylesheet" href="css/style.css" />
         <link rel="stylesheet" href="css/character-sheet.css" />
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-            crossorigin="anonymous"
-        />
         <script
             src="https://kit.webawesome.com/09159e6f02cb41ba.js"
             crossorigin="anonymous"
@@ -53,19 +48,26 @@
                     />
                 </a>
                 <nav class="header-nav" aria-label="Main">
-                    <button
-                        type="button"
-                        class="header-nav-toggle"
+                    <wa-button
+                        class="header-nav-toggle on-hero"
+                        appearance="plain"
+                        variant="neutral"
+                        size="small"
+                        pill
                         aria-expanded="false"
                         aria-controls="header-nav-menu"
                         aria-label="Open menu"
                     >
-                        <i class="fa-solid fa-bars header-nav-toggle-icon" aria-hidden="true"></i>
-                    </button>
+                        <wa-icon
+                            class="header-nav-toggle-icon"
+                            name="bars"
+                            aria-hidden="true"
+                        ></wa-icon>
+                    </wa-button>
                     <div id="header-nav-menu" class="header-nav-menu">
-                        <a href="character-sheet.html">Character sheet</a>
-                        <a href="spell-cards.html">Spell cards</a>
-                        <a href="https://ko-fi.com/wunderpus" target="_blank" rel="noopener noreferrer" class="header-nav-kofi">Support me</a>
+                        <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="character-sheet.html">Character sheet</wa-button>
+                        <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="spell-cards.html">Spell cards</wa-button>
+                        <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="https://ko-fi.com/wunderpus" target="_blank" rel="noopener noreferrer">Support me</wa-button>
                     </div>
                 </nav>
             </div>
@@ -83,11 +85,11 @@
                 <div class="download-buttons">
                     <wa-button
                         size="medium"
-                        variant="primary"
+                        appearance="accent"
+                        variant="brand"
                         href="sheets/wunderpus-character-sheet-a4.pdf"
                         target="_blank"
                         pill
-                        class="hero-button"
                         onclick="gtag('event', 'download', {'file_name': 'wunderpus-character-sheet-a4.pdf'});"
                     >
                         <wa-icon slot="start" name="download"></wa-icon>
@@ -95,18 +97,18 @@
                     </wa-button>
                     <wa-button
                         size="medium"
-                        variant="primary"
+                        appearance="accent"
+                        variant="brand"
                         href="sheets/wunderpus-character-sheet-letter.pdf"
                         target="_blank"
                         pill
-                        class="hero-button"
                         onclick="gtag('event', 'download', {'file_name': 'wunderpus-character-sheet-letter.pdf'});"
                     >
                         <wa-icon slot="start" name="download"></wa-icon>
                         Download Letter
                     </wa-button>
                 </div>
-                <wa-callout class="printing-tip" appearance="filled">
+                <wa-callout class="printing-tip" appearance="filled" variant="brand">
                     <wa-icon slot="icon" name="star"></wa-icon>
                     For best results, print with "Fit to paper" or "Scale to
                     fit".
@@ -201,7 +203,7 @@
                             <li>Field to add a portrait</li>
                             <li>Section for languages</li>
                         </ul>
-                        <wa-callout class="printing-tip" appearance="filled">
+                        <wa-callout class="printing-tip" appearance="filled" variant="brand">
                             <wa-icon slot="icon" name="circle-info"></wa-icon>
                             Use Acrobat Reader to add a portrait PDF (must be
                             cut to a circle with transparent background).

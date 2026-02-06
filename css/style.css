@@ -1,16 +1,58 @@
 /* General page styling: layout, nav, footer (every page) */
 
 :root {
-    --hero-color: #764dc0;
-    --text-color: #333;
-    --background-color: #fff;
     --container-width: 960px;
     --border-radius: 8px;
+
+    /* Web Awesome purple palette (hero / brand) */
+    --wa-color-purple-95: #f7f0ff;
+    --wa-color-purple-90: #eedfff;
+    --wa-color-purple-80: #ddbdff;
+    --wa-color-purple-70: #ca99ff;
+    --wa-color-purple-60: #b678f5;
+    --wa-color-purple-50: #9951db;
+    --wa-color-purple-40: #7936b3;
+    --wa-color-purple-30: #612692;
+    --wa-color-purple-20: #491870;
+    --wa-color-purple-10: #2d0b48;
+    --wa-color-purple-05: #1e0532;
+    --wa-color-purple: var(--wa-color-purple-50);
+    --wa-color-purple-key: 50;
+
+    --hero-color: var(--wa-color-purple);
+
+    /* Brand = purple (same scale, starts at 05) */
+    --wa-color-brand-05: var(--wa-color-purple-05);
+    --wa-color-brand-10: var(--wa-color-purple-10);
+    --wa-color-brand-20: var(--wa-color-purple-20);
+    --wa-color-brand-30: var(--wa-color-purple-30);
+    --wa-color-brand-40: var(--wa-color-purple-40);
+    --wa-color-brand-50: var(--wa-color-purple-50);
+    --wa-color-brand-60: var(--wa-color-purple-60);
+    --wa-color-brand-70: var(--wa-color-purple-70);
+    --wa-color-brand-80: var(--wa-color-purple-80);
+    --wa-color-brand-90: var(--wa-color-purple-90);
+    --wa-color-brand-95: var(--wa-color-purple-95);
+
+    /* Map to WA semantic tokens (same as WA reference) */
+    --wa-color-focus: var(--wa-color-brand-70);
+    --wa-color-mix-hover: black 10%;
+    --wa-color-mix-active: black 20%;
+    --wa-form-control-activated-color: var(--hero-color);
+    --wa-color-brand-fill-quiet: var(--wa-color-brand-95);
+    --wa-color-brand-fill-normal: var(--wa-color-brand-90);
+    --wa-color-brand-fill-loud: var(--wa-color-brand-50);
+    --wa-color-brand-border-quiet: var(--wa-color-brand-90);
+    --wa-color-brand-border-normal: var(--wa-color-brand-80);
+    --wa-color-brand-border-loud: var(--wa-color-brand-60);
+    --wa-color-brand-on-quiet: var(--wa-color-brand-40);
+    --wa-color-brand-on-normal: var(--wa-color-brand-30);
+    --wa-color-brand-on-loud: white;
 }
 
-/* Overscroll/bounce area matches header so pull-down doesn’t show white */
+/* Overscroll/bounce area matches main page background */
 html {
-    background-color: var(--hero-color);
+    background-color: var(--wa-color-surface-default);
 }
 
 body {
@@ -18,8 +60,8 @@ body {
         Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
         "Segoe UI Symbol";
     margin: 0;
-    color: var(--text-color);
-    background-color: var(--background-color);
+    color: var(--wa-color-text-normal);
+    background-color: var(--wa-color-surface-default);
     line-height: 1.6;
 }
 
@@ -39,6 +81,21 @@ h2 {
     margin-bottom: 2rem;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
         Helvetica, Arial, sans-serif;
+}
+
+/* Inversion tied to class .on-hero (not location): use on nav, spell search, filter trigger – not in dropdowns (white). */
+wa-button.on-hero,
+wa-input.on-hero {
+    --wa-color-neutral-fill-quiet: var(--wa-color-brand-60);
+    --wa-color-neutral-fill-normal: var(--hero-color);
+    --wa-color-neutral-fill-loud: #fff;
+    --wa-color-neutral-on-quiet: #fff;
+    --wa-color-neutral-on-normal: #fff;
+    --wa-color-neutral-on-loud: var(--hero-color);
+}
+wa-button.on-hero wa-icon,
+wa-button.on-hero i {
+    color: inherit;
 }
 
 /* Top row: wordmark + nav (same on character sheet and spell cards) */
@@ -68,65 +125,9 @@ h2 {
     gap: 0.5rem;
 }
 
-.header-nav a {
-    color: rgba(255, 255, 255, 0.9);
-    text-decoration: none;
-    font-weight: 600;
-    padding: 0.35rem 0.7rem;
-    border-radius: var(--border-radius);
-    transition: color 0.15s ease, background 0.15s ease;
-}
-
-.header-nav a:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.header-nav a.active {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.25);
-}
-
-.header-nav a:focus-visible,
-.header-nav a:active {
-    outline: 2px solid rgba(255, 255, 255, 0.8);
-    outline-offset: 2px;
-}
 
 .header-nav-toggle {
     display: none;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.9);
-    cursor: pointer;
-    font-family: inherit;
-    transition: color 0.15s ease, background 0.15s ease;
-}
-
-.header-nav-toggle:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.header-nav-toggle:focus-visible,
-.header-nav-toggle:active {
-    outline: 2px solid rgba(255, 255, 255, 0.8);
-    outline-offset: 2px;
-}
-
-.header-nav-toggle::-moz-focus-inner {
-    border: 0;
-}
-
-.header-nav-toggle-icon {
-    font-size: 1.125rem;
-    display: block;
 }
 
 .header-nav-menu {
@@ -163,18 +164,18 @@ h2 {
 .footer {
     margin-top: 2rem;
     padding: 2rem 0;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--wa-color-surface-border, #eee);
     text-align: center;
-    color: #777;
+    color: var(--wa-color-text-quiet);
 }
 
 .footer a {
-    color: #555;
+    color: var(--wa-color-text-link);
     text-decoration: underline;
 }
 
 .footer a:hover {
-    color: #333;
+    color: var(--wa-color-text-normal);
 }
 
 /* Header: hamburger only when nav links + logo + gap wouldn’t fit (under 900px) */
@@ -196,7 +197,7 @@ h2 {
         gap: 0.25rem;
         background: var(--hero-color);
         border-radius: 0 0 var(--border-radius) var(--border-radius);
-        box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.15);
+        box-shadow: var(--wa-shadow-l);
         z-index: 100;
     }
 
@@ -206,11 +207,6 @@ h2 {
 
     .header .container {
         position: relative;
-    }
-
-    .header-nav-menu a {
-        padding: 0.6rem 0.75rem;
-        border-radius: var(--border-radius);
     }
 }
 

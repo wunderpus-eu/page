@@ -34,6 +34,7 @@ export async function layoutCards(
 ) {
     const { defaultCardBack = false, sideBySide = false } = options;
 
+    closePopoversIn(printableArea);
     printableArea.innerHTML = "";
 
     if (cards.length === 0) {

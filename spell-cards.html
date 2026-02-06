@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="spell-cards-page">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -48,19 +48,26 @@
                     />
                 </a>
                 <nav class="header-nav" aria-label="Main">
-                    <button
-                        type="button"
-                        class="header-nav-toggle"
+                    <wa-button
+                        class="header-nav-toggle on-hero"
+                        appearance="plain"
+                        variant="neutral"
+                        size="small"
+                        pill
                         aria-expanded="false"
                         aria-controls="header-nav-menu"
                         aria-label="Open menu"
                     >
-                        <i class="fa-solid fa-bars header-nav-toggle-icon" aria-hidden="true"></i>
-                    </button>
+                        <wa-icon
+                            class="header-nav-toggle-icon"
+                            name="bars"
+                            aria-hidden="true"
+                        ></wa-icon>
+                    </wa-button>
                     <div id="header-nav-menu" class="header-nav-menu">
-                        <a href="character-sheet.html">Character sheet</a>
-                        <a href="spell-cards.html">Spell cards</a>
-                        <a href="https://ko-fi.com/wunderpus" target="_blank" rel="noopener noreferrer" class="header-nav-kofi">Support me</a>
+                        <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="character-sheet.html">Character sheet</wa-button>
+                        <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="spell-cards.html">Spell cards</wa-button>
+                        <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="https://ko-fi.com/wunderpus" target="_blank" rel="noopener noreferrer">Support me</wa-button>
                     </div>
                 </nav>
             </div>
@@ -82,13 +89,18 @@
                                 <wa-input
                                     slot="trigger"
                                     id="spell-search-input"
+                                    class="on-hero"
                                     placeholder="Search spells to add..."
-                                    clearable
+                                    with-clear
                                 ></wa-input>
                                 <div
                                     id="spell-list-popover"
                                     class="spell-list-popover"
                                 >
+                                    <div
+                                        id="spell-list-chips"
+                                        class="spell-list-chips"
+                                    ></div>
                                     <div class="spell-list-header">
                                         <span
                                             id="spell-list-count"
@@ -98,13 +110,10 @@
                                             id="spell-list-add-all"
                                             size="small"
                                             variant="default"
-                                            >Add all</wa-button
+                                            class="spell-list-inline-btn"
+                                            ><wa-icon name="check-double" aria-hidden="true"></wa-icon> Add all</wa-button
                                         >
                                     </div>
-                                    <div
-                                        id="spell-list-chips"
-                                        class="spell-list-chips"
-                                    ></div>
                                     <div
                                         id="srd-banner"
                                         class="srd-banner hidden"
@@ -115,9 +124,10 @@
                                             id="srd-banner-info"
                                             variant="default"
                                             size="small"
+                                            class="spell-list-inline-btn"
                                             title="Non-SRD info"
                                         >
-                                            <wa-icon name="circle-info"></wa-icon>
+                                            <wa-icon name="circle-info" aria-hidden="true"></wa-icon> Details
                                         </wa-button>
                                     </div>
                                     <div
@@ -129,13 +139,15 @@
                             <wa-dropdown id="filter-dropdown" hoist class="filter-dropdown">
                                 <wa-button
                                     slot="trigger"
-                                    class="filter-trigger-btn"
-                                    variant="default"
+                                    class="filter-trigger-btn on-hero"
+                                    appearance="plain"
+                                    variant="neutral"
                                     size="small"
+                                    pill
                                     title="Filters"
                                     aria-label="Filters"
                                 >
-                                    <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                                    <wa-icon name="sliders" aria-hidden="true"></wa-icon>
                                 </wa-button>
                                 <div
                                     id="filter-menu-content"
@@ -149,12 +161,13 @@
                                             <wa-button
                                                 id="filter-clear-btn"
                                                 class="filter-clear-btn hidden"
-                                                variant="default"
+                                                appearance="plain"
+                                                variant="neutral"
                                                 size="small"
                                                 title="Clear filters"
                                                 aria-label="Clear filters"
                                             >
-                                                <i class="fa-solid fa-broom" aria-hidden="true"></i>
+                                                <wa-icon name="broom" slot="start" aria-hidden="true"></wa-icon>
                                                 Clear Filters
                                             </wa-button>
                                         </div>
@@ -173,6 +186,26 @@
                                             ></wa-switch>
                                             <span class="filter-menu-row__label">Exclude reprinted</span>
                                         </div>
+                                        <input
+                                            type="file"
+                                            id="upload-spells-input"
+                                            class="visually-hidden-file-input"
+                                            accept=".json,application/json"
+                                            tabindex="-1"
+                                            aria-hidden="true"
+                                        />
+                                        <wa-button
+                                            id="upload-spells-btn"
+                                            class="filter-menu-upload-btn"
+                                            appearance="plain"
+                                            variant="neutral"
+                                            size="small"
+                                            title="Upload spell JSON"
+                                            aria-label="Upload spell JSON"
+                                        >
+                                            <wa-icon name="upload" slot="start" aria-hidden="true"></wa-icon>
+                                            Upload spell JSON
+                                        </wa-button>
                                     </div>
                                     <div class="filter-chip-group">
                                         <span class="filter-chip-label"
@@ -206,26 +239,9 @@
                         </div>
                     </div>
 
-                    <!-- Row 2: upload/download left, add/clear right (icon-only) -->
+                    <!-- Row 2: download left, add/clear right (icon-only). Upload is in filter menu. -->
                     <div class="controls-row controls-row--actions">
                         <div class="controls-row__group">
-                            <input
-                                type="file"
-                                id="upload-spells-input"
-                                class="visually-hidden-file-input"
-                                accept=".json,application/json"
-                                tabindex="-1"
-                                aria-hidden="true"
-                            />
-                            <wa-button
-                                id="upload-spells-btn"
-                                variant="default"
-                                size="small"
-                                title="Upload spells"
-                                aria-label="Upload spells"
-                            >
-                                <wa-icon name="upload"></wa-icon>
-                            </wa-button>
                             <wa-button
                                 id="download-custom-btn"
                                 variant="default"
@@ -244,7 +260,7 @@
                                 title="Add empty card"
                                 aria-label="Add empty card"
                             >
-                                <i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i>
+                                <wa-icon name="file-circle-plus" aria-hidden="true"></wa-icon>
                             </wa-button>
                             <wa-button
                                 id="add-glossary-btn"
@@ -279,14 +295,14 @@
                     <!-- Row 4: layout options -->
                     <div class="controls-row controls-row--layout">
                         <span class="controls-select-with-icon" title="Page size">
-                            <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+                            <wa-icon name="file-lines" aria-hidden="true"></wa-icon>
                             <wa-select id="page-size-select" value="letter">
                                 <wa-option value="letter">Letter</wa-option>
                                 <wa-option value="a4">A4</wa-option>
                             </wa-select>
                         </span>
                         <span class="controls-select-with-icon" title="Sort order">
-                            <i class="fa-solid fa-arrows-up-down" aria-hidden="true"></i>
+                            <wa-icon name="arrows-up-down" aria-hidden="true"></wa-icon>
                             <wa-select id="sort-select" value="level">
                                 <wa-option value="alphabetical">A–Z</wa-option>
                                 <wa-option value="level">By level</wa-option>
@@ -341,14 +357,19 @@
             id="srd-excluded-dialog"
             label="Non-SRD spells"
             class="srd-excluded-dialog"
+            light-dismiss
         >
+            <button
+                type="button"
+                class="srd-dialog-icon-btn"
+                slot="header-actions"
+                id="srd-excluded-copy"
+                aria-label="Copy to clipboard"
+            >
+                <wa-icon name="copy" aria-hidden="true"></wa-icon>
+            </button>
             <p id="srd-excluded-explanation"></p>
             <div id="srd-excluded-list" class="srd-excluded-list"></div>
-            <div class="srd-excluded-actions">
-                <wa-button id="srd-excluded-copy" variant="default"
-                    >Copy to clipboard</wa-button
-                >
-            </div>
         </wa-dialog>
 
         <div id="toast" class="toast hidden" aria-live="polite"></div>

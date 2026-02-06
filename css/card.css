@@ -104,7 +104,10 @@ body.vault-open .spell-source-text .source-full {
     display: block;
 }
 
-/* Spell-cards page: main area fills viewport so footer stays at bottom when no cards */
+/* Spell-cards page: overscroll matches light grey */
+html.spell-cards-page {
+    background-color: #f0f0f0;
+}
 body.spell-cards-page {
     display: flex;
     flex-direction: column;

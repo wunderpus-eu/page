@@ -5,10 +5,10 @@
     var nav = document.querySelector(".header-nav");
     if (!nav) return;
 
-    // Mark the link for the current page as active
+    // Mark the nav button for the current page as active
     var path = window.location.pathname;
     var file = path.slice(path.lastIndexOf("/") + 1) || "index.html";
-    var activeLink = nav.querySelector('a[href="' + file + '"]');
+    var activeLink = nav.querySelector('wa-button[href="' + file + '"]');
     if (activeLink) activeLink.classList.add("active");
 
     // Mobile menu: hamburger / close icon toggle
@@ -21,20 +21,14 @@
         toggle.setAttribute("aria-expanded", "false");
         toggle.setAttribute("aria-label", "Open menu");
         nav.classList.remove("is-open");
-        if (icon) {
-            icon.classList.remove("fa-xmark");
-            icon.classList.add("fa-bars");
-        }
+        if (icon) icon.setAttribute("name", "bars");
     }
 
     function setMenuOpen() {
         toggle.setAttribute("aria-expanded", "true");
         toggle.setAttribute("aria-label", "Close menu");
         nav.classList.add("is-open");
-        if (icon) {
-            icon.classList.remove("fa-bars");
-            icon.classList.add("fa-xmark");
-        }
+        if (icon) icon.setAttribute("name", "xmark");
     }
 
     toggle.addEventListener("click", function () {
@@ -47,7 +41,7 @@
     });
 
     menu.addEventListener("click", function (e) {
-        if (e.target.tagName === "A") setMenuClosed();
+        if (e.target.closest && e.target.closest("wa-button[href]")) setMenuClosed();
     });
 
     document.addEventListener("keydown", function (e) {

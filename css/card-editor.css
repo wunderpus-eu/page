@@ -56,67 +56,30 @@ header:not(.header--spell-cards) {
     min-width: 0;
 }
 
-/* Search bar: pill shape */
+/* Search bar: pill shape (color/focus from .on-hero in style.css) */
 .spell-search-wrapper #spell-search-input {
     --wa-input-border-radius: 9999px;
-    border-radius: 9999px;
     width: 100%;
 }
 .spell-search-wrapper #spell-search-input::part(base) {
     border-radius: 9999px;
 }
 
-/* Search bar and dropdowns: white focus ring to match nav (no blue) */
-.header__controls #spell-search-input::part(base):focus-within,
-.header__controls #spell-search-input::part(base):focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.8);
-    outline-offset: 2px;
-    box-shadow: none;
-}
-
-/* Dropdown triggers (spell combobox uses the input above; filter button has its own rule) */
-.header__controls wa-dropdown::part(trigger):focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.8);
-    outline-offset: 2px;
-    box-shadow: none;
-}
-
 .spell-search-wrapper .filter-dropdown {
     flex-shrink: 0;
 }
 
-/* Filter button: circular, same height as search box (43px), white icon, nav-bar–style hover/active */
-.header__controls .filter-trigger-btn::part(base) {
-    background: transparent;
-    color: rgba(255, 255, 255, 0.9);
-    border-color: transparent;
+/* Match filter button size to search bar; necessary to avoid flicker when switching between filter menu and spell selection dropdown. */
+.spell-search-wrapper #spell-search-input::part(base) {
+    min-height: 43px;
+}
+.filter-trigger-btn::part(base) {
     height: 43px;
     min-height: 43px;
     width: 43px;
     min-width: 43px;
     padding: 0;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     box-sizing: border-box;
-}
-
-.header__controls .filter-trigger-btn::part(base):hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
-    border-color: transparent;
-}
-
-.header__controls .filter-trigger-btn::part(base):active,
-.header__controls .filter-trigger-btn::part(base):focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.8);
-    outline-offset: 2px;
-}
-
-.header__controls .filter-trigger-btn wa-icon,
-.header__controls .filter-trigger-btn i {
-    color: inherit;
 }
 
 /* Dropdown panels: same width as menu content (container minus 24px padding each side, minus panels’ own 4px padding each side) */
@@ -138,7 +101,47 @@ header:not(.header--spell-cards) {
 .spell-list-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
+}
+.spell-list-count {
+    font-style: italic;
+    min-width: 0;
+}
+.spell-list-count-badge {
+    font-style: normal;
+}
+
+/* Inline text buttons in spell list (Add all, Details): bold text, no background, nav-bar-style hover/active */
+.spell-list-popover .spell-list-inline-btn::part(base) {
+    background: transparent;
+    border: none;
+    color: var(--wa-color-neutral-700);
+    font-size: inherit;
+    font-weight: 600;
+    font-style: normal;
+    min-height: auto;
+    height: auto;
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--wa-border-radius-small, 4px);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.spell-list-popover .spell-list-inline-btn::part(base):hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--wa-color-neutral-900);
+}
+.spell-list-popover .spell-list-inline-btn::part(base):active,
+.spell-list-popover .spell-list-inline-btn::part(base):focus-visible {
+    background: rgba(0, 0, 0, 0.14);
+    color: var(--wa-color-neutral-900);
+}
+.spell-list-popover .spell-list-inline-btn i,
+.spell-list-popover .spell-list-inline-btn wa-icon {
+    font-size: 0.875em;
+    color: inherit;
 }
 
 .spell-list-chips {
@@ -146,12 +149,29 @@ header:not(.header--spell-cards) {
     flex-wrap: wrap;
     gap: 6px;
 }
+.spell-list-chips:empty {
+    display: none;
+}
+
+/* Spell list filter chips: wa-tag with-remove, size=small, variant=neutral, appearance=filled (built-in) */
 
 .srd-banner {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: space-between;
+    gap: 8px;
     color: var(--wa-color-neutral-600);
+    font-size: 0.9375rem;
+    font-style: italic;
+}
+#srd-banner-text {
+    min-width: 0;
+}
+.srd-banner .spell-list-inline-btn::part(base) {
+    color: var(--wa-color-neutral-600);
+}
+.srd-banner .spell-list-inline-btn::part(base):hover {
+    color: var(--wa-color-neutral-800);
 }
 .srd-banner.hidden {
     display: none;
@@ -163,6 +183,9 @@ header:not(.header--spell-cards) {
     max-height: 400px;
     display: flex;
     flex-direction: column;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding-top: 8px;
+    margin-top: 0;
 }
 
 .spell-list-item {
@@ -284,27 +307,11 @@ header:not(.header--spell-cards) {
     gap: 0.5rem;
 }
 
+/* Reserve space when hidden so the header row doesn’t shift when the button appears */
+/* Reserve space when hidden so the header row doesn't shift when the button appears */
 .filter-clear-btn.hidden {
-    display: none !important;
-}
-
-/* Clear Filters: text-only look by default, light grey on hover/active */
-.filter-menu-content .filter-clear-btn::part(base) {
-    background: transparent;
-    border: none;
-    color: var(--wa-color-neutral-700);
-    font-size: 1rem;
-    font-weight: 500;
-    height: 21.75px;
-    min-height: 21.75px;
-    padding: 0;
-    align-items: center;
-}
-.filter-menu-content .filter-clear-btn::part(base):hover,
-.filter-menu-content .filter-clear-btn::part(base):active,
-.filter-menu-content .filter-clear-btn::part(base):focus-visible {
-    background: var(--wa-color-neutral-200);
-    border: none;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .filter-menu-content .filter-chip-group:first-of-type {
@@ -315,6 +322,11 @@ header:not(.header--spell-cards) {
     margin-top: 6px;
 }
 
+.filter-menu-upload-btn {
+    width: 100%;
+    justify-content: flex-start;
+}
+
 .filter-menu-row__label {
     color: var(--wa-color-neutral-800);
 }
@@ -322,11 +334,6 @@ header:not(.header--spell-cards) {
 .filter-menu-row {
     display: flex;
     align-items: center;
-}
-
-/* Filter menu toggles: hero color when on (unchecked uses default via .switch / --wa-form-control-activated-color) */
-.filter-menu-content wa-switch {
-    --wa-form-control-activated-color: var(--hero-color);
 }
 
 .filter-chip-group {
@@ -346,60 +353,10 @@ header:not(.header--spell-cards) {
     gap: 6px;
 }
 
-.filter-chip-list .filter-chip {
-    margin: 0;
-    cursor: pointer;
-}
-
-.filter-chip-list .filter-chip,
-.filter-chip-list .filter-chip::part(base) {
-    border: none;
-    transition: background-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-/* Chip hover/selected: hero color (and shades) for source/class/level; school chips use their own color below */
-.filter-chip-list .filter-chip:not(.filter-chip--school):hover,
-.filter-chip-list .filter-chip:not(.filter-chip--school):hover::part(base),
-.filter-chip-list .filter-chip:not(.filter-chip--school)::part(base):hover {
-    background-color: color-mix(in srgb, var(--hero-color) 18%, white);
-}
-
-.filter-chip-list .filter-chip:not(.filter-chip--school)[variant="primary"],
-.filter-chip-list .filter-chip:not(.filter-chip--school).filter-chip--selected,
-.filter-chip-list .filter-chip:not(.filter-chip--school)[variant="primary"]::part(base),
-.filter-chip-list .filter-chip:not(.filter-chip--school).filter-chip--selected::part(base) {
-    background-color: var(--hero-color);
-    color: #fff;
-}
-
-/* Selected chip hover: lighten like nav bar buttons */
-.filter-chip-list .filter-chip:not(.filter-chip--school)[variant="primary"]:hover,
-.filter-chip-list .filter-chip:not(.filter-chip--school).filter-chip--selected:hover,
-.filter-chip-list .filter-chip:not(.filter-chip--school)[variant="primary"]:hover::part(base),
-.filter-chip-list .filter-chip:not(.filter-chip--school).filter-chip--selected:hover::part(base) {
-    background-color: color-mix(in srgb, var(--hero-color) 85%, white);
-}
-
-/* Spell school chips: same behaviour but use each school's color (--chip-school-color set in JS) */
-.filter-chip-list .filter-chip.filter-chip--school:hover,
-.filter-chip-list .filter-chip.filter-chip--school:hover::part(base),
-.filter-chip-list .filter-chip.filter-chip--school::part(base):hover {
-    background-color: color-mix(in srgb, var(--chip-school-color) 18%, white);
-}
-
-.filter-chip-list .filter-chip.filter-chip--school[variant="primary"],
-.filter-chip-list .filter-chip.filter-chip--school.filter-chip--selected,
-.filter-chip-list .filter-chip.filter-chip--school[variant="primary"]::part(base),
-.filter-chip-list .filter-chip.filter-chip--school.filter-chip--selected::part(base) {
-    background-color: var(--chip-school-color);
-    color: #fff;
-}
-
-.filter-chip-list .filter-chip.filter-chip--school[variant="primary"]:hover,
-.filter-chip-list .filter-chip.filter-chip--school.filter-chip--selected:hover,
-.filter-chip-list .filter-chip.filter-chip--school[variant="primary"]:hover::part(base),
-.filter-chip-list .filter-chip.filter-chip--school.filter-chip--selected:hover::part(base) {
-    background-color: color-mix(in srgb, var(--chip-school-color) 85%, white);
+/* Same scale as style.css but from --chip-school-color so library hover/focus works */
+.filter-chip-list .filter-chip.filter-chip--school[variant="brand"] {
+    --wa-color-brand-fill-normal: color-mix(in srgb, var(--chip-school-color) 18%, white);
+    --wa-color-brand-on-normal: color-mix(in srgb, var(--chip-school-color) 55%, black);
 }
 
 .filter-chip.filter-chip--class {
@@ -497,6 +454,7 @@ header:not(.header--spell-cards) {
 
 .duration-ends-tokens .duration-end-tag {
     margin: 0;
+    cursor: pointer;
 }
 
 .edit-classes-tokens {
@@ -507,6 +465,7 @@ header:not(.header--spell-cards) {
 
 .edit-classes-tokens .edit-class-tag {
     margin: 0;
+    cursor: pointer;
 }
 
 .edit-overlay-actions {
@@ -542,11 +501,64 @@ header:not(.header--spell-cards) {
     margin-left: 12px;
     padding: 2px 0;
 }
-.srd-excluded-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 12px;
+/* Dialog header: copy and close as round icon buttons (nav-bar style) */
+.srd-excluded-dialog::part(close-button),
+.srd-excluded-dialog::part(close-button__base) {
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    min-height: 2rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--wa-color-neutral-600);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.srd-excluded-dialog::part(close-button):hover,
+.srd-excluded-dialog::part(close-button__base):hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--wa-color-neutral-800);
+}
+.srd-excluded-dialog::part(close-button):active,
+.srd-excluded-dialog::part(close-button__base):active,
+.srd-excluded-dialog::part(close-button):focus-visible,
+.srd-excluded-dialog::part(close-button__base):focus-visible {
+    background: rgba(0, 0, 0, 0.14);
+    color: var(--wa-color-neutral-900);
+}
+.srd-dialog-icon-btn {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--wa-color-neutral-600);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.srd-dialog-icon-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--wa-color-neutral-800);
+}
+.srd-dialog-icon-btn:active,
+.srd-dialog-icon-btn:focus-visible {
+    background: rgba(0, 0, 0, 0.14);
+    color: var(--wa-color-neutral-900);
+}
+.srd-dialog-icon-btn:focus-visible {
+    outline: 2px solid var(--wa-color-neutral-600);
+    outline-offset: 2px;
+}
+.srd-dialog-icon-btn i {
+    font-size: 0.9rem;
 }
 
 /* Toast (easter egg) */

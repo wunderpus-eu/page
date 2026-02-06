@@ -381,13 +381,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateFilterChipSelection(key);
     }
 
-    /** Renders active filter chips with remove buttons. */
+    /** Renders active filter chips with remove buttons (wa-tag with-remove, built-in styling). */
     function renderChips() {
         const chips = getActiveFilterChips();
         spellListChips.innerHTML = "";
         chips.forEach(({ key, value, label }) => {
             const tag = document.createElement("wa-tag");
-            tag.removable = true;
+            tag.setAttribute("with-remove", "");
+            tag.setAttribute("size", "small");
+            tag.setAttribute("variant", "neutral");
+            tag.setAttribute("appearance", "filled");
             tag.textContent = label;
             tag.addEventListener("wa-remove", (event) => {
                 event.preventDefault();
@@ -445,7 +448,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                             showingSrdNameCount !== 1 ? "s" : ""
                         }`
                     );
-                srdBannerText.textContent = parts.join("; ") + ".";
+                srdBannerText.textContent = parts.join("; ");
             } else {
                 srdBanner.classList.add("hidden");
                 srdBanner.setAttribute("aria-hidden", "true");
@@ -1090,24 +1093,25 @@ document.addEventListener("DOMContentLoaded", async () => {
         DURATION_END_OPTIONS.forEach(({ value, label }) => {
             const tag = document.createElement("wa-tag");
             tag.className = "duration-end-tag";
+            tag.setAttribute("size", "small");
+            tag.setAttribute("appearance", "filled");
             tag.dataset.value = value;
             tag.textContent = label;
-            tag.variant = durationEnds.includes(value) ? "primary" : "neutral";
-            tag.style.cursor = "pointer";
+            tag.variant = durationEnds.includes(value) ? "brand" : "neutral";
             tag.addEventListener("click", () => {
                 const container = document.getElementById(
                     "edit-duration-ends-wrap"
                 );
                 const tags = container.querySelectorAll(".duration-end-tag");
                 const ends = Array.from(tags)
-                    .filter((t) => t.variant === "primary")
+                    .filter((t) => t.variant === "brand")
                     .map((t) => t.dataset.value);
                 const idx = ends.indexOf(value);
                 if (idx >= 0) ends.splice(idx, 1);
                 else ends.push(value);
                 tags.forEach((t) => {
                     t.variant = ends.includes(t.dataset.value)
-                        ? "primary"
+                        ? "brand"
                         : "neutral";
                 });
                 updateEditPreview();
@@ -1250,24 +1254,25 @@ document.addEventListener("DOMContentLoaded", async () => {
         SPELL_CLASSES.forEach((className) => {
             const tag = document.createElement("wa-tag");
             tag.className = "edit-class-tag";
+            tag.setAttribute("size", "small");
+            tag.setAttribute("appearance", "filled");
             tag.dataset.value = className;
             tag.textContent = className;
             tag.variant = spellClasses.includes(className)
-                ? "primary"
+                ? "brand"
                 : "neutral";
-            tag.style.cursor = "pointer";
             tag.addEventListener("click", () => {
                 const wrap = document.getElementById("edit-classes-wrap");
                 const tags = wrap.querySelectorAll(".edit-class-tag");
                 const selected = Array.from(tags)
-                    .filter((t) => t.variant === "primary")
+                    .filter((t) => t.variant === "brand")
                     .map((t) => t.dataset.value);
                 const idx = selected.indexOf(className);
                 if (idx >= 0) selected.splice(idx, 1);
                 else selected.push(className);
                 tags.forEach((t) => {
                     t.variant = selected.includes(t.dataset.value)
-                        ? "primary"
+                        ? "brand"
                         : "neutral";
                 });
                 updateEditPreview();
@@ -1425,7 +1430,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
             spell.duration.ends = endsWrap
                 ? Array.from(endsWrap.querySelectorAll(".duration-end-tag"))
-                      .filter((t) => t.variant === "primary")
+                      .filter((t) => t.variant === "brand")
                       .map((t) => t.dataset.value)
                 : [];
         } else {
@@ -1442,7 +1447,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const classesWrap = editCardForm.querySelector("#edit-classes-wrap");
         spell.classes = classesWrap
             ? Array.from(classesWrap.querySelectorAll(".edit-class-tag"))
-                  .filter((t) => t.variant === "primary")
+                  .filter((t) => t.variant === "brand")
                   .map((t) => t.dataset.value)
             : [];
         spell._modified = true;
@@ -1510,8 +1515,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         container.querySelectorAll(".filter-chip").forEach((chip) => {
             const val = chip.dataset.value;
             const isSelected = selected.has(val);
-            chip.variant = isSelected ? "primary" : "neutral";
-            chip.classList.toggle("filter-chip--selected", isSelected);
+            chip.setAttribute("variant", isSelected ? "brand" : "neutral");
             if (key === "class" && chip.dataset.iconUrl) {
                 const img = chip.querySelector(".filter-class-icon img");
                 if (img && chip.dataset.iconUrlSelected)
@@ -1520,37 +1524,36 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    /** Creates a clickable filter chip that toggles selection. */
+    /** Creates a clickable filter chip (wa-button) that toggles selection. Small, filled, neutral → brand when selected. */
     function createFilterChip(key, value, label, options = {}) {
-        const tag = document.createElement("wa-tag");
-        tag.className = "filter-chip filter-chip--" + key;
-        tag.dataset.value = value;
+        const btn = document.createElement("wa-button");
+        btn.className = "filter-chip filter-chip--" + key;
+        btn.dataset.value = value;
+        btn.setAttribute("size", "small");
+        btn.setAttribute("appearance", "filled");
+        const isSelected = filterValues[key].includes(value);
+        btn.setAttribute("variant", isSelected ? "brand" : "neutral");
         if (key === "class" && options.iconUrl) {
-            tag.textContent = "";
-            tag.dataset.iconUrl = options.iconUrl;
-            if (options.iconUrlSelected) tag.dataset.iconUrlSelected = options.iconUrlSelected;
+            btn.dataset.iconUrl = options.iconUrl;
+            if (options.iconUrlSelected) btn.dataset.iconUrlSelected = options.iconUrlSelected;
             const iconSpan = document.createElement("span");
             iconSpan.className = "filter-class-icon";
+            iconSpan.setAttribute("slot", "start");
             const img = document.createElement("img");
-            const isSelected = filterValues[key].includes(value);
             img.src = isSelected && options.iconUrlSelected
                 ? options.iconUrlSelected
                 : options.iconUrl;
             img.alt = "";
             iconSpan.appendChild(img);
-            tag.appendChild(iconSpan);
-            tag.appendChild(document.createTextNode(" " + label));
+            btn.appendChild(iconSpan);
+            btn.appendChild(document.createTextNode(" " + label));
         } else {
-            tag.textContent = label;
+            btn.textContent = label;
         }
         if (key === "school" && schoolColorMap[value]) {
-            tag.style.setProperty("--chip-school-color", schoolColorMap[value]);
+            btn.style.setProperty("--chip-school-color", schoolColorMap[value]);
         }
-        const isSelected = filterValues[key].includes(value);
-        tag.variant = isSelected ? "primary" : "neutral";
-        if (isSelected) tag.classList.add("filter-chip--selected");
-        tag.style.cursor = "pointer";
-        tag.addEventListener("click", () => {
+        btn.addEventListener("click", () => {
             const arr = filterValues[key];
             const idx = arr.indexOf(value);
             if (idx >= 0) arr.splice(idx, 1);
@@ -1560,7 +1563,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             updateFilterChipSelection(key);
             updateClearFilterButtonVisibility();
         });
-        return tag;
+        return btn;
     }
 
     /** Show or hide the clear-filters button based on whether any chip filter is set. */
@@ -1643,12 +1646,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         const classList = [...allClasses].sort();
         const classIconUrls = {};
         const chipTextColor = "#374151";
+        const brandOnNormal = getComputedStyle(document.documentElement).getPropertyValue("--wa-color-brand-30").trim() || "#612692";
         await Promise.all(
             classList.map(async (c) => {
                 const iconName = "icon-" + c.toLowerCase();
                 classIconUrls[c] = {
                     default: await load_icon(iconName, "transparent", chipTextColor),
-                    selected: await load_icon(iconName, "transparent", "#fff"),
+                    selected: await load_icon(iconName, "transparent", brandOnNormal),
                 };
             })
         );
@@ -1690,14 +1694,41 @@ document.addEventListener("DOMContentLoaded", async () => {
         }px`;
     }
 
-    /** Builds full non-SRD dialog text for copy (excluded + shown under different name). */
+    /** Builds full non-SRD dialog text for copy (different name first, then excluded). */
     function getSrdExcludedListText() {
         const excluded = getSrdExcludedSpells();
         const withSrdName = getSpellsWithSrdName();
         const lines = [];
 
+        if (withSrdName.length > 0) {
+            lines.push("Different name outside the SRD");
+            lines.push("");
+            const bySource = new Map();
+            withSrdName.forEach((spell) => {
+                const src = spell.source;
+                if (!bySource.has(src)) bySource.set(src, []);
+                bySource.get(src).push(spell);
+            });
+            const sourceOrder = [...bySource.keys()].sort((a, b) => {
+                const labelA = SOURCE_MAP[a] || a;
+                const labelB = SOURCE_MAP[b] || b;
+                return labelA.localeCompare(labelB);
+            });
+            sourceOrder.forEach((src) => {
+                const label = SOURCE_MAP[src] || src;
+                lines.push(label);
+                bySource
+                    .get(src)
+                    .sort((a, b) => (a.isSRD || "").localeCompare(b.isSRD || ""))
+                    .forEach((spell) => {
+                        lines.push(`  ${spell.isSRD}`);
+                    });
+                lines.push("");
+            });
+        }
+
         if (excluded.length > 0) {
-            lines.push("Excluded (not in SRD)");
+            lines.push("Matching non-SRD spells");
             lines.push("");
             const bySource = new Map();
             excluded.forEach((spell) => {
@@ -1723,9 +1754,22 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         }
 
+        return lines.join("\n").trim();
+    }
+
+    /** Opens the non-SRD excluded dialog and populates it. */
+    function openSrdExcludedDialog() {
+        const excluded = getSrdExcludedSpells();
+        const withSrdName = getSpellsWithSrdName();
+        srdExcludedExplanation.textContent =
+            "The following spells match your filters but are not part of the SRD, or have a different name outside the SRD. If you own the corresponding source book, you can add/edit them manually.";
+        srdExcludedList.innerHTML = "";
+
         if (withSrdName.length > 0) {
-            lines.push("Shown under SRD name");
-            lines.push("");
+            const sectionTitle = document.createElement("div");
+            sectionTitle.className = "srd-section-title";
+            sectionTitle.textContent = "Different name outside the SRD";
+            srdExcludedList.appendChild(sectionTitle);
             const bySource = new Map();
             withSrdName.forEach((spell) => {
                 const src = spell.source;
@@ -1738,33 +1782,29 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return labelA.localeCompare(labelB);
             });
             sourceOrder.forEach((src) => {
-                const label = SOURCE_MAP[src] || src;
-                lines.push(label);
+                const group = document.createElement("div");
+                group.className = "srd-source-group";
+                const label = document.createElement("div");
+                label.className = "srd-source-name";
+                label.textContent = SOURCE_MAP[src] || src;
+                group.appendChild(label);
                 bySource
                     .get(src)
-                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .sort((a, b) => (a.isSRD || "").localeCompare(b.isSRD || ""))
                     .forEach((spell) => {
-                        lines.push(`  ${spell.name} (${spell.isSRD})`);
+                        const div = document.createElement("div");
+                        div.className = "srd-spell-name";
+                        div.textContent = spell.isSRD;
+                        group.appendChild(div);
                     });
-                lines.push("");
+                srdExcludedList.appendChild(group);
             });
         }
-
-        return lines.join("\n").trim();
-    }
-
-    /** Opens the non-SRD excluded dialog and populates it. */
-    function openSrdExcludedDialog() {
-        const excluded = getSrdExcludedSpells();
-        const withSrdName = getSpellsWithSrdName();
-        srdExcludedExplanation.textContent =
-            "The following spells would match your filters but are not part of the SRD, or their name differs from the SRD. You can add them manually if you own the corresponding source book.";
-        srdExcludedList.innerHTML = "";
 
         if (excluded.length > 0) {
             const sectionTitle = document.createElement("div");
             sectionTitle.className = "srd-section-title";
-            sectionTitle.textContent = "Excluded (not in SRD)";
+            sectionTitle.textContent = "Matching non-SRD spells";
             srdExcludedList.appendChild(sectionTitle);
             const bySource = new Map();
             excluded.forEach((spell) => {
@@ -1791,42 +1831,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                         const div = document.createElement("div");
                         div.className = "srd-spell-name";
                         div.textContent = spell.name;
-                        group.appendChild(div);
-                    });
-                srdExcludedList.appendChild(group);
-            });
-        }
-
-        if (withSrdName.length > 0) {
-            const sectionTitle = document.createElement("div");
-            sectionTitle.className = "srd-section-title";
-            sectionTitle.textContent = "Shown under SRD name";
-            srdExcludedList.appendChild(sectionTitle);
-            const bySource = new Map();
-            withSrdName.forEach((spell) => {
-                const src = spell.source;
-                if (!bySource.has(src)) bySource.set(src, []);
-                bySource.get(src).push(spell);
-            });
-            const sourceOrder = [...bySource.keys()].sort((a, b) => {
-                const labelA = SOURCE_MAP[a] || a;
-                const labelB = SOURCE_MAP[b] || b;
-                return labelA.localeCompare(labelB);
-            });
-            sourceOrder.forEach((src) => {
-                const group = document.createElement("div");
-                group.className = "srd-source-group";
-                const label = document.createElement("div");
-                label.className = "srd-source-name";
-                label.textContent = SOURCE_MAP[src] || src;
-                group.appendChild(label);
-                bySource
-                    .get(src)
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .forEach((spell) => {
-                        const div = document.createElement("div");
-                        div.className = "srd-spell-name";
-                        div.textContent = `${spell.name} (${spell.isSRD})`;
                         group.appendChild(div);
                     });
                 srdExcludedList.appendChild(group);
@@ -2020,11 +2024,17 @@ window.onafterprint = function() {
     if (srdExcludedCopy) {
         srdExcludedCopy.addEventListener("click", () => {
             const text = getSrdExcludedListText();
-            if (text)
-                navigator.clipboard
-                    .writeText(text)
-                    .then(() => {})
-                    .catch(() => {});
+            if (!text) return;
+            const icon = srdExcludedCopy.querySelector("wa-icon");
+            const originalLabel = srdExcludedCopy.getAttribute("aria-label") || "Copy to clipboard";
+            navigator.clipboard.writeText(text).then(() => {
+                if (icon) icon.setAttribute("name", "check");
+                srdExcludedCopy.setAttribute("aria-label", "Copied");
+                setTimeout(() => {
+                    if (icon) icon.setAttribute("name", "copy");
+                    srdExcludedCopy.setAttribute("aria-label", originalLabel);
+                }, 1500);
+            }).catch(() => {});
         });
     }
     // --- Easter egg: "knock" or 7 taps on header disables SRD-only filtering ---
@@ -2068,11 +2078,91 @@ window.onafterprint = function() {
         });
     }
 
+    /*
+     * Filter menu keyboard: focus trap + Enter on switch.
+     * wa-dropdown is built for wa-dropdown-item lists; we use custom panel content (chips, switches, buttons),
+     * so we manage Tab/Shift+Tab ourselves. Tab from trigger moves into panel; Tab/Shift+Tab cycle within panel only.
+     */
+    const filterTrigger = filterDropdown.querySelector("[slot='trigger']");
+    const FOCUSABLE_IN_PANEL =
+        'button:not([disabled]):not(.hidden), [href], input:not([disabled]):not([type="hidden"]):not(.visually-hidden-file-input), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), wa-button:not([disabled]):not(.hidden), wa-switch';
+
+    function getPanelFocusables() {
+        const panel = document.getElementById("filter-menu-content");
+        if (!panel) return [];
+        return Array.from(panel.querySelectorAll(FOCUSABLE_IN_PANEL));
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if (!filterDropdown.open) return;
+        const panel = document.getElementById("filter-menu-content");
+        if (!panel) return;
+
+        if (e.key === "Enter") {
+            const active = document.activeElement;
+            const switchEl = active.closest?.("wa-switch") ?? (active.tagName === "WA-SWITCH" ? active : null);
+            if (switchEl && panel.contains(active)) {
+                e.preventDefault();
+                switchEl.click();
+            }
+            return;
+        }
+
+        if (e.key !== "Tab") return;
+        const active = document.activeElement;
+        const focusables = getPanelFocusables();
+        const first = focusables[0] ?? null;
+        const focusOnTrigger = active === filterTrigger || filterTrigger.contains(active);
+        const focusInPanel = panel.contains(active);
+        const activeIndex = focusInPanel
+            ? focusables.findIndex((el) => el === active || el.contains(active))
+            : -1;
+
+        if (focusOnTrigger && !e.shiftKey) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            first?.focus();
+            return;
+        }
+        if (focusOnTrigger && e.shiftKey) return;
+        if (focusInPanel && e.shiftKey) {
+            if (activeIndex <= 0) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                filterTrigger?.focus();
+            } else if (activeIndex === -1 && focusables.length > 0) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                focusables[focusables.length - 1].focus();
+            } else {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                focusables[activeIndex - 1].focus();
+            }
+            return;
+        }
+        if (focusInPanel && !e.shiftKey) {
+            if (activeIndex === -1) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                first?.focus();
+            } else if (activeIndex >= focusables.length - 1) {
+                return;
+            } else {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                focusables[activeIndex + 1].focus();
+            }
+        }
+    }, true);
+
+
     filterRuleset.addEventListener("wa-change", refreshFiltersAndList);
     excludeReprintedToggle.addEventListener("wa-change", () => {
         renderSpellList();
     });
-    filterClearBtn.addEventListener("click", () => {
+    filterClearBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         filterValues.source = [];
         filterValues.class = [];
         filterValues.level = [];
@@ -2083,6 +2173,13 @@ window.onafterprint = function() {
             updateFilterChipSelection
         );
         updateClearFilterButtonVisibility();
+        // Keep focus in menu (clear btn may now be hidden; move to first so next Tab works).
+        setTimeout(() => {
+            const panel = document.getElementById("filter-menu-content");
+            if (!panel || !filterDropdown.open) return;
+            const first = panel.querySelector(FOCUSABLE_IN_PANEL);
+            first?.focus();
+        }, 0);
     });
 
     pageSizeSelect.addEventListener("wa-change", () => {
