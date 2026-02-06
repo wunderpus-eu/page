@@ -35,6 +35,7 @@ export async function layoutCards(
     const { defaultCardBack = false, sideBySide = false } = options;
 
     closePopoversIn(printableArea);
+    await nextFrame();
     printableArea.innerHTML = "";
 
     if (cards.length === 0) {
@@ -56,6 +57,8 @@ export async function layoutCards(
     const pxPerMm = getPxPerMm();
     const cardWidth = measureCard.frontElement.offsetWidth / pxPerMm;
     const cardHeight = measureCard.frontElement.offsetHeight / pxPerMm;
+    closePopoversIn(measureCard.frontElement);
+    await nextFrame();
     printableArea.removeChild(measureCard.frontElement);
     if (!firstSpellCard) {
         measureCard = null;
@@ -92,6 +95,7 @@ export async function layoutCards(
             tempContainer.appendChild(spellCard.frontElement);
             await handleOverflow(spellCard, tempContainer); // May add backElement for overflow text
             closePopoversIn(spellCard.frontElement);
+            await nextFrame();
             tempContainer.removeChild(spellCard.frontElement);
 
             if (spellCard.backElement) {
@@ -137,6 +141,8 @@ export async function layoutCards(
         }
     }
 
+    closePopoversIn(tempContainer);
+    await nextFrame();
     printableArea.removeChild(tempContainer);
 
     printableArea.innerHTML = "";
@@ -226,14 +232,29 @@ function createPage(pageSize, containerWidth, containerHeight) {
     return page;
 }
 
-/** Close any tooltips/popovers in the subtree so WaPopup doesn't throw on disconnect. */
+/** Close any tooltips/popovers in the subtree (including shadow roots) so WaPopup doesn't throw on disconnect. */
 function closePopoversIn(element) {
-    element.querySelectorAll("wa-tooltip").forEach((el) => {
-        if ("open" in el) el.open = false;
-    });
-    element.querySelectorAll("[popover]").forEach((el) => {
-        if (typeof el.hidePopover === "function") el.hidePopover();
-    });
+    const close = (root) => {
+        if (!root) return;
+        root.querySelectorAll("wa-tooltip").forEach((el) => {
+            if ("open" in el) el.open = false;
+        });
+        root.querySelectorAll("wa-popup").forEach((el) => {
+            if ("open" in el) el.open = false;
+        });
+        root.querySelectorAll("[popover]").forEach((el) => {
+            if (typeof el.hidePopover === "function") el.hidePopover();
+        });
+        root.querySelectorAll("*").forEach((el) => {
+            if (el.shadowRoot) close(el.shadowRoot);
+        });
+    };
+    close(element);
+}
+
+/** Yield so WA components can finish async close before we tear down DOM. */
+function nextFrame() {
+    return new Promise((resolve) => requestAnimationFrame(resolve));
 }
 
 /** Returns the browser's px-per-mm for layout calculations. */

@@ -84,8 +84,7 @@ h2 {
 }
 
 /* Inversion tied to class .on-hero (not location): use on nav, spell search, filter trigger – not in dropdowns (white). */
-wa-button.on-hero,
-wa-input.on-hero {
+wa-button.on-hero {
     --wa-color-neutral-fill-quiet: var(--wa-color-brand-60);
     --wa-color-neutral-fill-normal: var(--hero-color);
     --wa-color-neutral-fill-loud: #fff;
@@ -96,6 +95,9 @@ wa-input.on-hero {
 wa-button.on-hero wa-icon,
 wa-button.on-hero i {
     color: inherit;
+}
+wa-input.on-hero {
+    --wa-color-neutral-fill-quiet: #fff;
 }
 
 /* Top row: wordmark + nav (same on character sheet and spell cards) */

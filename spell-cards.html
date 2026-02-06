@@ -91,7 +91,10 @@
                                     id="spell-search-input"
                                     class="on-hero"
                                     placeholder="Search spells to add..."
+                                    appearance="filled"
+                                    autocomplete="off"
                                     with-clear
+                                    pill
                                 ></wa-input>
                                 <div
                                     id="spell-list-popover"
@@ -130,10 +133,29 @@
                                             <wa-icon name="circle-info" aria-hidden="true"></wa-icon> Details
                                         </wa-button>
                                     </div>
+                                    <wa-divider style="--spacing: 0rem;"></wa-divider>
                                     <div
                                         id="spell-list"
                                         class="spell-list"
                                     ></div>
+                                    <wa-divider style="--spacing: 0rem;"></wa-divider>
+                                    <div class="spell-list-footer" aria-hidden="true">
+                                        <span class="spell-list-footer-hint">
+                                            <kbd><wa-icon name="arrow-up" aria-hidden="true"></wa-icon></kbd> <kbd><wa-icon name="arrow-down" aria-hidden="true"></wa-icon></kbd> Navigate
+                                        </span>
+                                        <span class="spell-list-footer-hint">
+                                            <kbd>Enter</kbd> Add
+                                        </span>
+                                        <span class="spell-list-footer-hint">
+                                            <kbd>Shift+Enter</kbd> Add all
+                                        </span>
+                                        <span class="spell-list-footer-hint">
+                                            <kbd>Ctrl+Enter</kbd> Remove one
+                                        </span>
+                                        <span class="spell-list-footer-hint">
+                                            <kbd>Esc</kbd> Close
+                                        </span>
+                                    </div>
                                 </div>
                             </wa-dropdown>
                             <wa-dropdown id="filter-dropdown" hoist class="filter-dropdown">

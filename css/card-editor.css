@@ -58,12 +58,23 @@ header:not(.header--spell-cards) {
 
 /* Search bar: pill shape (color/focus from .on-hero in style.css) */
 .spell-search-wrapper #spell-search-input {
-    --wa-input-border-radius: 9999px;
     width: 100%;
 }
-.spell-search-wrapper #spell-search-input::part(base) {
+/* .spell-search-wrapper #spell-search-input::part(base) {
     border-radius: 9999px;
+    overflow: visible;
 }
+.spell-search-wrapper #spell-search-input::part(clear-button) {
+    opacity: 1;
+    visibility: visible;
+    color: rgba(255, 255, 255, 0.9);
+}
+.spell-search-wrapper #spell-search-input::part(clear-button):hover {
+    color: #fff;
+}
+.spell-search-wrapper #spell-search-input::part(end) {
+    overflow: visible;
+} */
 
 .spell-search-wrapper .filter-dropdown {
     flex-shrink: 0;
@@ -95,6 +106,15 @@ header:not(.header--spell-cards) {
     flex-direction: column;
     gap: 8px;
     max-height: 70vh;
+    min-height: 0;
+}
+
+.spell-list-popover .spell-list-header,
+.spell-list-popover .spell-list-chips,
+.spell-list-popover .srd-banner,
+.spell-list-popover .spell-list-footer,
+.spell-list-popover wa-divider {
+    flex-shrink: 0;
 }
 
 
@@ -107,9 +127,6 @@ header:not(.header--spell-cards) {
 .spell-list-count {
     font-style: italic;
     min-width: 0;
-}
-.spell-list-count-badge {
-    font-style: normal;
 }
 
 /* Inline text buttons in spell list (Add all, Details): bold text, no background, nav-bar-style hover/active */
@@ -161,7 +178,6 @@ header:not(.header--spell-cards) {
     justify-content: space-between;
     gap: 8px;
     color: var(--wa-color-neutral-600);
-    font-size: 0.9375rem;
     font-style: italic;
 }
 #srd-banner-text {
@@ -177,31 +193,40 @@ header:not(.header--spell-cards) {
     display: none;
 }
 
+.spell-list.hidden {
+    display: none;
+}
+
+.spell-list-popover wa-divider.hidden {
+    display: none;
+}
+
 .spell-list {
     overflow-y: auto;
-    min-height: 180px;
-    max-height: 400px;
+    flex: 1 1 auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    padding-top: 8px;
     margin-top: 0;
 }
 
-.spell-list-item {
-    padding: 8px 10px;
-    text-align: left;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-radius: var(--wa-border-radius-medium);
-    font-family: inherit;
-    color: inherit;
-    position: relative;
+/* wa-dropdown-item rows: use WA hover/focus styling; full width and label layout */
+.spell-list .spell-list-item {
+    width: 100%;
+    box-sizing: border-box;
+}
+.spell-list .spell-list-item::part(label) {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 8px;
-    width: 100%;
+    gap: 0.25rem;
+}
+.spell-list .spell-list-item::part(details) {
+    flex-shrink: 0;
 }
 
 .spell-list-item-label {
@@ -212,40 +237,79 @@ header:not(.header--spell-cards) {
     white-space: nowrap;
 }
 
-.spell-list-count-badge {
+.spell-list-item-source {
+    margin-left: 0.35em;
+    font-size: 0.85em;
+    font-weight: normal;
+    font-variant: small-caps;
+    color: var(--wa-color-neutral-on-quiet);
+}
+
+.spell-list-count-btn {
     flex-shrink: 0;
+    margin: -0.2rem 0;
+}
+
+.spell-list-count-btn::part(base) {
+    min-width: 1.35rem;
+    height: 1.25rem;
+    min-height: 1.25rem;
+    padding: 0 4px;
+    font-size: 0.7rem;
+    line-height: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 1.25rem;
-    height: 1.25rem;
-    padding: 0 4px;
-    border-radius: 999px;
-    background: var(--wa-color-primary-600);
-    color: var(--wa-color-neutral-0);
-    font-size: 0.75rem;
+}
+
+/* Selected row: visible when item has .selected (e.g. on open before focus); WA provides hover/focus when focused */
+.spell-list .spell-list-item.selected {
+    background: var(--wa-color-neutral-fill-quiet);
+}
+.spell-list .spell-list-item.selected::part(label) {
     font-weight: 600;
-    cursor: pointer;
-}
-
-.spell-list-count-badge:hover {
-    background: var(--wa-color-primary-700);
-}
-
-.spell-list-item:hover {
-    background: var(--wa-color-primary-100);
-    color: var(--wa-color-primary-700);
-}
-
-.spell-list-item.selected {
-    background: var(--wa-color-primary-200);
-    color: var(--wa-color-primary-800);
 }
 
 .spell-list-more {
     padding: 6px 10px;
     font-size: 0.8rem;
     color: var(--wa-color-neutral-600);
+}
+
+.spell-list-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-around;
+    gap: 0.5rem 1rem;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--wa-color-neutral-600);
+}
+
+.spell-list-footer-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.spell-list-footer-hint kbd {
+    display: inline-block;
+    padding: 2px 5px;
+    font-size: 0.7rem;
+    font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+    line-height: 1;
+    color: var(--wa-color-neutral-700);
+    background: var(--wa-color-neutral-fill-quiet);
+    border-radius: 4px;
+    border: 1px solid var(--wa-color-neutral-300);
+}
+
+@media (max-width: 768px) {
+    .spell-list-popover .spell-list-footer,
+    .spell-list-popover .spell-list + wa-divider {
+        display: none;
+    }
 }
 
 /* Row 2: actions – left group (upload/download), right group (add/clear), space-between */

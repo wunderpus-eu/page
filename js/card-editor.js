@@ -458,38 +458,40 @@ document.addEventListener("DOMContentLoaded", async () => {
         spellList.innerHTML = "";
         const maxShow = 400;
         list.slice(0, maxShow).forEach((spell, idx) => {
-            const row = document.createElement("button");
-            row.type = "button";
+            const row = document.createElement("wa-dropdown-item");
             row.className = "spell-list-item";
+            row.setAttribute("value", String(idx));
             const sourceText = SOURCE_MAP[spell.source] || spell.source;
             const displayName = getSpellListDisplayName(spell);
             const label = document.createElement("span");
             label.className = "spell-list-item-label";
-            label.textContent = `${displayName}${
-                spell._uploaded ? " *" : ""
-            } (${sourceText})`;
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "spell-list-item-name";
+            nameSpan.textContent = `${displayName}${spell._uploaded ? " *" : ""}`;
+            const sourceSpan = document.createElement("span");
+            sourceSpan.className = "spell-list-item-source";
+            sourceSpan.textContent = ` ${sourceText}`;
+            label.appendChild(nameSpan);
+            label.appendChild(sourceSpan);
             row.appendChild(label);
             const count = countUnmodifiedInDeck(spell);
             if (count > 0) {
-                const badge = document.createElement("span");
-                badge.className = "spell-list-count-badge";
-                badge.textContent = String(count);
-                badge.title = "Remove one from deck";
-                badge.addEventListener("click", (e) => {
+                const countBtn = document.createElement("wa-button");
+                countBtn.setAttribute("variant", "neutral");
+                countBtn.setAttribute("size", "small");
+                countBtn.setAttribute("appearance", "filled");
+                countBtn.setAttribute("pill", "");
+                countBtn.className = "spell-list-count-btn";
+                countBtn.setAttribute("slot", "details");
+                countBtn.title = "Remove one from deck";
+                countBtn.textContent = String(count);
+                countBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
+                    row._countClicked = true;
                     removeOneUnmodifiedCard(spell);
                 });
-                row.appendChild(badge);
+                row.appendChild(countBtn);
             }
-            row.dataset.index = String(idx);
-            row.addEventListener("click", async (e) => {
-                if (e.target.classList.contains("spell-list-count-badge"))
-                    return;
-                e.stopPropagation();
-                await addCard(cloneSpellData(spell), spell);
-                renderSpellList();
-                spellSearchInput.focus();
-            });
             spellList.appendChild(row);
         });
         if (list.length > maxShow) {
@@ -500,16 +502,38 @@ document.addEventListener("DOMContentLoaded", async () => {
             } more. Narrow search.`;
             spellList.appendChild(more);
         }
-        selectedListIndex = list.length > 0 ? 0 : -1;
+        const previouslySelectedSpell =
+            selectedListIndex >= 0 && list[selectedListIndex]
+                ? list[selectedListIndex]
+                : null;
+        const previouslySelectedId = previouslySelectedSpell?.id;
+        const newIndex =
+            previouslySelectedId != null
+                ? list.findIndex((s) => s.id === previouslySelectedId)
+                : -1;
+        selectedListIndex =
+            newIndex >= 0 ? newIndex : list.length > 0 ? 0 : -1;
         updateListSelection();
+        const isEmpty = list.length === 0;
+        spellList.classList.toggle("hidden", isEmpty);
+        const dividerAbove = spellList.previousElementSibling;
+        if (dividerAbove?.tagName === "WA-DIVIDER") {
+            dividerAbove.classList.toggle("hidden", isEmpty);
+        }
     }
 
-    /** Updates selected-row styling based on selectedListIndex. */
+    /** Updates selected row: sync .selected class. Call focusSelectedItem() after this when focus should move to the list (e.g. after arrow key). */
     function updateListSelection() {
-        const items = spellList.querySelectorAll(".spell-list-item");
+        const items = spellList.querySelectorAll("wa-dropdown-item.spell-list-item");
         items.forEach((el, i) => {
             el.classList.toggle("selected", i === selectedListIndex);
         });
+    }
+
+    function focusSelectedItem() {
+        const items = spellList.querySelectorAll("wa-dropdown-item.spell-list-item");
+        const toFocus = items[selectedListIndex];
+        if (toFocus) toFocus.focus();
     }
 
     /** Adds a SpellCard to cardList, renders it, and refreshes layout.
@@ -548,8 +572,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
         if (idx === -1) return;
         cardList.splice(idx, 1);
-        renderSpellList();
         await refreshLayout();
+        requestAnimationFrame(() => renderSpellList());
     }
 
     /** Finds a SpellCard or glossary ref by id. */
@@ -1965,45 +1989,108 @@ window.onafterprint = function() {
     }
     spellSearchInput.addEventListener("wa-input", onSearchInput);
     spellSearchInput.addEventListener("input", onSearchInput);
-    spellSearchInput.addEventListener("keydown", (e) => {
-        if (e.key === " ") {
-            e.stopPropagation();
-        }
-        const items = spellList.querySelectorAll(".spell-list-item");
-        if (e.key === "ArrowDown") {
-            e.preventDefault();
-            selectedListIndex = Math.min(
-                selectedListIndex + 1,
-                items.length - 1
+
+    /* Keydown on dropdown (capture) so we get events when focus is on input or list item. */
+    spellCombobox.addEventListener(
+        "keydown",
+        (e) => {
+            const open = spellCombobox.open;
+            const items = spellList.querySelectorAll(
+                "wa-dropdown-item.spell-list-item"
             );
-            updateListSelection();
-            items[selectedListIndex]?.scrollIntoView({ block: "nearest" });
-        } else if (e.key === "ArrowUp") {
-            e.preventDefault();
-            selectedListIndex = Math.max(selectedListIndex - 1, 0);
-            updateListSelection();
-            items[selectedListIndex]?.scrollIntoView({ block: "nearest" });
-        } else if (
-            e.key === "Enter" &&
-            selectedListIndex >= 0 &&
-            items[selectedListIndex]
-        ) {
-            e.preventDefault();
-            e.stopPropagation();
-            items[selectedListIndex].click();
-        }
-    });
+            if (!open) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    spellCombobox.open = true;
+                }
+                return;
+            }
+            if (e.key === " ") {
+                e.preventDefault();
+                return;
+            }
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                selectedListIndex = Math.min(
+                    selectedListIndex + 1,
+                    items.length - 1
+                );
+                updateListSelection();
+                items[selectedListIndex]?.scrollIntoView({ block: "nearest" });
+                return;
+            }
+            if (e.key === "ArrowUp") {
+                e.preventDefault();
+                selectedListIndex = Math.max(selectedListIndex - 1, 0);
+                updateListSelection();
+                items[selectedListIndex]?.scrollIntoView({ block: "nearest" });
+                return;
+            }
+            if (e.key === "Enter") {
+                if (e.shiftKey) {
+                    e.preventDefault();
+                    spellListAddAll.click();
+                    return;
+                }
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    const selectedSpell =
+                        selectedListIndex >= 0 &&
+                        currentSpellResults[selectedListIndex]
+                            ? currentSpellResults[selectedListIndex]
+                            : null;
+                    if (
+                        selectedSpell &&
+                        countUnmodifiedInDeck(selectedSpell) > 0
+                    ) {
+                        removeOneUnmodifiedCard(selectedSpell);
+                    }
+                    return;
+                }
+                if (
+                    selectedListIndex >= 0 &&
+                    items[selectedListIndex] &&
+                    currentSpellResults[selectedListIndex]
+                ) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const spell = currentSpellResults[selectedListIndex];
+                    addCard(cloneSpellData(spell), spell).then(() => {
+                        requestAnimationFrame(() => {
+                            renderSpellList();
+                            spellSearchInput.focus();
+                        });
+                    });
+                }
+            }
+        },
+        true
+    );
 
     spellCombobox.addEventListener("wa-show", () => {
         renderSpellList();
         renderChips();
         /* Don’t call focus() here – it can cause a focus cycle that closes the panel on first open */
+        spellList.querySelector("wa-dropdown-item.spell-list-item")?.scrollIntoView({ block: "nearest" });
+    });
+
+    spellCombobox.addEventListener("wa-select", async (e) => {
+        e.preventDefault();
+        const item = e.detail?.item;
+        if (!item || item._countClicked) return;
+        const idx = parseInt(item.value, 10);
+        if (Number.isNaN(idx) || idx < 0 || !currentSpellResults[idx]) return;
+        const spell = currentSpellResults[idx];
+        await addCard(cloneSpellData(spell), spell);
+        requestAnimationFrame(() => renderSpellList());
+        spellSearchInput.focus();
     });
 
     spellListAddAll.addEventListener("click", async (e) => {
         e.stopPropagation();
         const toAdd = currentSpellResults;
         for (const spell of toAdd) await addCard(cloneSpellData(spell), spell);
+        requestAnimationFrame(() => renderSpellList());
         spellSearchInput.focus();
     });
 
