@@ -366,7 +366,7 @@ header:not(.header--spell-cards) {
 
 .filter-chip-group__header {
     display: flex;
-    align-items: center;
+    align-items: end;
     justify-content: space-between;
     gap: 0.5rem;
 }

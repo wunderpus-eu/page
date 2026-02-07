@@ -1,59 +1,33 @@
 /**
- * nav.js – Site nav: active link, mobile menu (hamburger).
+ * nav.js – Site nav: active link, mobile menu (wa-popover).
  */
 (function () {
     var nav = document.querySelector(".header-nav");
     if (!nav) return;
 
-    // Mark the nav button for the current page as active
+    // Mark the nav button(s) for the current page as active (inline menu + popover menu)
     var path = window.location.pathname;
     var file = path.slice(path.lastIndexOf("/") + 1) || "index.html";
-    var activeLink = nav.querySelector('wa-button[href="' + file + '"]');
-    if (activeLink) activeLink.classList.add("active");
+    var activeLinks = nav.querySelectorAll('wa-button[href="' + file + '"]');
+    activeLinks.forEach(function (el) {
+        el.classList.add("active");
+    });
 
-    // Mobile menu: hamburger / close icon toggle
-    var toggle = document.querySelector(".header-nav-toggle");
-    var menu = document.getElementById("header-nav-menu");
+    // Mobile: sync toggle icon and aria with popover open state
+    var toggle = document.getElementById("header-nav-toggle");
+    var popover = nav.querySelector(".header-nav-popover");
     var icon = toggle && toggle.querySelector(".header-nav-toggle-icon");
-    if (!toggle || !menu) return;
+    if (!toggle || !popover || !icon) return;
 
-    function setMenuClosed() {
-        toggle.setAttribute("aria-expanded", "false");
-        toggle.setAttribute("aria-label", "Open menu");
-        nav.classList.remove("is-open");
-        if (icon) icon.setAttribute("name", "bars");
-    }
-
-    function setMenuOpen() {
+    popover.addEventListener("wa-after-show", function () {
         toggle.setAttribute("aria-expanded", "true");
         toggle.setAttribute("aria-label", "Close menu");
-        nav.classList.add("is-open");
-        if (icon) icon.setAttribute("name", "xmark");
-    }
-
-    toggle.addEventListener("click", function () {
-        var expanded = toggle.getAttribute("aria-expanded") === "true";
-        if (expanded) {
-            setMenuClosed();
-        } else {
-            setMenuOpen();
-        }
+        icon.setAttribute("name", "xmark");
     });
 
-    menu.addEventListener("click", function (e) {
-        if (e.target.closest && e.target.closest("wa-button[href]")) setMenuClosed();
-    });
-
-    document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape" && nav.classList.contains("is-open")) {
-            setMenuClosed();
-            toggle.focus();
-        }
-    });
-
-    document.addEventListener("click", function (e) {
-        if (nav.classList.contains("is-open") && !nav.contains(e.target)) {
-            setMenuClosed();
-        }
+    popover.addEventListener("wa-after-hide", function () {
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.setAttribute("aria-label", "Open menu");
+        icon.setAttribute("name", "bars");
     });
 })();

@@ -180,35 +180,45 @@ wa-input.on-hero {
     color: var(--wa-color-text-normal);
 }
 
-/* Header: hamburger only when nav links + logo + gap wouldn’t fit (under 900px) */
+/* Header: hamburger + wa-popover when nav links don’t fit (under 900px) */
 @media (max-width: 650px) {
     .header-nav-toggle {
         display: flex;
     }
 
-    .header-nav-menu {
+    .header-nav-menu--inline {
         display: none;
-        position: absolute;
-        top: 100%;
-        right: 1.5rem;
-        left: 1.5rem;
-        margin: 0 -1.5rem;
-        padding: 0.5rem 1.5rem 1rem;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.25rem;
+    }
+
+    .header-nav-popover {
+        --max-width: 100vw;
+    }
+
+    .header-nav-popover::part(popup__popup) {
+        border: none;
+        width: 100vw;
+        max-width: 100vw;
+        box-sizing: border-box;
+        left: 0 !important;
+        right: 0 !important;
+        margin: 0 !important;
+    }
+
+    .header-nav-popover::part(body) {
+        border: none;
         background: var(--hero-color);
         border-radius: 0 0 var(--border-radius) var(--border-radius);
         box-shadow: var(--wa-shadow-l);
-        z-index: 100;
+        padding: 0.5rem 1.5rem 1rem;
+        width: 100%;
+        box-sizing: border-box;
     }
 
-    .header-nav.is-open .header-nav-menu {
+    .header-nav-menu--popover {
         display: flex;
-    }
-
-    .header .container {
-        position: relative;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
     }
 }
 

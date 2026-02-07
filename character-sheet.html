@@ -49,13 +49,13 @@
                 </a>
                 <nav class="header-nav" aria-label="Main">
                     <wa-button
+                        id="header-nav-toggle"
                         class="header-nav-toggle on-hero"
                         appearance="plain"
                         variant="neutral"
                         size="small"
                         pill
                         aria-expanded="false"
-                        aria-controls="header-nav-menu"
                         aria-label="Open menu"
                     >
                         <wa-icon
@@ -64,11 +64,18 @@
                             aria-hidden="true"
                         ></wa-icon>
                     </wa-button>
-                    <div id="header-nav-menu" class="header-nav-menu">
+                    <div id="header-nav-menu" class="header-nav-menu header-nav-menu--inline">
                         <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="character-sheet.html">Character sheet</wa-button>
                         <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="spell-cards.html">Spell cards</wa-button>
                         <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="https://ko-fi.com/wunderpus" target="_blank" rel="noopener noreferrer">Support me</wa-button>
                     </div>
+                    <wa-popover for="header-nav-toggle" placement="bottom-end" without-arrow class="header-nav-popover">
+                        <div class="header-nav-menu header-nav-menu--popover">
+                            <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="character-sheet.html">Character sheet</wa-button>
+                            <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="spell-cards.html">Spell cards</wa-button>
+                            <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="https://ko-fi.com/wunderpus" target="_blank" rel="noopener noreferrer">Support me</wa-button>
+                        </div>
+                    </wa-popover>
                 </nav>
             </div>
         </header>
