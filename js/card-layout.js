@@ -15,6 +15,12 @@ import {
 const CARD_WIDTH_MM = 63;
 const CARD_HEIGHT_MM = 88;
 
+/** Cut marks: gap between card grid and marks, then mark length (mm). */
+const CUT_MARK_GAP_MM = 2;
+const CUT_MARK_LENGTH_MM = 3;
+const CUT_MARK_THICKNESS_MM = 0.25;
+const CUT_MARK_GUTTER_MM = CUT_MARK_GAP_MM + CUT_MARK_LENGTH_MM;
+
 /**
  * Places cards into printable pages. Cards must already be rendered (except glossary nodes, created on demand).
  *
@@ -56,8 +62,8 @@ export async function layoutCards(
     );
     const maxCardsPerPage = cardsPerRow * rowsPerPage;
 
-    const containerWidth = cardsPerRow * (cardWidth + 1) - 1;
-    const containerHeight = rowsPerPage * (cardHeight + 1) - 1;
+    const containerWidth = cardsPerRow * cardWidth;
+    const containerHeight = rowsPerPage * cardHeight;
 
     const existingPages = Array.from(printableArea.querySelectorAll(".page"));
 
@@ -102,16 +108,40 @@ export async function layoutCards(
         existingPages.pop().remove();
     }
     while (existingPages.length < pagesNeeded) {
-        const newPage = createPage(pageSize, containerWidth, containerHeight);
+        const newPage = createPage(
+            pageSize,
+            containerWidth,
+            containerHeight,
+            cardsPerRow,
+            rowsPerPage
+        );
         printableArea.appendChild(newPage);
         existingPages.push(newPage);
     }
 
+    const wrapperWidth = containerWidth + 2 * CUT_MARK_GUTTER_MM;
+    const wrapperHeight = containerHeight + 2 * CUT_MARK_GUTTER_MM;
+
     for (const page of existingPages) {
+        ensurePageStructure(
+            page,
+            pageSize,
+            containerWidth,
+            containerHeight,
+            cardsPerRow,
+            rowsPerPage
+        );
+        const pageContent = page.querySelector(".page-content");
         const cardContainer = page.querySelector(".card-container");
+        if (pageContent) {
+            pageContent.style.width = `${wrapperWidth}mm`;
+            pageContent.style.height = `${wrapperHeight}mm`;
+        }
         cardContainer.style.width = `${containerWidth}mm`;
         cardContainer.style.height = `${containerHeight}mm`;
         cardContainer.style.overflow = "hidden";
+        cardContainer.style.left = `${CUT_MARK_GUTTER_MM}mm`;
+        cardContainer.style.top = `${CUT_MARK_GUTTER_MM}mm`;
         page.classList.toggle("page-letter", pageSize === "letter");
     }
 
@@ -201,20 +231,155 @@ function createDefaultCardBackElement(cardWidthMm, cardHeightMm, cardId) {
     return outer;
 }
 
-function createPage(pageSize, containerWidth, containerHeight) {
+function createPage(
+    pageSize,
+    containerWidth,
+    containerHeight,
+    cardsPerRow,
+    rowsPerPage
+) {
     const page = document.createElement("div");
     page.className = "page";
     if (pageSize === "letter") {
         page.classList.add("page-letter");
     }
 
+    const wrapperWidth = containerWidth + 2 * CUT_MARK_GUTTER_MM;
+    const wrapperHeight = containerHeight + 2 * CUT_MARK_GUTTER_MM;
+
+    const pageContent = document.createElement("div");
+    pageContent.className = "page-content";
+    pageContent.style.width = `${wrapperWidth}mm`;
+    pageContent.style.height = `${wrapperHeight}mm`;
+
+    const cutMarks = createCutMarks(
+        wrapperWidth,
+        wrapperHeight,
+        cardsPerRow,
+        rowsPerPage
+    );
+    pageContent.appendChild(cutMarks);
+
     const cardContainer = document.createElement("div");
     cardContainer.className = "card-container";
     cardContainer.style.width = `${containerWidth}mm`;
     cardContainer.style.height = `${containerHeight}mm`;
-    page.appendChild(cardContainer);
+    cardContainer.style.left = `${CUT_MARK_GUTTER_MM}mm`;
+    cardContainer.style.top = `${CUT_MARK_GUTTER_MM}mm`;
+    pageContent.appendChild(cardContainer);
 
+    page.appendChild(pageContent);
     return page;
+}
+
+/**
+ * Ensure existing page has .page-content wrapper and cut marks (migrate old DOM).
+ */
+function ensurePageStructure(
+    page,
+    pageSize,
+    containerWidth,
+    containerHeight,
+    cardsPerRow,
+    rowsPerPage
+) {
+    let pageContent = page.querySelector(".page-content");
+    const cardContainer = page.querySelector(".card-container");
+    if (!pageContent && cardContainer) {
+        pageContent = document.createElement("div");
+        pageContent.className = "page-content";
+        const wrapperWidth = containerWidth + 2 * CUT_MARK_GUTTER_MM;
+        const wrapperHeight = containerHeight + 2 * CUT_MARK_GUTTER_MM;
+        pageContent.style.width = `${wrapperWidth}mm`;
+        pageContent.style.height = `${wrapperHeight}mm`;
+        const cutMarks = createCutMarks(
+            wrapperWidth,
+            wrapperHeight,
+            cardsPerRow,
+            rowsPerPage
+        );
+        pageContent.appendChild(cutMarks);
+        cardContainer.parentNode.insertBefore(pageContent, cardContainer);
+        pageContent.appendChild(cardContainer);
+    }
+    const wrapperWidth = containerWidth + 2 * CUT_MARK_GUTTER_MM;
+    const wrapperHeight = containerHeight + 2 * CUT_MARK_GUTTER_MM;
+    const existingMarks = page.querySelector(".cut-marks");
+    if (pageContent) {
+        if (existingMarks) {
+            existingMarks.replaceWith(
+                createCutMarks(
+                    wrapperWidth,
+                    wrapperHeight,
+                    cardsPerRow,
+                    rowsPerPage
+                )
+            );
+        } else {
+            pageContent.insertBefore(
+                createCutMarks(
+                    wrapperWidth,
+                    wrapperHeight,
+                    cardsPerRow,
+                    rowsPerPage
+                ),
+                cardContainer
+            );
+        }
+    }
+}
+
+/**
+ * Create the cut-marks overlay: vertical lines above/below grid, horizontal lines left/right.
+ * Positions use fixed card dimensions only (63×88mm), not the layout's inter-card gaps.
+ */
+function createCutMarks(wrapperWidth, wrapperHeight, cardsPerRow, rowsPerPage) {
+    const wrap = document.createElement("div");
+    wrap.className = "cut-marks";
+    wrap.setAttribute("aria-hidden", "true");
+
+    const cardWidth = CARD_WIDTH_MM;
+    const cardHeight = CARD_HEIGHT_MM;
+    const gridWidth = cardsPerRow * cardWidth;
+    const gridHeight = rowsPerPage * cardHeight;
+    const left = CUT_MARK_GUTTER_MM;
+    const top = CUT_MARK_GUTTER_MM;
+    const t = CUT_MARK_THICKNESS_MM;
+    const len = CUT_MARK_LENGTH_MM;
+
+    const xAt = (i) => left + i * cardWidth;
+    const yAt = (j) => top + j * cardHeight;
+
+    // Vertical marks above the grid (pointing down from top edge)
+    for (let i = 0; i <= cardsPerRow; i++) {
+        const el = document.createElement("div");
+        el.className = "cut-mark cut-mark--vertical";
+        el.style.cssText = `left:${xAt(i)}mm;top:0;width:${t}mm;height:${len}mm;`;
+        wrap.appendChild(el);
+    }
+    // Vertical marks below the grid
+    for (let i = 0; i <= cardsPerRow; i++) {
+        const el = document.createElement("div");
+        el.className = "cut-mark cut-mark--vertical";
+        el.style.cssText = `left:${xAt(i)}mm;top:${wrapperHeight - len}mm;width:${t}mm;height:${len}mm;`;
+        wrap.appendChild(el);
+    }
+    // Horizontal marks to the left of the grid
+    for (let j = 0; j <= rowsPerPage; j++) {
+        const el = document.createElement("div");
+        el.className = "cut-mark cut-mark--horizontal";
+        el.style.cssText = `left:0;top:${yAt(j)}mm;width:${len}mm;height:${t}mm;`;
+        wrap.appendChild(el);
+    }
+    // Horizontal marks to the right of the grid
+    for (let j = 0; j <= rowsPerPage; j++) {
+        const el = document.createElement("div");
+        el.className = "cut-mark cut-mark--horizontal";
+        el.style.cssText = `left:${wrapperWidth - len}mm;top:${yAt(j)}mm;width:${len}mm;height:${t}mm;`;
+        wrap.appendChild(el);
+    }
+
+    return wrap;
 }
 
 function closePopoversIn(element) {

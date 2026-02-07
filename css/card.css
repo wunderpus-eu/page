@@ -184,25 +184,31 @@ body.grayscale {
 }
 
 .page-content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     position: relative;
+    flex-shrink: 0;
 }
 
-/* Cutting marks overlay */
-.cutting-marks {
+/* Cut marks: thin black lines at card edges for printing */
+.cut-marks {
     position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
     pointer-events: none;
-    z-index: 1000;
+    z-index: 1;
 }
 
 .cut-mark {
     position: absolute;
     background-color: black;
+    box-sizing: border-box;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
 }
 
 .card-container {
+    position: absolute;
     display: flex;
     flex-wrap: wrap;
     align-content: flex-start;
