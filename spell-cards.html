@@ -38,6 +38,7 @@
         </script>
     </head>
     <body class="spell-cards-page">
+        <div class="spell-cards-viewport">
         <header class="header header--spell-cards">
             <div class="container header__top">
                 <a href="index.html">
@@ -193,6 +194,7 @@
                                                 appearance="plain"
                                                 variant="neutral"
                                                 size="small"
+                                                pill
                                                 title="Clear filters"
                                                 aria-label="Clear filters"
                                             >
@@ -268,99 +270,193 @@
                         </div>
                     </div>
 
-                    <!-- Row 2: download left, add/clear right (icon-only). Upload is in filter menu. -->
+                    <!-- Row 2: add/remove cards, left-aligned. Upload is in filter menu. -->
                     <div class="controls-row controls-row--actions">
                         <div class="controls-row__group">
-                            <wa-button
-                                id="download-custom-btn"
-                                variant="default"
-                                size="small"
-                                title="Download custom"
-                                aria-label="Download custom JSON"
-                            >
-                                <wa-icon name="download"></wa-icon>
-                            </wa-button>
+                            <wa-button-group label="Add card">
+                                <wa-button
+                                    id="add-empty-btn"
+                                    class="on-hero"
+                                    variant="neutral"
+                                    appearance="accent"
+                                    size="medium"
+                                    pill
+title="Add blank card"
+                                aria-label="Add blank card"
+                                >
+                                    <wa-icon name="plus" slot="start" aria-hidden="true"></wa-icon>
+                                    Blank
+                                </wa-button>
+                                <wa-button
+                                    id="add-glossary-btn"
+                                    class="on-hero"
+                                    variant="neutral"
+                                    appearance="accent"
+                                    size="medium"
+                                    pill
+                                    title="Add glossary card"
+                                    aria-label="Add glossary card"
+                                >
+                                    Glossary
+                                </wa-button>
+                            </wa-button-group>
                         </div>
-                        <div class="controls-row__group">
+                        <div class="controls-row__group clear-all-btn-wrapper" id="clear-all-btn-wrapper">
                             <wa-button
-                                id="add-empty-btn"
-                                variant="default"
-                                size="small"
-                                title="Add empty card"
-                                aria-label="Add empty card"
-                            >
-                                <wa-icon name="file-circle-plus" aria-hidden="true"></wa-icon>
-                            </wa-button>
-                            <wa-button
-                                id="add-glossary-btn"
-                                variant="default"
-                                size="small"
-                                title="Add glossary"
-                                aria-label="Add glossary card"
-                            >
-                                <wa-icon name="book"></wa-icon>
-                            </wa-button>
-                            <wa-button
-                                id="clear-all-btn"
-                                variant="default"
-                                size="small"
-                                title="Clear all"
+                                class="clear-all-btn clear-all-btn--with-text on-hero"
+                                variant="neutral"
+                                appearance="plain"
+                                size="medium"
+                                pill
+                                title="Clear all cards"
                                 aria-label="Clear all cards"
                             >
-                                <wa-icon name="trash"></wa-icon>
+                                <wa-icon name="trash" slot="start" aria-hidden="true"></wa-icon>
+                                Clear all
+                            </wa-button>
+                            <wa-button
+                                class="clear-all-btn clear-all-btn--icon-only on-hero"
+                                variant="neutral"
+                                appearance="plain"
+                                size="medium"
+                                pill
+                                title="Clear all cards"
+                                aria-label="Clear all cards"
+                            >
+                                <wa-icon name="trash" aria-hidden="true"></wa-icon>
                             </wa-button>
                         </div>
                     </div>
 
-                    <!-- Row 3: card options (toggles) -->
-                    <div class="controls-row controls-row--card-options">
-                        <wa-switch id="color-toggle">Grayscale</wa-switch>
-                        <wa-switch id="inline-icons-toggle" checked
-                            >Inline icons</wa-switch
-                        >
-                        <wa-switch id="background-toggle">Card back</wa-switch>
-                    </div>
-
-                    <!-- Row 4: layout options -->
-                    <div class="controls-row controls-row--layout">
-                        <span class="controls-select-with-icon" title="Page size">
-                            <wa-icon name="file-lines" aria-hidden="true"></wa-icon>
-                            <wa-select id="page-size-select" value="letter">
-                                <wa-option value="letter">Letter</wa-option>
-                                <wa-option value="a4">A4</wa-option>
-                            </wa-select>
-                        </span>
-                        <span class="controls-select-with-icon" title="Sort order">
-                            <wa-icon name="arrows-up-down" aria-hidden="true"></wa-icon>
-                            <wa-select id="sort-select" value="level">
-                                <wa-option value="alphabetical">A–Z</wa-option>
-                                <wa-option value="level">By level</wa-option>
-                                <wa-option value="school">By school</wa-option>
-                            </wa-select>
-                        </span>
-                        <wa-switch id="side-by-side-toggle"
-                            >Side by side</wa-switch
-                        >
-                    </div>
-
-                    <!-- Row 5: print -->
+                    <!-- Row 5: settings (left), download (right) -->
                     <div class="controls-row controls-row--print">
-                        <wa-button id="print-btn" variant="primary"
-                            title="Print or save as PDF"
-                        >
-                            <wa-icon name="print" slot="prefix"></wa-icon>
-                            Print / Save as PDF
-                        </wa-button>
+                        <div class="controls-row__group">
+                            <wa-dropdown id="settings-dropdown" hoist class="settings-dropdown">
+                                <div slot="trigger" class="settings-trigger-wrapper" id="settings-trigger-wrapper">
+                                    <wa-button
+                                        class="settings-btn settings-btn--with-text on-hero"
+                                        variant="neutral"
+                                        appearance="plain"
+                                        size="medium"
+                                        pill
+                                        title="Settings"
+                                        aria-label="Settings"
+                                    >
+                                        <wa-icon name="gear" slot="start" aria-hidden="true"></wa-icon>
+                                        Settings
+                                    </wa-button>
+                                    <wa-button
+                                        class="settings-btn settings-btn--icon-only on-hero"
+                                        variant="neutral"
+                                        appearance="plain"
+                                        size="medium"
+                                        pill
+                                        title="Settings"
+                                        aria-label="Settings"
+                                    >
+                                        <wa-icon name="gear" aria-hidden="true"></wa-icon>
+                                    </wa-button>
+                                </div>
+                                <div id="settings-menu-content" class="settings-menu-content">
+                                    <div class="settings-menu__section">
+                                        <span class="controls-select-with-icon" title="Page size">
+                                            <wa-icon name="file-lines" aria-hidden="true"></wa-icon>
+                                            <wa-radio-group id="page-size-select" value="letter" orientation="horizontal" aria-label="Page size">
+                                                <wa-radio appearance="button" value="letter">Letter</wa-radio>
+                                                <wa-radio appearance="button" value="a4">A4</wa-radio>
+                                            </wa-radio-group>
+                                        </span>
+                                    </div>
+                                    <div class="settings-menu__section">
+                                        <span class="controls-select-with-icon" title="Sort order">
+                                            <wa-icon name="arrows-up-down" aria-hidden="true"></wa-icon>
+                                            <wa-radio-group id="sort-select" value="level" orientation="horizontal" aria-label="Sort order">
+                                                <wa-radio appearance="button" value="level">Level</wa-radio>
+                                                <wa-radio appearance="button" value="alphabetical">A–Z</wa-radio>
+                                                <wa-radio appearance="button" value="school">School</wa-radio>
+                                            </wa-radio-group>
+                                        </span>
+                                    </div>
+                                    <div class="settings-menu__section">
+                                        <wa-switch id="color-toggle" checked>Use spell school colors</wa-switch>
+                                        <wa-switch id="inline-icons-toggle" checked>Use inline icons</wa-switch>
+                                        <wa-switch id="background-toggle">Show card back</wa-switch>
+                                        <wa-switch id="side-by-side-toggle">Force front/back side-by-side</wa-switch>
+                                    </div>
+                                </div>
+                            </wa-dropdown>
+                        </div>
+                        <div class="controls-row__group">
+                        <wa-button-group label="Download options">
+                            <wa-button
+                                id="print-btn"
+                                class="on-hero"
+                                variant="neutral"
+                                appearance="accent"
+                                size="medium"
+                                pill
+                                title="Print or save as PDF"
+                                aria-label="Download PDF"
+                            >
+                                <wa-icon name="download" slot="start" aria-hidden="true"></wa-icon>
+                                Download PDF
+                            </wa-button>
+                            <wa-dropdown id="download-options-dropdown" placement="bottom-end">
+                                <wa-button slot="trigger" class="on-hero" variant="neutral" appearance="accent" size="medium" pill
+                                    aria-label="More download options"
+                                >
+                                    <wa-icon name="chevron-down" aria-hidden="true"></wa-icon>
+                                </wa-button>
+                                <wa-dropdown-item id="download-custom-option" value="custom-json">
+                                    Download custom spell JSON
+                                </wa-dropdown-item>
+                                <wa-dropdown-item id="download-srd-option" value="srd-json">
+                                    Download SRD spell JSON
+                                </wa-dropdown-item>
+                                <wa-dropdown-item id="show-printing-instructions-option" value="printing-instructions">
+                                    Show printing instructions
+                                </wa-dropdown-item>
+                            </wa-dropdown>
+                        </wa-button-group>
+                        </div>
                     </div>
+
                 </div>
                 </div>
             </div>
         </header>
 
+        <div class="spell-cards-scroll">
+        <div class="spell-cards-content">
         <div id="main-container">
             <div id="printable-area-wrapper">
                 <main id="printable-area"></main>
             </div>
+        </div>
+
+        <footer class="footer">
+            <div class="container">
+                <p>
+                    © 2025 Wunderpus. The Wunderpus logo and spell cards
+                    are copyright Wunderpus.
+                </p>
+                <p>
+                    The spell cards and the spell card generator are licensed under a
+                <a
+                    href="http://creativecommons.org/licenses/by/4.0/"
+                    target="_blank"
+                    >Creative Commons Attribution 4.0 International
+                    License</a
+                >.
+                <br />
+                    This work is not affiliated with, endorsed, or sponsored by
+                    Wizards of the Coast LLC.
+                </p>
+            </div>
+        </footer>
+        </div>
+        <div class="spell-cards-scroll-spacer" aria-hidden="true"></div>
+        </div>
         </div>
 
         <div id="edit-card-overlay" class="overlay hidden" aria-hidden="true">
@@ -381,6 +477,20 @@
                 </div>
             </div>
         </div>
+
+        <wa-dialog
+            id="clear-all-confirm-dialog"
+            label="Clear all confirmation"
+            without-header
+            light-dismiss
+            class="clear-all-confirm-dialog"
+        >
+            <p>Added or edited spells will be lost. Download your spell data to re-upload it later.</p>
+            <div slot="footer" class="clear-all-confirm-dialog__footer">
+                <wa-button appearance="plain" variant="neutral" data-dialog="close" id="clear-all-confirm-cancel">Cancel</wa-button>
+                <wa-button variant="brand" id="clear-all-confirm-proceed">Clear all</wa-button>
+            </div>
+        </wa-dialog>
 
         <wa-dialog
             id="srd-excluded-dialog"
@@ -404,28 +514,21 @@
             <div id="srd-excluded-list" class="srd-excluded-list"></div>
         </wa-dialog>
 
-        <div id="toast" class="toast hidden" aria-live="polite"></div>
-
-        <footer class="footer">
-            <div class="container">
-                <p>
-                    © 2025 Wunderpus. The Wunderpus logo and spell cards
-                    are copyright Wunderpus.
-                </p>
-                <p>
-                    The spell cards and the spell card generator are licensed under a
-                <a
-                    href="http://creativecommons.org/licenses/by/4.0/"
-                    target="_blank"
-                    >Creative Commons Attribution 4.0 International
-                    License</a
-                    >.
-                <br />
-                    This work is not affiliated with, endorsed, or sponsored by
-                    Wizards of the Coast LLC.
-                </p>
+        <wa-dialog
+            id="printing-instructions-dialog"
+            label="Printing instructions"
+            light-dismiss
+            class="printing-instructions-dialog"
+        >
+            <div class="printing-instructions-content">
+                <p>Print pages at <strong>full size</strong> (do not use “fit to page”). You can change the page size in Settings.</p>
+                <p>Turn off “Use spell school colors” in Settings for a more printer-friendly, grayscale layout.</p>
+                <p>You can print on card stock, or on regular paper and then use <a href="https://www.amazon.com/Sleeves-Perfect-Double-Sleeving-Trading-Compatible/dp/B0CKV9S9GL" target="_blank" rel="noopener noreferrer">inner card sleeves</a> for standard poker/trading card size (64 × 98 mm).</p>
+                <p>If you print with a card back or use “Force front/back side-by-side”, cards with a front and back can be cut out as one piece and folded.</p>
             </div>
-        </footer>
+        </wa-dialog>
+
+        <div id="toast" class="toast hidden" aria-live="polite"></div>
 
         <script src="js/nav.js"></script>
         <script type="module" src="js/card-editor.js"></script>

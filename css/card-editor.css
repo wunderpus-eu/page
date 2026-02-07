@@ -339,7 +339,7 @@ header:not(.header--spell-cards) {
 }
 
 .controls-row--print {
-    justify-content: flex-end;
+    justify-content: space-between;
 }
 
 .controls-select-with-icon {
@@ -376,6 +376,101 @@ header:not(.header--spell-cards) {
 .filter-clear-btn.hidden {
     visibility: hidden;
     pointer-events: none;
+}
+
+/* Clear-all confirmation dialog: no header, footer buttons. */
+.clear-all-confirm-dialog__footer {
+    display: flex;
+    gap: var(--wa-spacing-2, 0.5rem);
+    justify-content: flex-end;
+}
+
+/* Hide entire clear-all when no cards. */
+.clear-all-btn-wrapper.hidden {
+    display: none;
+}
+
+/* Wide: show text button, hide icon-only. */
+.clear-all-btn--icon-only {
+    display: none;
+}
+
+/* Narrow: show icon-only (circle), hide text button. */
+@media (max-width: 500px) {
+    .clear-all-btn--with-text {
+        display: none;
+    }
+    .clear-all-btn--icon-only {
+        display: inline-flex;
+    }
+    .clear-all-btn--icon-only::part(base) {
+        height: 43px;
+        min-height: 43px;
+        width: 43px;
+        min-width: 43px;
+        padding: 0;
+        box-sizing: border-box;
+    }
+}
+
+/* Settings button: same responsive pattern as clear-all. */
+.settings-trigger-wrapper {
+    display: inline-flex;
+}
+.settings-btn--icon-only {
+    display: none;
+}
+@media (max-width: 500px) {
+    .settings-btn--with-text {
+        display: none;
+    }
+    .settings-btn--icon-only {
+        display: inline-flex;
+    }
+    .settings-btn--icon-only::part(base) {
+        height: 43px;
+        min-height: 43px;
+        width: 43px;
+        min-width: 43px;
+        padding: 0;
+        box-sizing: border-box;
+    }
+}
+
+.settings-menu-content {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 200px;
+    max-width: min(calc(var(--container-width) - 56px), calc(100vw - 56px));
+    box-sizing: border-box;
+}
+.settings-menu__section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.settings-menu__section .controls-select-with-icon {
+    width: 100%;
+}
+.settings-menu__section wa-select {
+    flex: 1;
+    min-width: 0;
+}
+.settings-menu__section .controls-select-with-icon wa-radio-group {
+    flex: 1;
+    min-width: 0;
+}
+.settings-menu__section wa-radio-group {
+    width: 100%;
+}
+.settings-menu__section wa-radio-group::part(form-control-label) {
+    display: none;
+}
+.settings-menu__section wa-radio-group::part(radios) {
+    display: flex;
+    gap: 6px;
 }
 
 .filter-menu-content .filter-chip-group:first-of-type {
@@ -572,6 +667,14 @@ header:not(.header--spell-cards) {
     min-height: 38px;
     border-radius: 9999px;
 }
+
+.printing-instructions-content p {
+    margin: 0 0 0.75rem;
+}
+.printing-instructions-content p:last-child {
+    margin-bottom: 0;
+}
+
 /* Toast (easter egg) */
 .toast {
     position: fixed;

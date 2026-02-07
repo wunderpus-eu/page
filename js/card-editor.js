@@ -166,8 +166,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const backgroundToggle = document.getElementById("background-toggle");
     const inlineIconsToggle = document.getElementById("inline-icons-toggle");
     const sideBySideToggle = document.getElementById("side-by-side-toggle");
-    const clearAllBtn = document.getElementById("clear-all-btn");
-    const downloadCustomBtn = document.getElementById("download-custom-btn");
+    const clearAllBtnWrapper = document.getElementById("clear-all-btn-wrapper");
+    const downloadCustomOption = document.getElementById("download-custom-option");
+    const downloadOptionsDropdown = document.getElementById("download-options-dropdown");
+    const settingsDropdown = document.getElementById("settings-dropdown");
+    const settingsTriggerWrapper = document.getElementById("settings-trigger-wrapper");
     const uploadSpellsInput = document.getElementById("upload-spells-input");
     const uploadSpellsBtn = document.getElementById("upload-spells-btn");
     const printBtn = document.getElementById("print-btn");
@@ -179,13 +182,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     const srdBanner = document.getElementById("srd-banner");
     const srdBannerText = document.getElementById("srd-banner-text");
     const srdBannerInfo = document.getElementById("srd-banner-info");
+    const clearAllConfirmDialog = document.getElementById("clear-all-confirm-dialog");
+    const clearAllConfirmCancel = document.getElementById("clear-all-confirm-cancel");
+    const clearAllConfirmProceed = document.getElementById("clear-all-confirm-proceed");
     const srdExcludedDialog = document.getElementById("srd-excluded-dialog");
     const srdExcludedExplanation = document.getElementById(
         "srd-excluded-explanation"
     );
     const srdExcludedList = document.getElementById("srd-excluded-list");
     const srdExcludedCopy = document.getElementById("srd-excluded-copy");
+    const printingInstructionsDialog = document.getElementById("printing-instructions-dialog");
+    const showPrintingInstructionsOption = document.getElementById("show-printing-instructions-option");
     const toastEl = document.getElementById("toast");
+
+    /** Off-screen container for card overflow measurement (must be in DOM). Used when calling card.render({ measureContainer }). */
+    const measureContainer = document.createElement("div");
+    measureContainer.style.cssText =
+        "position:absolute;left:-9999px;top:-9999px;";
+    document.body.appendChild(measureContainer);
 
     /** When true, spell list shows only SRD spells (or SRD-name variants). Disabled by "knock" easter egg. Resets on page reload. */
     let onlySRD = true;
@@ -536,16 +550,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (toFocus) toFocus.focus();
     }
 
-    /** Adds a SpellCard to cardList, renders it, and refreshes layout.
+    /** Adds a SpellCard to cardList, renders it, and optionally refreshes layout.
      * @param {object} spellData - Spell data for the card
      * @param {object} [originalSpell] - When adding from list, the list spell (stores id for reset)
+     * @param {{ skipLayout?: boolean }} [opts] - If skipLayout: true, do not call refreshLayout (caller will refresh once)
      */
-    async function addCard(spellData, originalSpell) {
+    async function addCard(spellData, originalSpell, opts = {}) {
         const card = new SpellCard(spellData);
         if (originalSpell) card.originalId = originalSpell.id;
-        await card.render();
+        await card.render({ measureContainer });
         cardList.push(card);
-        await refreshLayout();
+        if (!opts.skipLayout) await refreshLayout();
     }
 
     /**
@@ -587,51 +602,78 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
     }
 
-    /** Sorts spell cards by alphabetical, level, or school; glossary cards first. */
+    /** Sorts spell cards by alphabetical, level, or school; glossary and blank cards first. */
     function sortCardList(list, sortBy) {
         const glossary = list.filter((c) => isGlossaryRef(c));
         const rest = list.filter((c) => !isGlossaryRef(c));
+        const blank = rest.filter((c) => c.originalId == null);
+        const withId = rest.filter((c) => c.originalId != null);
         const name = (c) => c.spell?.name ?? "";
         const level = (c) => c.spell?.level ?? 0;
         const school = (c) => c.spell?.school ?? "";
         if (sortBy === "alphabetical") {
-            rest.sort((a, b) => name(a).localeCompare(name(b)));
+            withId.sort((a, b) => name(a).localeCompare(name(b)));
         } else if (sortBy === "level") {
-            rest.sort(
+            withId.sort(
                 (a, b) => level(a) - level(b) || name(a).localeCompare(name(b))
             );
         } else if (sortBy === "school") {
-            rest.sort(
+            withId.sort(
                 (a, b) =>
                     school(a).localeCompare(school(b)) ||
+                    level(a) - level(b) ||
                     name(a).localeCompare(name(b))
             );
         }
-        return [...glossary, ...rest];
+        return [...glossary, ...blank, ...withId];
     }
 
-    /** Updates Download custom button: disabled when no modified cards. */
+    /** Updates Download custom option, Print button, and Remove all visibility. */
     function updateDownloadCustomButton() {
         const hasModified = cardList.some(
             (c) => c instanceof SpellCard && c.spell._modified
         );
-        downloadCustomBtn.disabled = !hasModified;
+        if (downloadCustomOption) downloadCustomOption.disabled = !hasModified;
+        if (printBtn) printBtn.disabled = cardList.length === 0;
+        if (clearAllBtnWrapper) clearAllBtnWrapper.classList.toggle("hidden", cardList.length === 0);
     }
 
-    /** Re-renders cards, applies grayscale, sorts, and calls layoutCards. */
+    /** Re-renders cards, applies grayscale (when “use spell school colors” is off), sorts, and calls layoutCards. */
+    let refreshLayoutPromise = Promise.resolve();
+    let refreshLayoutLastGrayscale = undefined;
     async function refreshLayout() {
-        document.body.classList.toggle("grayscale", colorToggle.checked);
-        for (const c of cardList) {
-            if (c instanceof SpellCard) await c.render();
-        }
-        const sorted = sortCardList(cardList, sortSelect.value);
-        const options = {
-            defaultCardBack: backgroundToggle.checked,
-            sideBySide: sideBySideToggle.checked && !backgroundToggle.checked,
-        };
-        await layoutCards(sorted, pageSizeSelect.value, printableArea, options);
-        updateWrapperSizeAndPosition();
-        updateDownloadCustomButton();
+        const run = (async () => {
+            updatePageWidth();
+            await new Promise((r) => requestAnimationFrame(r));
+            document.body.classList.toggle("grayscale", !colorToggle.checked);
+            document.body.classList.toggle(
+                "use-inline-text",
+                !inlineIconsToggle.checked
+            );
+            // Side-by-side only disabled when Show card back is on (re-apply so it stays correct after add/remove)
+            sideBySideToggle.disabled = backgroundToggle.checked;
+            // Re-render cards only when grayscale changed (colors are baked in at render time; inline icons use CSS/alt)
+            const grayscale = !colorToggle.checked;
+            if (refreshLayoutLastGrayscale !== grayscale) {
+                refreshLayoutLastGrayscale = grayscale;
+                for (const c of cardList) {
+                    if (c instanceof SpellCard)
+                        await c.render({ measureContainer });
+                }
+            }
+            const sorted = sortCardList(cardList, sortSelect.value);
+            const options = {
+                defaultCardBack: backgroundToggle.checked,
+                sideBySide: sideBySideToggle.checked && !backgroundToggle.checked,
+            };
+            await layoutCards(sorted, pageSizeSelect.value, printableArea, options);
+            updateWrapperSizeAndPosition();
+            updateDownloadCustomButton();
+        })();
+        refreshLayoutPromise = refreshLayoutPromise
+            .then(() => run)
+            .then(() => {}, () => {});
+        return run;
     }
 
     /** Removes a card from cardList and refreshes layout. */
@@ -655,7 +697,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const card = cardList[idx];
         if (!(card instanceof SpellCard)) return;
         const newCard = card.duplicate();
-        await newCard.render();
+        await newCard.render({ measureContainer });
         cardList.splice(idx + 1, 0, newCard);
         await refreshLayout();
     }
@@ -1502,7 +1544,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!editingCard) return;
         const data = getEditFormData();
         editingCard.setSpellData(data);
-        await editingCard.render();
+        await editingCard.render({ measureContainer });
         closeEditOverlay();
         await refreshLayout();
     }
@@ -1709,13 +1751,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /** Updates printable-area wrapper dimensions for zoom/scale. */
     function updateWrapperSizeAndPosition() {
-        const containerHeight = mainContainer.clientHeight;
         const wrapperWidth = pageWidthPx * scale;
         const wrapperHeight = printableArea.scrollHeight * scale;
         printableAreaWrapper.style.width = `${wrapperWidth}px`;
-        printableAreaWrapper.style.height = `${
-            wrapperHeight + containerHeight / 2
-        }px`;
+        printableAreaWrapper.style.height = `${wrapperHeight}px`;
     }
 
     /** Builds full non-SRD dialog text for copy (different name first, then excluded). */
@@ -1901,14 +1940,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     /** Opens a new window with only the card pages and triggers print (Save as PDF). */
     function openPrintWindow() {
         const pages = printableArea.querySelectorAll(".page");
-        if (!pages.length) {
-            if (toastEl) {
-                toastEl.textContent = "No cards to print.";
-                toastEl.classList.remove("hidden");
-                setTimeout(() => toastEl.classList.add("hidden"), 3000);
-            }
-            return;
-        }
+        if (!pages.length) return;
         const pageSize = pageSizeSelect.value;
         const isLetter = pageSize === "letter";
         const baseUrl = new URL(".", window.location.href).href;
@@ -2088,7 +2120,10 @@ window.onafterprint = function() {
     spellListAddAll.addEventListener("click", async (e) => {
         e.stopPropagation();
         const toAdd = currentSpellResults;
-        for (const spell of toAdd) await addCard(cloneSpellData(spell), spell);
+        for (const spell of toAdd) {
+            await addCard(cloneSpellData(spell), spell, { skipLayout: true });
+        }
+        await refreshLayout();
         requestAnimationFrame(() => renderSpellList());
         spellSearchInput.focus();
     });
@@ -2270,30 +2305,77 @@ window.onafterprint = function() {
         }, 0);
     });
 
-    pageSizeSelect.addEventListener("wa-change", () => {
+    function onPageSizeChange() {
         updatePageWidth();
         refreshLayout();
-    });
+    }
+    pageSizeSelect.addEventListener("wa-change", onPageSizeChange);
+    pageSizeSelect.addEventListener("change", onPageSizeChange);
+    pageSizeSelect.addEventListener("input", onPageSizeChange);
     sortSelect.addEventListener("wa-change", refreshLayout);
+    sortSelect.addEventListener("change", refreshLayout);
+    sortSelect.addEventListener("input", refreshLayout);
     colorToggle.addEventListener("wa-change", refreshLayout);
-    backgroundToggle.addEventListener("wa-change", () => {
+    colorToggle.addEventListener("change", refreshLayout);
+    colorToggle.addEventListener("input", refreshLayout);
+    function applyCardBackState() {
         sideBySideToggle.disabled = backgroundToggle.checked;
         refreshLayout();
-    });
-    inlineIconsToggle.addEventListener("wa-change", () => {
+    }
+    backgroundToggle.addEventListener("wa-change", applyCardBackState);
+    backgroundToggle.addEventListener("change", applyCardBackState);
+    backgroundToggle.addEventListener("input", applyCardBackState);
+    function applyInlineIconsState() {
         document.body.classList.toggle(
             "use-inline-text",
             !inlineIconsToggle.checked
         );
-    });
+    }
+    inlineIconsToggle.addEventListener("wa-change", applyInlineIconsState);
+    inlineIconsToggle.addEventListener("change", applyInlineIconsState);
+    inlineIconsToggle.addEventListener("input", applyInlineIconsState);
     sideBySideToggle.addEventListener("wa-change", refreshLayout);
-    clearAllBtn.addEventListener("click", async () => {
-        cardList = [];
-        renderSpellList();
-        await refreshLayout();
-    });
+    sideBySideToggle.addEventListener("change", refreshLayout);
+    sideBySideToggle.addEventListener("input", refreshLayout);
+    if (clearAllBtnWrapper) {
+        clearAllBtnWrapper.addEventListener("click", async (e) => {
+            if (!e.target.closest(".clear-all-btn")) return;
+            const hasModified = cardList.some(
+                (c) => c instanceof SpellCard && c.spell._modified
+            );
+            if (hasModified && clearAllConfirmDialog) {
+                clearAllConfirmDialog.open = true;
+                return;
+            }
+            cardList = [];
+            renderSpellList();
+            await refreshLayout();
+        });
+    }
 
-    downloadCustomBtn.addEventListener("click", () => {
+    if (clearAllConfirmProceed) {
+        clearAllConfirmProceed.addEventListener("click", async () => {
+            if (clearAllConfirmDialog) clearAllConfirmDialog.open = false;
+            cardList = [];
+            renderSpellList();
+            await refreshLayout();
+        });
+    }
+
+    if (settingsTriggerWrapper && settingsDropdown) {
+        settingsTriggerWrapper.addEventListener(
+            "click",
+            (e) => {
+                if (!e.target.closest(".settings-btn")) return;
+                e.preventDefault();
+                e.stopPropagation();
+                settingsDropdown.open = true;
+            },
+            true
+        );
+    }
+
+    function downloadCustomSpellJson() {
         const modified = cardList.filter(
             (c) => c instanceof SpellCard && c.spell._modified
         );
@@ -2308,7 +2390,50 @@ window.onafterprint = function() {
         a.download = "custom-spells.json";
         a.click();
         URL.revokeObjectURL(url);
-    });
+    }
+
+    function downloadSrdSpellJson() {
+        const spells = getSpells();
+        const srd = spells.filter(
+            (s) =>
+                s.isSRD === true || typeof s.isSRD === "string"
+        );
+        const data = srd.map((s) => {
+            const obj = spellToExportFormat(s);
+            if (typeof s.isSRD === "string") {
+                obj.name = s.isSRD;
+            }
+            obj.isSRD = true;
+            return obj;
+        });
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+            type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "srd-spells.json";
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    if (downloadCustomOption) {
+        downloadCustomOption.addEventListener("click", () => {
+            if (downloadCustomOption.disabled) return;
+            downloadCustomSpellJson();
+        });
+    }
+    const downloadSrdOption = document.getElementById("download-srd-option");
+    if (downloadSrdOption) {
+        downloadSrdOption.addEventListener("click", () => {
+            downloadSrdSpellJson();
+        });
+    }
+    if (showPrintingInstructionsOption && printingInstructionsDialog) {
+        showPrintingInstructionsOption.addEventListener("click", () => {
+            printingInstructionsDialog.open = true;
+        });
+    }
 
     uploadSpellsBtn.addEventListener("click", () => uploadSpellsInput.click());
     uploadSpellsInput.addEventListener("change", async (e) => {
@@ -2339,8 +2464,7 @@ window.onafterprint = function() {
             (c) => c instanceof SpellCard && c.id === cardEl.dataset.cardId
         );
         if (!card) return;
-        await card.setAlwaysPrepared(event.target.checked);
-        await refreshLayout();
+        card.setAlwaysPrepared(event.target.checked);
     });
 
     printableArea.addEventListener("mouseover", (event) => {
@@ -2399,7 +2523,7 @@ window.onafterprint = function() {
         const original = spells.find((s) => s.id === card.originalId);
         if (!original) return;
         card.setSpellData(cloneSpellData(original));
-        await card.render();
+        await card.render({ measureContainer });
         renderSpellList();
         await refreshLayout();
     });
@@ -2436,6 +2560,7 @@ window.onafterprint = function() {
     (async function init() {
         try {
             sideBySideToggle.disabled = backgroundToggle.checked;
+            updateDownloadCustomButton();
             await reloadData();
             handleZoom();
             updatePageWidth();

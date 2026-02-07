@@ -104,27 +104,21 @@ body.vault-open .spell-source-text .source-full {
     display: block;
 }
 
-/* Spell-cards page: overscroll matches light grey */
+/* Spell-cards page: overscroll matches light grey (layout in style.css) */
 html.spell-cards-page {
     background-color: #f0f0f0;
 }
-body.spell-cards-page {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-body.spell-cards-page #main-container {
-    flex: 1 1 auto;
-    min-height: 0;
-}
 
 #main-container {
-    overflow: auto;
     position: relative;
     display: flex;
     justify-content: center;
     padding: 1rem 0 2rem;
     min-height: 0;
+}
+/* Single scroll for spell-cards: overflow on .spell-cards-scroll in style.css */
+.spell-cards-page .spell-cards-scroll #main-container {
+    overflow: visible;
 }
 
 #printable-area-wrapper {
@@ -213,6 +207,16 @@ body.grayscale {
     flex-wrap: wrap;
     align-content: flex-start;
     row-gap: 0;
+}
+
+/* Fixed size per slot so fronts and default backs don’t collapse or misalign in flex layout */
+.card-container > .spell-card,
+.card-container > .spell-card-spacer {
+    flex: 0 0 auto;
+    width: 63mm;
+    height: 88mm;
+    min-width: 63mm;
+    min-height: 88mm;
 }
 
 .spell-card-spacer {

@@ -3735,6 +3735,26 @@
       "icon": "icon-a",
       "fg": "ccb974",
       "bg": "ffffff"
+    },
+    {
+      "icon": "icon-range",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-range-los",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-duration",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-permanent",
+      "fg": "333333",
+      "bg": "ffffff"
     }
   ]
 }

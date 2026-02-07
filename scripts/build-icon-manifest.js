@@ -123,8 +123,11 @@ function main() {
         }
     }
 
-    // --- Glossary card icons (same icons, same color 333 + white; already covered by FG_ON_WHITE with 333)
-    // No extra entries needed.
+    // --- Glossary card: icons not in INLINE_ICONS but used with (font-color, white) in createGlossaryCard
+    const GLOSSARY_ICONS = ["icon-range", "icon-range-los", "icon-duration", "icon-permanent"];
+    for (const icon of GLOSSARY_ICONS) {
+        icons.push({ icon, fg: FONT, bg: BG_WHITE });
+    }
 
     const manifest = {
         comment: "List of (icon, fg, bg) to pre-generate. Covers class filter chips and all spell-card icons (border, range, area, duration, components, class row, inline/glossary). fg/bg: 6-char hex (no #), or 'transparent' for filter chips. Re-run build-icon-manifest.js when adding icon usages; then run generate-icons.js.",

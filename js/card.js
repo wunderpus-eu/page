@@ -72,13 +72,13 @@ export function getNextSpellId() {
 /** Minimal valid spell object for empty/custom cards */
 export function emptySpellTemplate() {
     return {
-        name: "Custom Spell",
+        name: "",
         subtitle: "",
         source: "Homebrew",
         page: 0,
         isSRD: false,
         level: 0,
-        school: "Evocation",
+        school: "Abjuration",
         time: { number: 1, unit: "action" },
         range: {
             origin: "point",
@@ -1077,6 +1077,132 @@ async function render_markdown_list(listText) {
 }
 
 /**
+ * If the description overflows, creates a back card and moves content there.
+ * Runs only when a card is rendered (card must be in DOM for measurement).
+ * Card dimensions are constant; no need to re-run when page size or layout options change.
+ *
+ * @param {SpellCard} spellCard
+ * @param {HTMLElement} measureContainer - Parent for measuring (e.g. off-screen div)
+ * @param {number} [fontLevel] - 0=normal, 1=6pt, 2=5.5pt
+ */
+async function handleOverflow(spellCard, measureContainer, fontLevel = 0) {
+    const card = spellCard.frontElement;
+    const spell = spellCard.spell;
+    const cardBody = card.querySelector(".card-body");
+    const descriptionText = card.querySelector(".description-text");
+
+    if (!cardBody || !descriptionText) {
+        return null;
+    }
+
+    const componentText = card.querySelector(".spell-component-text");
+
+    function isOverflowing(element) {
+        return element.scrollHeight > element.clientHeight;
+    }
+
+    if (isOverflowing(descriptionText)) {
+        if (fontLevel === 0) {
+            cardBody.style.fontSize = "6pt";
+            cardBody.style.lineHeight = "6pt";
+            if (componentText) {
+                componentText.style.fontSize = "6pt";
+                componentText.style.lineHeight = "6pt";
+            }
+
+            if (isOverflowing(descriptionText)) {
+                cardBody.style.fontSize = "";
+                cardBody.style.lineHeight = "";
+                if (componentText) {
+                    componentText.style.fontSize = "";
+                    componentText.style.lineHeight = "";
+                }
+            } else {
+                return null;
+            }
+        }
+
+        const backCardContainer = document.createElement("div");
+        backCardContainer.className = "spell-card";
+        backCardContainer.dataset.cardId = spellCard.id;
+        backCardContainer.dataset.spellName = spell.name;
+        backCardContainer.style.backgroundColor = spellCard.backgroundColor;
+
+        const back = document.createElement("div");
+        back.className = "spell-card-back";
+
+        const backCardBody = document.createElement("div");
+        backCardBody.className = "card-body back";
+        backCardBody.style.borderColor = getSpellSchoolColor(spell);
+        back.appendChild(backCardBody);
+
+        const backDescriptionText = document.createElement("div");
+        backDescriptionText.className = "description-text";
+        backCardBody.appendChild(backDescriptionText);
+
+        backCardContainer.appendChild(back);
+
+        if (measureContainer) {
+            measureContainer.appendChild(backCardContainer);
+        }
+
+        if (fontLevel > 0) {
+            const fontSize = fontLevel === 1 ? "6pt" : "5.5pt";
+            const frontCardBody = card.querySelector(".card-body");
+            frontCardBody.style.fontSize = fontSize;
+            frontCardBody.style.lineHeight = fontSize;
+            if (componentText) {
+                componentText.style.fontSize = fontSize;
+                componentText.style.lineHeight = fontSize;
+            }
+            backCardBody.style.fontSize = fontSize;
+            backCardBody.style.lineHeight = fontSize;
+        }
+
+        const descriptionElements = Array.from(descriptionText.children);
+
+        while (
+            isOverflowing(descriptionText) &&
+            descriptionElements.length > 0
+        ) {
+            const elementToMove = descriptionElements.pop();
+            backDescriptionText.prepend(elementToMove);
+        }
+
+        if (isOverflowing(backCardBody) && fontLevel < 2) {
+            const backElements = Array.from(backDescriptionText.children);
+            for (const elementToMove of backElements) {
+                descriptionText.appendChild(elementToMove);
+            }
+
+            if (measureContainer) {
+                measureContainer.removeChild(backCardContainer);
+            }
+
+            return await handleOverflow(
+                spellCard,
+                measureContainer,
+                fontLevel + 1
+            );
+        }
+
+        const lastParagraph = descriptionText.querySelector("p:last-of-type");
+        if (lastParagraph) {
+            lastParagraph.appendChild(document.createTextNode(" →"));
+        }
+
+        if (measureContainer) {
+            measureContainer.removeChild(backCardContainer);
+        }
+
+        spellCard.backElement = backCardContainer;
+        return;
+    }
+
+    return null;
+}
+
+/**
  * Renders a single spell as a printable card.
  * Holds spell data, front DOM element, and optionally a back element (for overflow).
  */
@@ -1124,13 +1250,25 @@ export class SpellCard {
         }
     }
 
-    async setAlwaysPrepared(isPrepared) {
+    /** Sets always-prepared state and updates the card's class and background. No re-render. */
+    setAlwaysPrepared(isPrepared) {
         this.isAlwaysPrepared = isPrepared;
-        await this.render();
+        if (this.frontElement) {
+            this._updateColors();
+            this.frontElement.style.backgroundColor = this.backgroundColor;
+            this.frontElement.classList.toggle("always-prepared", isPrepared);
+            const checkbox = this.frontElement.querySelector(".prepared-checkbox");
+            if (checkbox) checkbox.checked = isPrepared;
+        }
     }
 
-    /** Builds or rebuilds the card front DOM. Clears backElement; layout may add a back later. */
-    async render() {
+    /**
+     * Builds or rebuilds the card front DOM. Clears backElement.
+     * When options.measureContainer is provided, runs overflow measurement so backElement is set if needed.
+     * Call with measureContainer when the card will be laid out (add, edit save, duplicate, grayscale re-render).
+     * @param {{ measureContainer?: HTMLElement }} [options]
+     */
+    async render(options = {}) {
         this._updateColors();
         const spell = this.spell;
 
@@ -1144,6 +1282,7 @@ export class SpellCard {
         }
 
         card.className = "spell-card";
+        card.classList.toggle("always-prepared", this.isAlwaysPrepared);
         card.dataset.cardId = this.id;
         card.dataset.spellName = spell.name;
         card.style.backgroundColor = this.backgroundColor;
@@ -1313,6 +1452,18 @@ export class SpellCard {
         card.appendChild(front);
 
         this.backElement = null;
+
+        if (options.measureContainer) {
+            const container = options.measureContainer;
+            container.appendChild(this.frontElement);
+            await handleOverflow(this, container);
+            if (this.frontElement.parentNode === container) {
+                container.removeChild(this.frontElement);
+            }
+            if (this.backElement && this.backElement.parentNode === container) {
+                container.removeChild(this.backElement);
+            }
+        }
     }
 }
 

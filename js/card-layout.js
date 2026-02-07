@@ -1,30 +1,27 @@
 /**
  * card-layout.js – Page layout for printable spell cards.
  *
- * Places card fronts (and backs) into pages with correct dimensions.
- * When sideBySide: adds spacers so front+back stay together (no dangling backs).
- * When defaultCardBack: cards without a back get a cross-hatch default back.
+ * When layout runs: remove all cards from the DOM, compute page count,
+ * add/remove/resize pages, then place cards one by one from the ordered
+ * card list. Caller must (re-)render all cards before calling layout once.
  */
 import {
     SpellCard,
-    emptySpellTemplate,
-    getSpells,
     isGlossaryRef,
     createGlossaryCard,
-    getSpellSchoolColor,
 } from "./card.js";
 
+/** Fixed card size in mm (matches .spell-card in card.css). */
+const CARD_WIDTH_MM = 63;
+const CARD_HEIGHT_MM = 88;
+
 /**
- * Renders cards into printable pages inside printableArea.
- * Measures cards, builds front+back sequence, applies spacer logic when sideBySide,
- * and fills pages with card containers.
+ * Places cards into printable pages. Cards must already be rendered (except glossary nodes, created on demand).
  *
- * @param {(import("./card.js").SpellCard | { type: "glossary"; id: string })[]} cards
+ * @param {(import("./card.js").SpellCard | { type: "glossary"; id: string })[]} cards - Sorted list (caller sorts; blanks/glossary first)
  * @param {"a4" | "letter"} pageSize
- * @param {HTMLElement} printableArea - Container to append pages to (cleared first)
+ * @param {HTMLElement} printableArea
  * @param {{ defaultCardBack?: boolean; sideBySide?: boolean }} [options]
- *   - defaultCardBack: add cross-hatch back for cards without one
- *   - sideBySide: add spacers so front+back stay on same row (ignored if defaultCardBack)
  */
 export async function layoutCards(
     cards,
@@ -36,33 +33,14 @@ export async function layoutCards(
 
     closePopoversIn(printableArea);
     await nextFrame();
-    printableArea.innerHTML = "";
 
     if (cards.length === 0) {
+        printableArea.innerHTML = "";
         return;
     }
 
-    const firstSpellCard = cards.find((c) => c instanceof SpellCard);
-    let measureCard = firstSpellCard || null;
-    const allSpells = getSpells();
-    if (!measureCard && allSpells.length > 0) {
-        measureCard = new SpellCard(allSpells[0]);
-        await measureCard.render();
-    }
-    if (!measureCard) {
-        measureCard = new SpellCard(emptySpellTemplate());
-        await measureCard.render();
-    }
-    printableArea.appendChild(measureCard.frontElement);
-    const pxPerMm = getPxPerMm();
-    const cardWidth = measureCard.frontElement.offsetWidth / pxPerMm;
-    const cardHeight = measureCard.frontElement.offsetHeight / pxPerMm;
-    closePopoversIn(measureCard.frontElement);
-    await nextFrame();
-    printableArea.removeChild(measureCard.frontElement);
-    if (!firstSpellCard) {
-        measureCard = null;
-    }
+    const cardWidth = CARD_WIDTH_MM;
+    const cardHeight = CARD_HEIGHT_MM;
 
     const pagePadding = 10 * 2;
     const pageDimensions = {
@@ -81,34 +59,78 @@ export async function layoutCards(
     const containerWidth = cardsPerRow * (cardWidth + 1) - 1;
     const containerHeight = rowsPerPage * (cardHeight + 1) - 1;
 
-    // Off-screen container for measuring overflow (handleOverflow needs DOM in tree)
-    const tempContainer = document.createElement("div");
-    tempContainer.style.position = "absolute";
-    tempContainer.style.left = "-9999px";
-    tempContainer.style.top = "-9999px";
-    printableArea.appendChild(tempContainer);
+    const existingPages = Array.from(printableArea.querySelectorAll(".page"));
 
-    const allRenderedCards = [];
+    // 1. Remove all cards from the DOM
+    for (const page of existingPages) {
+        const cardContainer = page.querySelector(".card-container");
+        if (cardContainer) {
+            while (cardContainer.firstChild) {
+                cardContainer.removeChild(cardContainer.firstChild);
+            }
+        }
+    }
+
     for (const item of cards) {
         if (item instanceof SpellCard) {
-            const spellCard = item;
-            tempContainer.appendChild(spellCard.frontElement);
-            await handleOverflow(spellCard, tempContainer); // May add backElement for overflow text
-            closePopoversIn(spellCard.frontElement);
-            await nextFrame();
-            tempContainer.removeChild(spellCard.frontElement);
+            if (item.frontElement?.parentNode)
+                item.frontElement.parentNode.removeChild(item.frontElement);
+            if (item.backElement?.parentNode)
+                item.backElement.parentNode.removeChild(item.backElement);
+        }
+    }
 
-            if (spellCard.backElement) {
-                tempContainer.appendChild(spellCard.backElement);
-            }
+    const useSideBySide = sideBySide && !defaultCardBack;
 
-            allRenderedCards.push(spellCard.frontElement);
-            if (spellCard.backElement) {
-                allRenderedCards.push(spellCard.backElement);
+    // 2. Count total slots from the card list (no separate sequence)
+    let slot = 0;
+    for (const item of cards) {
+        const hasBack = item instanceof SpellCard
+            ? (!!item.backElement || (defaultCardBack && !item.backElement))
+            : true;
+        const hasRealBack = item instanceof SpellCard ? !!item.backElement : true;
+        if (useSideBySide && hasRealBack && slot % cardsPerRow === cardsPerRow - 1)
+            slot++;
+        slot += hasBack ? 2 : 1;
+    }
+    const totalSlots = slot;
+
+    const pagesNeeded = Math.ceil(totalSlots / maxCardsPerPage);
+
+    // 3. Add/remove/resize pages
+    while (existingPages.length > pagesNeeded) {
+        existingPages.pop().remove();
+    }
+    while (existingPages.length < pagesNeeded) {
+        const newPage = createPage(pageSize, containerWidth, containerHeight);
+        printableArea.appendChild(newPage);
+        existingPages.push(newPage);
+    }
+
+    for (const page of existingPages) {
+        const cardContainer = page.querySelector(".card-container");
+        cardContainer.style.width = `${containerWidth}mm`;
+        cardContainer.style.height = `${containerHeight}mm`;
+        cardContainer.style.overflow = "hidden";
+        page.classList.toggle("page-letter", pageSize === "letter");
+    }
+
+    const pages = existingPages;
+
+    // 4. Place cards one by one from the ordered list
+    let slotIndex = 0;
+    for (const item of cards) {
+        let frontNode;
+        let backNode = null;
+        let hasRealBack = false;
+
+        if (item instanceof SpellCard) {
+            frontNode = item.frontElement;
+            if (item.backElement) {
+                backNode = item.backElement;
+                hasRealBack = true;
             } else if (defaultCardBack) {
-                allRenderedCards.push(
-                    createDefaultCardBackElement(cardWidth, cardHeight)
-                );
+                backNode = createDefaultCardBackElement(cardWidth, cardHeight, item.id);
             }
         } else if (isGlossaryRef(item)) {
             const [frontCard, backCard] = await createGlossaryCard();
@@ -136,86 +158,49 @@ export async function layoutCards(
             frontCard
                 .querySelector(".spell-card-front")
                 .appendChild(cardActions);
-            allRenderedCards.push(frontCard);
-            allRenderedCards.push(backCard);
+            frontNode = frontCard;
+            backNode = backCard;
+            hasRealBack = true;
         }
-    }
 
-    closePopoversIn(tempContainer);
-    await nextFrame();
-    printableArea.removeChild(tempContainer);
-
-    printableArea.innerHTML = "";
-    let currentPage = createPage(pageSize, containerWidth, containerHeight);
-    printableArea.appendChild(currentPage);
-    let cardCount = 0;
-
-    const finalLayout = allRenderedCards;
-
-    // Side-by-side spacer: when a card has a back and its front would be last in row,
-    // add one spacer so front+back move to next row together (no dangling back).
-    // Skipped when defaultCardBack (every card has back, no special spacing needed).
-    let sequence = finalLayout;
-    if (sideBySide && !defaultCardBack && finalLayout.length > 0) {
-        let layoutIndex = 0;
-        let finalLayoutIdx = 0;
-        sequence = [];
-        for (const item of cards) {
-            const hasBack =
-                (item instanceof SpellCard &&
-                    (item.backElement || defaultCardBack)) ||
-                isGlossaryRef(item);
-            const frontWouldBeLastInRow =
-                layoutIndex % cardsPerRow === cardsPerRow - 1;
-            if (hasBack && frontWouldBeLastInRow) {
-                const spacer = document.createElement("div");
-                spacer.className = "spell-card-spacer";
-                spacer.style.width = `${cardWidth}mm`;
-                spacer.style.height = `${cardHeight}mm`;
-                spacer.style.flexShrink = "0";
-                sequence.push(spacer);
-                layoutIndex++;
-            }
-            sequence.push(finalLayout[finalLayoutIdx++]);
-            if (hasBack) sequence.push(finalLayout[finalLayoutIdx++]);
-            layoutIndex += hasBack ? 2 : 1;
+        if (useSideBySide && hasRealBack && backNode && slotIndex % cardsPerRow === cardsPerRow - 1) {
+            const pageIndex = Math.floor(slotIndex / maxCardsPerPage);
+            const cardContainer = pages[pageIndex].querySelector(".card-container");
+            const spacer = document.createElement("div");
+            spacer.className = "spell-card-spacer";
+            spacer.style.width = `${cardWidth}mm`;
+            spacer.style.height = `${cardHeight}mm`;
+            cardContainer.appendChild(spacer);
+            slotIndex++;
         }
-    }
 
-    let cardContainer = currentPage.querySelector(".card-container");
+        const pageIndex = Math.floor(slotIndex / maxCardsPerPage);
+        const cardContainer = pages[pageIndex].querySelector(".card-container");
+        cardContainer.appendChild(frontNode);
+        slotIndex++;
 
-    for (const card of sequence) {
-        if (cardCount >= maxCardsPerPage) {
-            currentPage = createPage(pageSize, containerWidth, containerHeight);
-            printableArea.appendChild(currentPage);
-            cardCount = 0;
-            cardContainer = currentPage.querySelector(".card-container");
+        if (backNode) {
+            const backPageIndex = Math.floor(slotIndex / maxCardsPerPage);
+            const backContainer = pages[backPageIndex].querySelector(".card-container");
+            backContainer.appendChild(backNode);
+            slotIndex++;
         }
-        if (card) {
-            cardContainer.appendChild(card);
-        } else {
-            const placeholder = document.createElement("div");
-            placeholder.style.width = `${cardWidth}mm`;
-            placeholder.style.height = `${cardHeight}mm`;
-            cardContainer.appendChild(placeholder);
-        }
-        cardCount++;
     }
 }
 
 /** Cross-hatch default back for cards that don't have their own back. */
-function createDefaultCardBackElement(cardWidthMm, cardHeightMm) {
+function createDefaultCardBackElement(cardWidthMm, cardHeightMm, cardId) {
     const outer = document.createElement("div");
     outer.className = "spell-card";
     outer.style.width = `${cardWidthMm}mm`;
     outer.style.height = `${cardHeightMm}mm`;
+    if (cardId) outer.dataset.cardId = cardId;
     const inner = document.createElement("div");
     inner.className = "spell-card-default-back";
     outer.appendChild(inner);
     return outer;
 }
 
-/** Creates a page div with card-container for the given dimensions. */
 function createPage(pageSize, containerWidth, containerHeight) {
     const page = document.createElement("div");
     page.className = "page";
@@ -232,7 +217,6 @@ function createPage(pageSize, containerWidth, containerHeight) {
     return page;
 }
 
-/** Close any tooltips/popovers in the subtree (including shadow roots) so WaPopup doesn't throw on disconnect. */
 function closePopoversIn(element) {
     const close = (root) => {
         if (!root) return;
@@ -252,139 +236,6 @@ function closePopoversIn(element) {
     close(element);
 }
 
-/** Yield so WA components can finish async close before we tear down DOM. */
 function nextFrame() {
     return new Promise((resolve) => requestAnimationFrame(resolve));
-}
-
-/** Returns the browser's px-per-mm for layout calculations. */
-function getPxPerMm() {
-    const div = document.createElement("div");
-    div.style.position = "absolute";
-    div.style.top = "-9999px";
-    div.style.left = "-9999px";
-    div.style.width = "1mm";
-    document.body.appendChild(div);
-    const pxPerMm = div.getBoundingClientRect().width;
-    document.body.removeChild(div);
-    return pxPerMm;
-}
-
-/**
- * If the description overflows, creates a back card and moves content there.
- * Tries shrinking font first; if still overflow, splits content front→back.
- * May recurse with smaller font if back also overflows.
- * @param {import("./card.js").SpellCard} spellCard
- * @param {HTMLElement} tempContainer - Off-screen parent for measuring
- * @param {number} [fontLevel] - 0=normal, 1=6pt, 2=5.5pt
- */
-async function handleOverflow(spellCard, tempContainer, fontLevel = 0) {
-    const card = spellCard.frontElement;
-    const spell = spellCard.spell;
-    const cardBody = card.querySelector(".card-body");
-    const descriptionText = card.querySelector(".description-text");
-
-    if (!cardBody || !descriptionText) {
-        return null;
-    }
-
-    const componentText = card.querySelector(".spell-component-text");
-
-    function isOverflowing(element) {
-        return element.scrollHeight > element.clientHeight;
-    }
-
-    if (isOverflowing(descriptionText)) {
-        if (fontLevel === 0) {
-            cardBody.style.fontSize = "6pt";
-            cardBody.style.lineHeight = "6pt";
-            componentText.style.fontSize = "6pt";
-            componentText.style.lineHeight = "6pt";
-
-            if (isOverflowing(descriptionText)) {
-                cardBody.style.fontSize = "";
-                cardBody.style.lineHeight = "";
-                componentText.style.fontSize = "";
-                componentText.style.lineHeight = "";
-            } else {
-                return null;
-            }
-        }
-
-        const backCardContainer = document.createElement("div");
-        backCardContainer.className = "spell-card";
-        backCardContainer.dataset.cardId = spellCard.id;
-        backCardContainer.dataset.spellName = spell.name;
-        backCardContainer.style.backgroundColor = spellCard.backgroundColor;
-
-        const back = document.createElement("div");
-        back.className = "spell-card-back";
-
-        const backCardBody = document.createElement("div");
-        backCardBody.className = "card-body back";
-        backCardBody.style.borderColor = getSpellSchoolColor(spell);
-        back.appendChild(backCardBody);
-
-        const backDescriptionText = document.createElement("div");
-        backDescriptionText.className = "description-text";
-        backCardBody.appendChild(backDescriptionText);
-
-        backCardContainer.appendChild(back);
-
-        if (tempContainer) {
-            tempContainer.appendChild(backCardContainer);
-        }
-
-        if (fontLevel > 0) {
-            const fontSize = fontLevel === 1 ? "6pt" : "5.5pt";
-            const frontCardBody = card.querySelector(".card-body");
-            frontCardBody.style.fontSize = fontSize;
-            frontCardBody.style.lineHeight = fontSize;
-            componentText.style.fontSize = fontSize;
-            componentText.style.lineHeight = fontSize;
-            backCardBody.style.fontSize = fontSize;
-            backCardBody.style.lineHeight = fontSize;
-        }
-
-        const descriptionElements = Array.from(descriptionText.children);
-
-        while (
-            isOverflowing(descriptionText) &&
-            descriptionElements.length > 0
-        ) {
-            const elementToMove = descriptionElements.pop();
-            backDescriptionText.prepend(elementToMove);
-        }
-
-        if (isOverflowing(backCardBody) && fontLevel < 2) {
-            const backElements = Array.from(backDescriptionText.children);
-            for (const elementToMove of backElements) {
-                descriptionText.appendChild(elementToMove);
-            }
-
-            if (tempContainer) {
-                tempContainer.removeChild(backCardContainer);
-            }
-
-            return await handleOverflow(
-                spellCard,
-                tempContainer,
-                fontLevel + 1
-            );
-        }
-
-        const lastParagraph = descriptionText.querySelector("p:last-of-type");
-        if (lastParagraph) {
-            lastParagraph.appendChild(document.createTextNode(" →"));
-        }
-
-        if (tempContainer) {
-            tempContainer.removeChild(backCardContainer);
-        }
-
-        spellCard.backElement = backCardContainer;
-        return;
-    }
-
-    return null;
 }
