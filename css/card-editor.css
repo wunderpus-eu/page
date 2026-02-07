@@ -56,25 +56,9 @@ header:not(.header--spell-cards) {
     min-width: 0;
 }
 
-/* Search bar: pill shape (color/focus from .on-hero in style.css) */
 .spell-search-wrapper #spell-search-input {
     width: 100%;
 }
-/* .spell-search-wrapper #spell-search-input::part(base) {
-    border-radius: 9999px;
-    overflow: visible;
-}
-.spell-search-wrapper #spell-search-input::part(clear-button) {
-    opacity: 1;
-    visibility: visible;
-    color: rgba(255, 255, 255, 0.9);
-}
-.spell-search-wrapper #spell-search-input::part(clear-button):hover {
-    color: #fff;
-}
-.spell-search-wrapper #spell-search-input::part(end) {
-    overflow: visible;
-} */
 
 .spell-search-wrapper .filter-dropdown {
     flex-shrink: 0;

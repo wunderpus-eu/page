@@ -22,6 +22,14 @@ import {
 } from "./card.js";
 import { layoutCards } from "./card-layout.js";
 
+/** Swallow WaPopup promise rejections on disconnect (library calls hidePopover on null when nodes are removed). */
+window.addEventListener("unhandledrejection", (e) => {
+    if (e.reason?.message?.includes("hidePopover")) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+});
+
 /** In the spell list chips we show abbreviation (e.g. "PHB"). */
 function getFilterSourceLabel(source) {
     if (source === "PHB" || source === "XPHB") return "PHB";
@@ -2208,10 +2216,16 @@ window.onafterprint = function() {
      */
     const filterTrigger = filterDropdown.querySelector("[slot='trigger']");
     const FOCUSABLE_IN_PANEL =
-        'button:not([disabled]):not(.hidden), [href], input:not([disabled]):not([type="hidden"]):not(.visually-hidden-file-input), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), wa-button:not([disabled]):not(.hidden), wa-switch';
+        'button:not([disabled]):not(.hidden), [href], input:not([disabled]):not([type="hidden"]):not(.visually-hidden-file-input), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), wa-button:not([disabled]):not(.hidden), wa-switch, wa-radio';
 
     function getPanelFocusables() {
         const panel = document.getElementById("filter-menu-content");
+        if (!panel) return [];
+        return Array.from(panel.querySelectorAll(FOCUSABLE_IN_PANEL));
+    }
+
+    function getSettingsPanelFocusables() {
+        const panel = document.getElementById("settings-menu-content");
         if (!panel) return [];
         return Array.from(panel.querySelectorAll(FOCUSABLE_IN_PANEL));
     }
@@ -2279,6 +2293,78 @@ window.onafterprint = function() {
         }
     }, true);
 
+    /*
+     * Settings menu keyboard: same as filter menu — Tab into panel, Tab/Shift+Tab cycle inside, Shift+Tab from first goes back to trigger.
+     */
+    const settingsTrigger = settingsDropdown?.querySelector("[slot='trigger']");
+    document.addEventListener("keydown", (e) => {
+        if (!settingsDropdown?.open) return;
+        const panel = document.getElementById("settings-menu-content");
+        if (!panel || !settingsTrigger) return;
+
+        if (e.key === "Enter") {
+            const active = document.activeElement;
+            if (panel.contains(active)) {
+                const switchEl = active.closest?.("wa-switch") ?? (active.tagName === "WA-SWITCH" ? active : null);
+                const radioEl = active.closest?.("wa-radio") ?? (active.tagName === "WA-RADIO" ? active : null);
+                if (switchEl) {
+                    e.preventDefault();
+                    switchEl.click();
+                } else if (radioEl) {
+                    e.preventDefault();
+                    radioEl.click();
+                }
+            }
+            return;
+        }
+
+        if (e.key !== "Tab") return;
+        const active = document.activeElement;
+        const focusables = getSettingsPanelFocusables();
+        const first = focusables[0] ?? null;
+        const focusOnTrigger = active === settingsTrigger || settingsTrigger.contains(active);
+        const focusInPanel = panel.contains(active);
+        const activeIndex = focusInPanel
+            ? focusables.findIndex((el) => el === active || el.contains(active))
+            : -1;
+
+        if (focusOnTrigger && !e.shiftKey) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            first?.focus();
+            return;
+        }
+        if (focusOnTrigger && e.shiftKey) return;
+        if (focusInPanel && e.shiftKey) {
+            if (activeIndex <= 0) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                settingsTrigger.querySelector("wa-button")?.focus();
+            } else if (activeIndex === -1 && focusables.length > 0) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                focusables[focusables.length - 1].focus();
+            } else {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                focusables[activeIndex - 1].focus();
+            }
+            return;
+        }
+        if (focusInPanel && !e.shiftKey) {
+            if (activeIndex === -1) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                first?.focus();
+            } else if (activeIndex >= focusables.length - 1) {
+                return;
+            } else {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                focusables[activeIndex + 1].focus();
+            }
+        }
+    }, true);
 
     filterRuleset.addEventListener("wa-change", refreshFiltersAndList);
     excludeReprintedToggle.addEventListener("wa-change", () => {

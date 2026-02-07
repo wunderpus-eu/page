@@ -96,6 +96,7 @@ wa-button.on-hero {
     --wa-color-neutral-on-quiet: #fff;
     --wa-color-neutral-on-normal: #fff;
     --wa-color-neutral-on-loud: var(--hero-color);
+    --wa-color-neutral-border-loud: #fff;
 }
 wa-button.on-hero wa-icon,
 wa-button.on-hero i {

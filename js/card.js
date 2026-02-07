@@ -161,9 +161,19 @@ function closePopoversAndTooltipsIn(element) {
     element.querySelectorAll("wa-tooltip").forEach((el) => {
         if ("open" in el) el.open = false;
     });
+    element.querySelectorAll("wa-popup").forEach((el) => {
+        if ("open" in el) el.open = false;
+    });
     element.querySelectorAll("[popover]").forEach((el) => {
         if (typeof el.hidePopover === "function") el.hidePopover();
     });
+}
+
+/** Remove WA popup/tooltip nodes so their disconnect doesn't run during innerHTML clear (WaPopup can throw in disconnectedCallback). */
+function removePopoversAndTooltipsIn(element) {
+    if (!element || !element.querySelectorAll) return;
+    element.querySelectorAll("wa-tooltip").forEach((el) => el.remove());
+    element.querySelectorAll("wa-popup").forEach((el) => el.remove());
 }
 
 /** Builds the decorative border frame for a spell card front. */
@@ -1275,6 +1285,9 @@ export class SpellCard {
         let card = this.frontElement;
         if (card) {
             closePopoversAndTooltipsIn(card);
+            await new Promise((r) => requestAnimationFrame(r));
+            removePopoversAndTooltipsIn(card);
+            await new Promise((r) => requestAnimationFrame(r));
             card.innerHTML = ""; // Clear existing content for redraw
         } else {
             card = document.createElement("div");

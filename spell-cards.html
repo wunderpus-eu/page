@@ -136,7 +136,7 @@
                                             variant="default"
                                             size="small"
                                             class="spell-list-inline-btn"
-                                            title="Non-SRD info"
+                                            aria-label="Non-SRD info"
                                         >
                                             <wa-icon name="circle-info" aria-hidden="true"></wa-icon> Details
                                         </wa-button>
@@ -167,14 +167,15 @@
                                 </div>
                             </wa-dropdown>
                             <wa-dropdown id="filter-dropdown" hoist class="filter-dropdown">
+                                <wa-tooltip for="filter-trigger-btn">Filters</wa-tooltip>
                                 <wa-button
+                                    id="filter-trigger-btn"
                                     slot="trigger"
                                     class="filter-trigger-btn on-hero"
                                     appearance="plain"
                                     variant="neutral"
                                     size="small"
                                     pill
-                                    title="Filters"
                                     aria-label="Filters"
                                 >
                                     <wa-icon name="sliders" aria-hidden="true"></wa-icon>
@@ -195,7 +196,6 @@
                                                 variant="neutral"
                                                 size="small"
                                                 pill
-                                                title="Clear filters"
                                                 aria-label="Clear filters"
                                             >
                                                 <wa-icon name="broom" slot="start" aria-hidden="true"></wa-icon>
@@ -231,7 +231,6 @@
                                             appearance="plain"
                                             variant="neutral"
                                             size="small"
-                                            title="Upload spell JSON"
                                             aria-label="Upload spell JSON"
                                         >
                                             <wa-icon name="upload" slot="start" aria-hidden="true"></wa-icon>
@@ -281,8 +280,7 @@
                                     appearance="accent"
                                     size="medium"
                                     pill
-title="Add blank card"
-                                aria-label="Add blank card"
+                                    aria-label="Add blank card"
                                 >
                                     <wa-icon name="plus" slot="start" aria-hidden="true"></wa-icon>
                                     Blank
@@ -294,7 +292,6 @@ title="Add blank card"
                                     appearance="accent"
                                     size="medium"
                                     pill
-                                    title="Add glossary card"
                                     aria-label="Add glossary card"
                                 >
                                     Glossary
@@ -308,19 +305,19 @@ title="Add blank card"
                                 appearance="plain"
                                 size="medium"
                                 pill
-                                title="Clear all cards"
                                 aria-label="Clear all cards"
                             >
                                 <wa-icon name="trash" slot="start" aria-hidden="true"></wa-icon>
                                 Clear all
                             </wa-button>
+                            <wa-tooltip for="clear-all-btn-icon">Clear all cards</wa-tooltip>
                             <wa-button
+                                id="clear-all-btn-icon"
                                 class="clear-all-btn clear-all-btn--icon-only on-hero"
                                 variant="neutral"
                                 appearance="plain"
                                 size="medium"
                                 pill
-                                title="Clear all cards"
                                 aria-label="Clear all cards"
                             >
                                 <wa-icon name="trash" aria-hidden="true"></wa-icon>
@@ -339,19 +336,19 @@ title="Add blank card"
                                         appearance="plain"
                                         size="medium"
                                         pill
-                                        title="Settings"
                                         aria-label="Settings"
                                     >
                                         <wa-icon name="gear" slot="start" aria-hidden="true"></wa-icon>
                                         Settings
                                     </wa-button>
+                                    <wa-tooltip for="settings-btn-icon">Settings</wa-tooltip>
                                     <wa-button
+                                        id="settings-btn-icon"
                                         class="settings-btn settings-btn--icon-only on-hero"
                                         variant="neutral"
                                         appearance="plain"
                                         size="medium"
                                         pill
-                                        title="Settings"
                                         aria-label="Settings"
                                     >
                                         <wa-icon name="gear" aria-hidden="true"></wa-icon>
@@ -359,7 +356,7 @@ title="Add blank card"
                                 </div>
                                 <div id="settings-menu-content" class="settings-menu-content">
                                     <div class="settings-menu__section">
-                                        <span class="controls-select-with-icon" title="Page size">
+                                        <span class="controls-select-with-icon">
                                             <wa-icon name="file-lines" aria-hidden="true"></wa-icon>
                                             <wa-radio-group id="page-size-select" value="letter" orientation="horizontal" aria-label="Page size">
                                                 <wa-radio appearance="button" value="letter">Letter</wa-radio>
@@ -368,7 +365,7 @@ title="Add blank card"
                                         </span>
                                     </div>
                                     <div class="settings-menu__section">
-                                        <span class="controls-select-with-icon" title="Sort order">
+                                        <span class="controls-select-with-icon">
                                             <wa-icon name="arrows-up-down" aria-hidden="true"></wa-icon>
                                             <wa-radio-group id="sort-select" value="level" orientation="horizontal" aria-label="Sort order">
                                                 <wa-radio appearance="button" value="level">Level</wa-radio>
@@ -395,14 +392,14 @@ title="Add blank card"
                                 appearance="accent"
                                 size="medium"
                                 pill
-                                title="Print or save as PDF"
-                                aria-label="Download PDF"
+                                aria-label="Print or save as PDF"
                             >
                                 <wa-icon name="download" slot="start" aria-hidden="true"></wa-icon>
                                 Download PDF
                             </wa-button>
                             <wa-dropdown id="download-options-dropdown" placement="bottom-end">
-                                <wa-button slot="trigger" class="on-hero" variant="neutral" appearance="accent" size="medium" pill
+                                <wa-tooltip for="download-options-trigger">More download options</wa-tooltip>
+                                <wa-button id="download-options-trigger" slot="trigger" class="on-hero" variant="neutral" appearance="accent" size="medium" pill
                                     aria-label="More download options"
                                 >
                                     <wa-icon name="chevron-down" aria-hidden="true"></wa-icon>
@@ -505,7 +502,6 @@ title="Add blank card"
                 variant="neutral"
                 size="small"
                 pill
-                title="Copy to clipboard"
                 aria-label="Copy to clipboard"
             >
                 <wa-icon name="copy" aria-hidden="true"></wa-icon>
