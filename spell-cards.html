@@ -167,19 +167,20 @@
                                 </div>
                             </wa-dropdown>
                             <wa-dropdown id="filter-dropdown" hoist class="filter-dropdown">
-                                <wa-tooltip for="filter-trigger-btn">Filters</wa-tooltip>
-                                <wa-button
-                                    id="filter-trigger-btn"
-                                    slot="trigger"
-                                    class="filter-trigger-btn on-hero"
-                                    appearance="plain"
-                                    variant="neutral"
-                                    size="small"
-                                    pill
-                                    aria-label="Filters"
-                                >
-                                    <wa-icon name="sliders" aria-hidden="true"></wa-icon>
-                                </wa-button>
+                                <span slot="trigger" class="filter-trigger-wrap">
+                                    <wa-tooltip for="filter-trigger-btn">Filters</wa-tooltip>
+                                    <wa-button
+                                        id="filter-trigger-btn"
+                                        class="filter-trigger-btn on-hero"
+                                        appearance="plain"
+                                        variant="neutral"
+                                        size="small"
+                                        pill
+                                        aria-label="Filters"
+                                    >
+                                        <wa-icon name="sliders" aria-hidden="true"></wa-icon>
+                                    </wa-button>
+                                </span>
                                 <div
                                     id="filter-menu-content"
                                     class="filter-menu-content"
@@ -398,12 +399,14 @@
                                 Download PDF
                             </wa-button>
                             <wa-dropdown id="download-options-dropdown" placement="bottom-end">
-                                <wa-tooltip for="download-options-trigger">More download options</wa-tooltip>
-                                <wa-button id="download-options-trigger" slot="trigger" class="on-hero" variant="neutral" appearance="accent" size="medium" pill
-                                    aria-label="More download options"
-                                >
-                                    <wa-icon name="chevron-down" aria-hidden="true"></wa-icon>
-                                </wa-button>
+                                <span slot="trigger" class="download-options-trigger-wrap">
+                                    <wa-tooltip for="download-options-trigger">More download options</wa-tooltip>
+                                    <wa-button id="download-options-trigger" class="on-hero" variant="neutral" appearance="accent" size="medium" pill
+                                        aria-label="More download options"
+                                    >
+                                        <wa-icon name="chevron-down" aria-hidden="true"></wa-icon>
+                                    </wa-button>
+                                </span>
                                 <wa-dropdown-item id="download-custom-option" value="custom-json">
                                     Download custom spell JSON
                                 </wa-dropdown-item>
@@ -482,10 +485,24 @@
             light-dismiss
             class="clear-all-confirm-dialog"
         >
-            <p>Added or edited spells will be lost. Download your spell data to re-upload it later.</p>
+            <p>Edited spell data will be lost. Consider downloading your custom spell data.</p>
             <div slot="footer" class="clear-all-confirm-dialog__footer">
-                <wa-button appearance="plain" variant="neutral" data-dialog="close" id="clear-all-confirm-cancel">Cancel</wa-button>
-                <wa-button variant="brand" id="clear-all-confirm-proceed">Clear all</wa-button>
+                <wa-button appearance="plain" variant="neutral" pill data-dialog="close" id="clear-all-confirm-cancel">Cancel</wa-button>
+                <wa-button variant="brand" pill id="clear-all-confirm-proceed">Clear all</wa-button>
+            </div>
+        </wa-dialog>
+
+        <wa-dialog
+            id="delete-card-confirm-dialog"
+            label="Delete edited card"
+            without-header
+            light-dismiss
+            class="delete-card-confirm-dialog"
+        >
+            <p>Edited card data will be lost. Consider downloading your custom spell data.</p>
+            <div slot="footer" class="clear-all-confirm-dialog__footer">
+                <wa-button appearance="plain" variant="neutral" pill data-dialog="close" id="delete-card-confirm-cancel">Cancel</wa-button>
+                <wa-button variant="brand" pill id="delete-card-confirm-proceed">Delete</wa-button>
             </div>
         </wa-dialog>
 

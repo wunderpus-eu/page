@@ -193,6 +193,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const clearAllConfirmDialog = document.getElementById("clear-all-confirm-dialog");
     const clearAllConfirmCancel = document.getElementById("clear-all-confirm-cancel");
     const clearAllConfirmProceed = document.getElementById("clear-all-confirm-proceed");
+    const deleteCardConfirmDialog = document.getElementById("delete-card-confirm-dialog");
+    const deleteCardConfirmProceed = document.getElementById("delete-card-confirm-proceed");
     const srdExcludedDialog = document.getElementById("srd-excluded-dialog");
     const srdExcludedExplanation = document.getElementById(
         "srd-excluded-explanation"
@@ -696,17 +698,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         await refreshLayout();
     }
 
-    /** Duplicates a SpellCard and inserts it after the original. */
+    /** Duplicates a SpellCard or glossary ref and inserts it after the original. */
     async function duplicateCard(cardId) {
         const idx = cardList.findIndex(
-            (c) => c instanceof SpellCard && c.id === cardId
+            (c) =>
+                (c instanceof SpellCard || isGlossaryRef(c)) && c.id === cardId
         );
         if (idx === -1) return;
-        const card = cardList[idx];
-        if (!(card instanceof SpellCard)) return;
-        const newCard = card.duplicate();
-        await newCard.render({ measureContainer });
-        cardList.splice(idx + 1, 0, newCard);
+        const item = cardList[idx];
+        if (isGlossaryRef(item)) {
+            cardList.splice(idx + 1, 0, createGlossaryCardRef());
+        } else if (item instanceof SpellCard) {
+            const newCard = item.duplicate();
+            await newCard.render({ measureContainer });
+            cardList.splice(idx + 1, 0, newCard);
+        }
         await refreshLayout();
     }
 
@@ -2448,6 +2454,16 @@ window.onafterprint = function() {
         });
     }
 
+    if (deleteCardConfirmProceed) {
+        deleteCardConfirmProceed.addEventListener("click", async () => {
+            if (pendingDeleteCardId != null) {
+                removeCard(pendingDeleteCardId);
+                pendingDeleteCardId = null;
+            }
+            if (deleteCardConfirmDialog) deleteCardConfirmDialog.open = false;
+        });
+    }
+
     if (settingsTriggerWrapper && settingsDropdown) {
         settingsTriggerWrapper.addEventListener(
             "click",
@@ -2541,51 +2557,55 @@ window.onafterprint = function() {
 
     printBtn.addEventListener("click", () => openPrintWindow());
 
-    // --- Card actions: prepared checkbox, delete, duplicate, edit ---
-    printableArea.addEventListener("wa-change", async (event) => {
-        if (!event.target.classList.contains("prepared-checkbox")) return;
-        const cardEl = event.target.closest(".spell-card");
-        if (!cardEl?.dataset.cardId) return;
+    // --- Card actions: earmark, delete, duplicate, edit ---
+    printableArea.addEventListener("card-earmark", async (event) => {
         const card = cardList.find(
-            (c) => c instanceof SpellCard && c.id === cardEl.dataset.cardId
+            (c) => c instanceof SpellCard && c.id === event.detail.cardId
         );
         if (!card) return;
-        card.setAlwaysPrepared(event.target.checked);
+        card.setAlwaysPrepared(!card.isAlwaysPrepared);
     });
 
     printableArea.addEventListener("mouseover", (event) => {
         const cardEl = event.target.closest(".spell-card");
-        const card =
-            cardEl &&
-            cardList.find(
-                (c) => c instanceof SpellCard && c.id === cardEl.dataset.cardId
-            );
-        if (card?.frontElement) {
-            const cb = card.frontElement.querySelector(
-                ".prepared-checkbox-container"
-            );
-            if (cb) cb.style.opacity = "1";
+        if (cardEl?.dataset.cardId) {
+            const cardId = cardEl.dataset.cardId;
+            printableArea
+                .querySelectorAll(`.spell-card[data-card-id="${cardId}"]`)
+                .forEach((el) => el.classList.add("card-hover-pair"));
         }
     });
 
     printableArea.addEventListener("mouseout", (event) => {
         const cardEl = event.target.closest(".spell-card");
-        const card =
-            cardEl &&
-            cardList.find(
-                (c) => c instanceof SpellCard && c.id === cardEl.dataset.cardId
-            );
-        if (card?.frontElement) {
-            const cb = card.frontElement.querySelector(
-                ".prepared-checkbox-container"
-            );
-            if (cb) cb.style.opacity = "0";
+        if (cardEl?.dataset.cardId) {
+            const cardId = cardEl.dataset.cardId;
+            const related = event.relatedTarget;
+            const stillOverPair = related && Array.from(
+                printableArea.querySelectorAll(`.spell-card[data-card-id="${cardId}"]`)
+            ).some((el) => el === related || el.contains(related));
+            if (!stillOverPair) {
+                printableArea
+                    .querySelectorAll(`.spell-card[data-card-id="${cardId}"]`)
+                    .forEach((el) => el.classList.remove("card-hover-pair"));
+            }
         }
     });
 
+    let pendingDeleteCardId = null;
+
     printableArea.addEventListener("card-delete", (event) => {
         event.stopPropagation();
-        removeCard(event.detail.cardId);
+        const cardId = event.detail.cardId;
+        const card = cardList.find(
+            (c) => c instanceof SpellCard && c.id === cardId
+        );
+        if (card?.spell?._modified && deleteCardConfirmDialog) {
+            pendingDeleteCardId = cardId;
+            deleteCardConfirmDialog.open = true;
+            return;
+        }
+        removeCard(cardId);
     });
     printableArea.addEventListener("card-duplicate", (event) => {
         event.stopPropagation();

@@ -165,26 +165,50 @@ export async function layoutCards(
         } else if (isGlossaryRef(item)) {
             const [frontCard, backCard] = await createGlossaryCard();
             frontCard.dataset.cardId = item.id;
+            backCard.dataset.cardId = item.id;
             const cardActions = document.createElement("div");
             cardActions.className = "card-actions no-print";
             cardActions.dataset.cardId = item.id;
-            const deleteBtn = document.createElement("wa-button");
-            deleteBtn.setAttribute("variant", "default");
-            deleteBtn.setAttribute("size", "small");
-            deleteBtn.title = "Remove glossary card";
-            const delIcon = document.createElement("wa-icon");
-            delIcon.setAttribute("name", "trash");
-            deleteBtn.appendChild(delIcon);
-            deleteBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                frontCard.dispatchEvent(
-                    new CustomEvent("card-delete", {
-                        bubbles: true,
-                        detail: { cardId: item.id },
-                    })
-                );
-            });
-            cardActions.appendChild(deleteBtn);
+
+            function makeGlossaryBtn(iconName, tooltip, eventName) {
+                const id = `glossary-${item.id}-${eventName}`;
+                const tooltipEl = document.createElement("wa-tooltip");
+                tooltipEl.setAttribute("for", id);
+                tooltipEl.textContent = tooltip;
+                const btn = document.createElement("wa-button");
+                btn.id = id;
+                btn.setAttribute("appearance", "filled");
+                btn.setAttribute("variant", "neutral");
+                btn.setAttribute("size", "small");
+                btn.setAttribute("pill", "");
+                btn.setAttribute("aria-label", tooltip);
+                const icon = document.createElement("wa-icon");
+                icon.setAttribute("name", iconName);
+                icon.setAttribute("aria-hidden", "true");
+                btn.appendChild(icon);
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    frontCard.dispatchEvent(
+                        new CustomEvent(eventName, {
+                            bubbles: true,
+                            detail: { cardId: item.id },
+                        })
+                    );
+                });
+                const wrap = document.createElement("div");
+                wrap.className = "card-action-item";
+                wrap.appendChild(tooltipEl);
+                wrap.appendChild(btn);
+                return wrap;
+            }
+
+            cardActions.appendChild(
+                makeGlossaryBtn("trash", "Delete", "card-delete")
+            );
+            cardActions.appendChild(
+                makeGlossaryBtn("copy", "Duplicate", "card-duplicate")
+            );
+
             frontCard
                 .querySelector(".spell-card-front")
                 .appendChild(cardActions);

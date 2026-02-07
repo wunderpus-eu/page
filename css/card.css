@@ -242,39 +242,43 @@ body.grayscale {
     position: relative;
 }
 
+.spell-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--wa-color-overlay-inline);
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.spell-card:hover::before,
+.spell-card.card-hover-pair::before {
+    opacity: 1;
+}
+
 .card-actions {
     position: absolute;
     top: 4pt;
     right: 4pt;
     z-index: 11;
     display: flex;
+    flex-direction: column;
     gap: 2pt;
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
 }
 
-.spell-card:hover .card-actions {
+.spell-card:hover .card-actions,
+.spell-card.card-hover-pair .card-actions {
     opacity: 1;
 }
 
-.card-actions wa-button {
-    font-size: 12pt;
-    --wa-color-neutral-600: currentColor;
-}
-
-.prepared-checkbox-container {
-    position: absolute;
-    top: 4pt;
-    left: 4pt;
-    z-index: 10;
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-}
-
-.prepared-checkbox {
-    width: 12pt;
-    height: 12pt;
-    cursor: pointer;
+.card-action-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 .spell-card-front,

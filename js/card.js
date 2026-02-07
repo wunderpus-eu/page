@@ -1267,8 +1267,14 @@ export class SpellCard {
             this._updateColors();
             this.frontElement.style.backgroundColor = this.backgroundColor;
             this.frontElement.classList.toggle("always-prepared", isPrepared);
-            const checkbox = this.frontElement.querySelector(".prepared-checkbox");
-            if (checkbox) checkbox.checked = isPrepared;
+            const earmarkBtn = this.frontElement.querySelector(".earmark-btn");
+            if (earmarkBtn) {
+                earmarkBtn.dataset.earmarked = String(isPrepared);
+                earmarkBtn.setAttribute(
+                    "variant",
+                    isPrepared ? "brand" : "neutral"
+                );
+            }
         }
     }
 
@@ -1302,19 +1308,6 @@ export class SpellCard {
 
         const front = document.createElement("div");
         front.className = "spell-card-front";
-
-        const tooltip = document.createElement("wa-tooltip");
-        tooltip.content = "Always prepared";
-
-        const preparedCheckboxContainer = document.createElement("div");
-        preparedCheckboxContainer.className = "prepared-checkbox-container";
-        const preparedCheckbox = document.createElement("wa-checkbox");
-        preparedCheckbox.className = "prepared-checkbox";
-        preparedCheckbox.checked = this.isAlwaysPrepared;
-
-        tooltip.appendChild(preparedCheckbox);
-        preparedCheckboxContainer.appendChild(tooltip);
-        front.appendChild(preparedCheckboxContainer);
 
         const foregroundColor = this.foregroundColor;
         const backgroundColor = this.backgroundColor;
@@ -1422,13 +1415,22 @@ export class SpellCard {
         cardActions.dataset.cardId = this.id;
 
         const cardId = this.id;
-        function makeIconButton(iconName, title, eventName) {
+        const self = this;
+        function makeIconButton(iconName, tooltip, eventName, options = {}) {
+            const id = `card-action-${cardId}-${eventName}`;
+            const tooltipEl = document.createElement("wa-tooltip");
+            tooltipEl.setAttribute("for", id);
+            tooltipEl.textContent = tooltip;
             const btn = document.createElement("wa-button");
-            btn.setAttribute("variant", "default");
+            btn.id = id;
+            btn.setAttribute("appearance", "filled");
+            btn.setAttribute("variant", "neutral");
             btn.setAttribute("size", "small");
-            btn.title = title;
+            btn.setAttribute("pill", "");
+            btn.setAttribute("aria-label", tooltip);
             const icon = document.createElement("wa-icon");
             icon.setAttribute("name", iconName);
+            icon.setAttribute("aria-hidden", "true");
             btn.appendChild(icon);
             btn.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -1439,27 +1441,37 @@ export class SpellCard {
                     })
                 );
             });
-            return btn;
+            if (options.toggleAccent) {
+                btn.classList.add("earmark-btn");
+                btn.dataset.earmarked = String(self.isAlwaysPrepared);
+                if (self.isAlwaysPrepared) {
+                    btn.setAttribute("variant", "brand");
+                }
+            }
+            return { btn, tooltipEl };
         }
 
-        cardActions.appendChild(
-            makeIconButton("trash", "Delete card", "card-delete")
-        );
-        cardActions.appendChild(
-            makeIconButton("copy", "Duplicate card", "card-duplicate")
-        );
+        const buttons = [
+            makeIconButton("trash", "Delete", "card-delete"),
+            makeIconButton("pen-to-square", "Edit", "card-edit"),
+            makeIconButton("copy", "Duplicate", "card-duplicate"),
+            makeIconButton("check", "Earmark", "card-earmark", {
+                toggleAccent: true,
+            }),
+        ];
         if (this.spell._modified && this.originalId != null) {
-            cardActions.appendChild(
-                makeIconButton(
-                    "arrow-rotate-left",
-                    "Reset to original",
-                    "card-reset"
-                )
+            buttons.push(
+                makeIconButton("arrow-rotate-left", "Reset to original", "card-reset")
             );
         }
-        cardActions.appendChild(
-            makeIconButton("pen-to-square", "Edit card", "card-edit")
-        );
+
+        for (const { btn, tooltipEl } of buttons) {
+            const wrap = document.createElement("div");
+            wrap.className = "card-action-item";
+            wrap.appendChild(tooltipEl);
+            wrap.appendChild(btn);
+            cardActions.appendChild(wrap);
+        }
         front.appendChild(cardActions);
 
         card.appendChild(front);

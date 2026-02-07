@@ -68,6 +68,12 @@ header:not(.header--spell-cards) {
 .spell-search-wrapper #spell-search-input::part(base) {
     min-height: 43px;
 }
+.filter-trigger-wrap,
+.download-options-trigger-wrap {
+    display: inline-flex;
+    align-items: center;
+}
+
 .filter-trigger-btn::part(base) {
     height: 43px;
     min-height: 43px;
