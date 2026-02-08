@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { Spell, SCHOOL_MAP } from "./js/spell.js";
+import { Spell, SCHOOL_MAP } from "../js/spell.js";
 
 /**
  * List of text patterns that should be wrapped as icon placeholders.
@@ -36,7 +36,7 @@ const ICON_TEXT_PATTERNS = [
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dataDir = path.join(__dirname, "data");
+const dataDir = path.join(__dirname, "..", "data");
 if (!fs.existsSync(dataDir)) {
     throw new Error(
         "data directory not found. Please run the download-spell-data.sh script first."
@@ -120,6 +120,26 @@ function getDisplayText(parts) {
         return parts[parts.length - 1];
     }
     return parts[0];
+}
+
+/**
+ * Normalizes reaction condition text to WYSIWYG form for card display.
+ * Strips common prefixes, capitalizes first letter, appends period.
+ * @param {string} text - Raw condition text (e.g. "which you take when...")
+ * @returns {string} Normalized text ready for display (e.g. "When you...")
+ */
+function normalizeConditionText(text) {
+    if (!text || typeof text !== "string") return "";
+    let t = text.trim();
+    if (!t) return "";
+    t = t.replace(
+        /^(which you take |that you take |taken )/gi,
+        ""
+    ).trim();
+    if (!t) return "";
+    t = t[0].toUpperCase() + t.slice(1);
+    if (t && !/[.!?]$/.test(t)) t += ".";
+    return t;
 }
 
 /**
@@ -268,11 +288,11 @@ function processString(text) {
     );
     processedText = processedText.replace(damageRegex, "`$1$2`");
 
-    // Wrap currency abbreviations in backticks (for coin icons)
-    // Handle numbers with commas like "25,000 gp", with + like "25,000+ gp", and plain numbers like "100 gp"
+    // Wrap currency abbreviations in backticks (coin icon only; number stays as text)
+    // Match "25,000 gp", "25,000+ gp", "100 gp" → "25,000 `gp`", etc.
     processedText = processedText.replace(
         /\b([\d,]+\+?)\s*(gp|sp|cp)\b(?!`)/gi,
-        "`$1 $2`"
+        "$1 `$2`"
     );
 
     // Wrap action economy terms in backticks
@@ -504,6 +524,15 @@ function processComponents(rawComponents) {
             hasCost = rawComponents.m.cost !== undefined;
             isConsumed = rawComponents.m.consume || false;
         }
+    }
+
+    // Run through processString to wrap gp/sp/cp, damage types, etc. in backticks for icon rendering
+    description = processString(description);
+
+    description = description.trim();
+    if (description) {
+        description = description[0].toUpperCase() + description.slice(1);
+        if (!/[.!?]$/.test(description)) description += ".";
     }
 
     return {
@@ -761,6 +790,20 @@ function parseTargets(text) {
     if (/any number of/i.test(text)) {
         return -1;
     }
+    // Check for X darts/rays/bolts/beams BEFORE unlimited creature pattern (Magic Missile: "three glowing darts" + "creature of your choice")
+    const numWordPattern = Object.keys(NUMBER_WORDS).join("|");
+    const projectileMatch = text.match(
+        new RegExp(
+            `(${numWordPattern}|\\d+)(?: \\w+)? (?:darts?|rays?|bolts?|beams?)`,
+            "i"
+        )
+    );
+    if (projectileMatch) {
+        const numStr = projectileMatch[1].toLowerCase();
+        if (NUMBER_WORDS[numStr] !== undefined) return NUMBER_WORDS[numStr];
+        const num = parseInt(numStr, 10);
+        if (!isNaN(num)) return num;
+    }
     // "each creature of your choice" or "creatures of your choice" without a specific number = unlimited
     if (/(?:each |all )?creatures? (?:of your choice|you choose)/i.test(text)) {
         // Check if there's NOT a specific number word before "creature(s)"
@@ -797,8 +840,8 @@ function parseTargets(text) {
         }
     }
 
-    // Build number word pattern for matching
-    const numWordPattern = Object.keys(NUMBER_WORDS).join("|");
+    // Build number word pattern for remaining matches
+    const numWordPatternForRest = Object.keys(NUMBER_WORDS).join("|");
 
     // Patterns to match target counts (with explicit number)
     const numberedPatterns = [
@@ -817,13 +860,13 @@ function parseTargets(text) {
         // "X other targets" (Chain Lightning)
         /(\w+) other targets?/i,
         // "X darts/rays/bolts/beams" with optional adjective (Magic Missile, Scorching Ray)
-        // Must start with a number word to avoid matching "create three rays"
+        // Handled earlier; kept for other spell formats
         new RegExp(
-            `(${numWordPattern}|\\d+)(?: \\w+)? (?:darts?|rays?|bolts?|beams?)`,
+            `(${numWordPatternForRest}|\\d+)(?: \\w+)? (?:darts?|rays?|bolts?|beams?)`,
             "i"
         ),
         // "X pillars" (Bones of the Earth)
-        new RegExp(`(${numWordPattern}|\\d+)(?: \\w+)? pillars?`, "i"),
+        new RegExp(`(${numWordPatternForRest}|\\d+)(?: \\w+)? pillars?`, "i"),
     ];
 
     for (const pattern of numberedPatterns) {
@@ -847,7 +890,7 @@ function parseTargets(text) {
         /choose a (?:willing )?creature/i,
         /a (?:willing )?creature (?:of your choice|you can see|within range)/i,
         /target a creature/i,
-        /choose one humanoid/i,
+        /choose (?:one|a) humanoid/i,
         /one humanoid (?:within range|you can see)/i,
         // "one creature or object" (Eldritch Blast XPHB)
         /one creature or object/i,
@@ -880,14 +923,37 @@ function parseTargets(text) {
 }
 
 /**
+ * Returns true if the upcast/higher-level text indicates the number of targets scales.
+ * @param {Array} entriesHigherLevel - The raw spell entries for higher levels (upcast).
+ * @returns {boolean}
+ */
+function targetsScaleInUpcast(entriesHigherLevel) {
+    if (!entriesHigherLevel) return false;
+    const text = getEntriesText(entriesHigherLevel);
+    const scalingPatterns = [
+        /one more (?:dart|ray|bolt|beam|creature|target)/i,
+        /creates one more (?:dart|ray|bolt|beam)/i,
+        /one additional (?:ray|dart|beam|creature|target)/i,
+        /additional (?:ray|dart|beam|creature|target) for each slot/i,
+        /target (?:one |an )?additional (?:creature|humanoid)/i,
+        /targets? (?:one |an )?additional (?:creature|humanoid)/i,
+        /creates? (?:two|three|four) (?:beams?|rays?|darts?)/i,
+        /(?:two|three|four) (?:beams?|rays?|darts?) at (?:level|5th|11th|17th)/i,
+        /one (?:more|additional) (?:dart|ray|bolt|beam) for each slot/i,
+    ];
+    return scalingPatterns.some((p) => p.test(text));
+}
+
+/**
  * Processes raw range data into a flat structure with origin, distance, unit, area info.
  * @param {Object} rawRange - The raw range data.
  * @param {boolean} requiresSight - Whether the spell requires sight of target (from miscTags).
  * @param {string[]} areaTags - The area tags from the spell (e.g., ['S'] for sphere).
  * @param {Array} entries - The spell entries for parsing area dimensions.
+ * @param {Array} [entriesHigherLevel] - The spell entries for higher levels (upcast).
  * @returns {Object} Processed range data with flat structure.
  */
-function processRange(rawRange, requiresSight, areaTags, entries) {
+function processRange(rawRange, requiresSight, areaTags, entries, entriesHigherLevel) {
     const rangeType = rawRange.type;
     const distanceType = rawRange.distance?.type || "";
     const distanceAmount = rawRange.distance?.amount || 0;
@@ -969,9 +1035,21 @@ function processRange(rawRange, requiresSight, areaTags, entries) {
 
     // Parse target count from spell text
     let targets = 0;
+    let targetsScale = false;
     if (entries) {
         const entriesText = getEntriesText(entries);
-        targets = parseTargets(entriesText);
+        const parsed = parseTargets(entriesText);
+        if (parsed === -1 || area) {
+            targets = 0;
+        } else if (parsed === -2) {
+            targets = 1;
+            targetsScale = true;
+        } else if (parsed > 0) {
+            targets = parsed;
+            if (targetsScaleInUpcast(entriesHigherLevel)) {
+                targetsScale = true;
+            }
+        }
     }
 
     return {
@@ -985,6 +1063,7 @@ function processRange(rawRange, requiresSight, areaTags, entries) {
         areaHeight,
         areaHeightUnit,
         targets,
+        targetsScale,
     };
 }
 
@@ -1026,9 +1105,12 @@ function createSpellFromRaw(rawSpell) {
 
     // Use the first entry from time and duration arrays
     const primaryTime = { ...rawSpell.time[0] };
-    // Process the condition text if present (for reactions)
+    // Process the condition text if present (for reactions). Normalize to WYSIWYG
+    // (strip prefixes, capitalize, add period) then apply processString for tags.
     if (primaryTime.condition) {
-        primaryTime.condition = processString(primaryTime.condition);
+        primaryTime.condition = processString(
+            normalizeConditionText(primaryTime.condition)
+        );
     }
     const rawDuration = rawSpell.duration[0];
     const areaTags = rawSpell.areaTags || [];
@@ -1059,7 +1141,8 @@ function createSpellFromRaw(rawSpell) {
             rawSpell.range,
             requiresSight,
             areaTags,
-            rawSpell.entries
+            rawSpell.entries,
+            rawSpell.entriesHigherLevel
         ),
         components: processComponents(rawSpell.components),
         duration: processDuration(rawDuration),

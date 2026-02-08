@@ -90,11 +90,12 @@ export function emptySpellTemplate() {
             areaUnit: "",
             areaHeight: 0,
             areaHeightUnit: "",
-            targets: 1,
+            targets: 0,
+            targetsScale: false,
         },
         components: {
             v: true,
-            s: true,
+            s: false,
             m: false,
             hasCost: false,
             isConsumed: false,
@@ -662,6 +663,9 @@ async function process_text_for_rendering(
 
     // Icons for placeholders wrapped in backticks
     const placeholderIcons = {
+        gp: "icon-gold",
+        sp: "icon-silver",
+        cp: "icon-copper",
         "acid damage": "icon-acid",
         "cold damage": "icon-cold",
         "fire damage": "icon-fire",
@@ -716,34 +720,8 @@ async function process_text_for_rendering(
             // Placeholder `...`
             const placeholder = matchedText.slice(1, -1).toLowerCase();
 
-            // Check if it's a currency placeholder (e.g., "100 gp")
-            const currencyMatch = placeholder.match(
-                /^([\d,]+\+?)\s*(gp|sp|cp)$/i
-            );
-            if (currencyMatch) {
-                const amount = currencyMatch[1];
-                const currency = currencyMatch[2].toLowerCase();
-                const iconName =
-                    currency === "gp"
-                        ? "icon-gold"
-                        : currency === "sp"
-                        ? "icon-silver"
-                        : "icon-copper";
-                container.appendChild(document.createTextNode(amount + " "));
-                const icon = document.createElement("img");
-                icon.src = await load_icon(iconName, foregroundColor);
-                icon.className = "inline-icon";
-                const iconWrapper = document.createElement("span");
-                iconWrapper.className = "inline-icon-wrapper";
-                iconWrapper.appendChild(icon);
-                const altSpan = document.createElement("span");
-                altSpan.className = "inline-icon-alt";
-                altSpan.textContent = matchedText.slice(1, -1);
-                iconWrapper.appendChild(altSpan);
-                container.appendChild(iconWrapper);
-            }
-            // Check if it's an icon placeholder
-            else if (placeholderIcons[placeholder]) {
+            // Check if it's an icon placeholder (damage, area, currency gp/sp/cp, etc.)
+            if (placeholderIcons[placeholder]) {
                 const icon = document.createElement("img");
                 icon.src = await load_icon(
                     placeholderIcons[placeholder],
@@ -822,12 +800,12 @@ async function render_component_text(spell) {
     componentTextContainer.className = "spell-component-text";
 
     const components = spell.components;
-    if (components.m && components.description) {
+    if (components?.description) {
         const materialText = components.description;
         const materialTextElement = document.createElement("span");
         materialTextElement.appendChild(
             await process_text_for_rendering(
-                materialText[0].toUpperCase() + materialText.slice(1) + ".",
+                materialText,
                 "var(--font-color-light)"
             )
         );
@@ -933,13 +911,10 @@ function render_spell_school(spell, foregroundColor, backgroundColor) {
     return spellSchoolContainer;
 }
 
-/** Renders casting time condition text if present. */
+/** Renders casting time condition text if present. Text is stored WYSIWYG. */
 async function render_condition_text(spell) {
-    let conditionText = spell.time.condition;
+    const conditionText = spell.time.condition;
     if (conditionText) {
-        conditionText = conditionText.replace(/which you take/g, "").trim();
-        conditionText =
-            conditionText[0].toUpperCase() + conditionText.slice(1) + ".";
         const conditionTextElement = document.createElement("span");
         conditionTextElement.className = "spell-condition-text";
         conditionTextElement.appendChild(
@@ -968,8 +943,11 @@ async function render_blocks(text) {
         if (trimmedBlock.startsWith("|") && trimmedBlock.includes("| --- |")) {
             const table = await render_markdown_table(trimmedBlock);
             container.appendChild(table);
-        } else if (trimmedBlock.startsWith("- ")) {
+        } else if (trimmedBlock.startsWith("- ") || trimmedBlock.startsWith("* ")) {
             const list = await render_markdown_list(trimmedBlock);
+            container.appendChild(list);
+        } else if (trimmedBlock.match(/^\d+\. /)) {
+            const list = await render_markdown_ordered_list(trimmedBlock);
             container.appendChild(list);
         } else if (trimmedBlock.match(/^\*\*[^*]+\*\*\n/)) {
             const lines = trimmedBlock.split("\n");
@@ -1070,20 +1048,36 @@ async function render_markdown_table(tableText) {
     return table;
 }
 
-/** Parses markdown list syntax (- item) into a ul element. */
+/** Parses markdown unordered list syntax (- item or * item) into a ul element. */
 async function render_markdown_list(listText) {
     const ul = document.createElement("ul");
     ul.className = "spell-description-list";
 
-    const items = listText.split(/\n(?=- )/);
+    const items = listText.split(/\n(?=[-*] )/);
     for (const item of items) {
         const li = document.createElement("li");
-        const content = item.replace(/^- /, "").trim();
+        const content = item.replace(/^[-*] /, "").trim();
         li.appendChild(await process_text_for_rendering(content));
         ul.appendChild(li);
     }
 
     return ul;
+}
+
+/** Parses markdown ordered list syntax (1. item) into an ol element. */
+async function render_markdown_ordered_list(listText) {
+    const ol = document.createElement("ol");
+    ol.className = "spell-description-list";
+
+    const items = listText.split(/\n(?=\d+\. )/);
+    for (const item of items) {
+        const li = document.createElement("li");
+        const content = item.replace(/^\d+\. /, "").trim();
+        li.appendChild(await process_text_for_rendering(content));
+        ol.appendChild(li);
+    }
+
+    return ol;
 }
 
 /**

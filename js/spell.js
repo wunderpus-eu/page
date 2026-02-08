@@ -79,9 +79,10 @@ export class Range {
      * @param {string} [data.areaUnit] - The unit for area size: "feet", "miles", or "".
      * @param {number} [data.areaHeight] - The height of the area (for cylinders).
      * @param {string} [data.areaHeightUnit] - The unit for area height: "feet", "miles", or "".
-     * @param {number} [data.targets] - The number of targets (0 if not specified or area-based, -1 if unlimited, -2 if variable).
+     * @param {number} [data.targets] - The number of targets (0 if unlimited or area-based).
+     * @param {boolean} [data.targetsScale] - True if the number of targets increases at higher levels.
      */
-    constructor({ origin, distance, unit, requiresSight, area, areaDistance, areaUnit, areaHeight, areaHeightUnit, targets }) {
+    constructor({ origin, distance, unit, requiresSight, area, areaDistance, areaUnit, areaHeight, areaHeightUnit, targets, targetsScale }) {
         if (!ORIGIN_TYPES.includes(origin)) {
             throw new Error(
                 `Invalid range origin: "${origin}". Expected one of: ${ORIGIN_TYPES.join(", ")}`
@@ -107,6 +108,7 @@ export class Range {
         this.areaHeight = areaHeight || 0;
         this.areaHeightUnit = areaHeightUnit || "";
         this.targets = targets || 0;
+        this.targetsScale = targetsScale || false;
     }
 
     toJSON() {
@@ -121,6 +123,7 @@ export class Range {
             areaHeight: this.areaHeight,
             areaHeightUnit: this.areaHeightUnit,
             targets: this.targets,
+            targetsScale: this.targetsScale,
         };
     }
 

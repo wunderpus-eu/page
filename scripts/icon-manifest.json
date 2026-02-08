@@ -2387,6 +2387,51 @@
       "bg": "ccb974"
     },
     {
+      "icon": "icon-hemisphere",
+      "fg": "ffffff",
+      "bg": "333333"
+    },
+    {
+      "icon": "icon-hemisphere",
+      "fg": "ffffff",
+      "bg": "55a868"
+    },
+    {
+      "icon": "icon-hemisphere",
+      "fg": "ffffff",
+      "bg": "dd8452"
+    },
+    {
+      "icon": "icon-hemisphere",
+      "fg": "ffffff",
+      "bg": "64b5cd"
+    },
+    {
+      "icon": "icon-hemisphere",
+      "fg": "ffffff",
+      "bg": "da8bc3"
+    },
+    {
+      "icon": "icon-hemisphere",
+      "fg": "ffffff",
+      "bg": "c44e52"
+    },
+    {
+      "icon": "icon-hemisphere",
+      "fg": "ffffff",
+      "bg": "4c72b0"
+    },
+    {
+      "icon": "icon-hemisphere",
+      "fg": "ffffff",
+      "bg": "8172b3"
+    },
+    {
+      "icon": "icon-hemisphere",
+      "fg": "ffffff",
+      "bg": "ccb974"
+    },
+    {
       "icon": "icon-line",
       "fg": "ffffff",
       "bg": "333333"
@@ -2657,6 +2702,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-gold",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-silver",
       "fg": "333333",
       "bg": "ffffff"
@@ -2699,6 +2749,11 @@
     {
       "icon": "icon-silver",
       "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-silver",
+      "fg": "7f7f7f",
       "bg": "ffffff"
     },
     {
@@ -2747,6 +2802,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-copper",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-acid",
       "fg": "333333",
       "bg": "ffffff"
@@ -2789,6 +2849,11 @@
     {
       "icon": "icon-acid",
       "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-acid",
+      "fg": "7f7f7f",
       "bg": "ffffff"
     },
     {
@@ -2837,6 +2902,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-cold",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-fire",
       "fg": "333333",
       "bg": "ffffff"
@@ -2879,6 +2949,11 @@
     {
       "icon": "icon-fire",
       "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-fire",
+      "fg": "7f7f7f",
       "bg": "ffffff"
     },
     {
@@ -2927,6 +3002,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-lightning",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-necrotic",
       "fg": "333333",
       "bg": "ffffff"
@@ -2969,6 +3049,11 @@
     {
       "icon": "icon-necrotic",
       "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-necrotic",
+      "fg": "7f7f7f",
       "bg": "ffffff"
     },
     {
@@ -3017,6 +3102,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-poison",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-psychic",
       "fg": "333333",
       "bg": "ffffff"
@@ -3059,6 +3149,11 @@
     {
       "icon": "icon-psychic",
       "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-psychic",
+      "fg": "7f7f7f",
       "bg": "ffffff"
     },
     {
@@ -3107,6 +3202,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-radiant",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-slashing",
       "fg": "333333",
       "bg": "ffffff"
@@ -3149,6 +3249,11 @@
     {
       "icon": "icon-slashing",
       "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-slashing",
+      "fg": "7f7f7f",
       "bg": "ffffff"
     },
     {
@@ -3197,6 +3302,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-bludgeoning",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-piercing",
       "fg": "333333",
       "bg": "ffffff"
@@ -3239,6 +3349,11 @@
     {
       "icon": "icon-piercing",
       "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-piercing",
+      "fg": "7f7f7f",
       "bg": "ffffff"
     },
     {
@@ -3287,6 +3402,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-thunder",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-force",
       "fg": "333333",
       "bg": "ffffff"
@@ -3329,6 +3449,11 @@
     {
       "icon": "icon-force",
       "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-force",
+      "fg": "7f7f7f",
       "bg": "ffffff"
     },
     {
@@ -3377,6 +3502,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-emanation",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-line",
       "fg": "333333",
       "bg": "ffffff"
@@ -3422,6 +3552,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-line",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-cone",
       "fg": "333333",
       "bg": "ffffff"
@@ -3467,6 +3602,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-cone",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-cube",
       "fg": "333333",
       "bg": "ffffff"
@@ -3512,6 +3652,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-cube",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-cylinder",
       "fg": "333333",
       "bg": "ffffff"
@@ -3557,6 +3702,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-cylinder",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-sphere",
       "fg": "333333",
       "bg": "ffffff"
@@ -3602,6 +3752,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-sphere",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-b",
       "fg": "333333",
       "bg": "ffffff"
@@ -3647,6 +3802,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-b",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-r",
       "fg": "333333",
       "bg": "ffffff"
@@ -3692,6 +3852,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-r",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-a",
       "fg": "333333",
       "bg": "ffffff"
@@ -3734,6 +3899,61 @@
     {
       "icon": "icon-a",
       "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-a",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-hemisphere",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wall",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-circle",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-square",
+      "fg": "333333",
       "bg": "ffffff"
     },
     {

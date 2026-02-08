@@ -367,7 +367,7 @@
                                     </div>
                                     <div class="settings-menu__section">
                                         <span class="controls-select-with-icon">
-                                            <wa-icon name="arrows-up-down" aria-hidden="true"></wa-icon>
+                                            <wa-icon name="sort" aria-hidden="true"></wa-icon>
                                             <wa-radio-group id="sort-select" value="level" orientation="horizontal" aria-label="Sort order">
                                                 <wa-radio appearance="button" value="level">Level</wa-radio>
                                                 <wa-radio appearance="button" value="alphabetical">A–Z</wa-radio>
@@ -459,24 +459,28 @@
         </div>
         </div>
 
-        <div id="edit-card-overlay" class="overlay hidden" aria-hidden="true">
+        <wa-dialog
+            id="edit-card-dialog"
+            label="Edit card"
+            class="edit-card-dialog"
+        >
             <div class="edit-overlay-panel">
                 <div class="edit-overlay-preview">
                     <div id="edit-card-preview"></div>
                 </div>
                 <div class="edit-overlay-form-wrapper">
                     <div id="edit-card-form" class="edit-overlay-form"></div>
-                    <div class="edit-overlay-actions">
-                        <wa-button id="edit-card-cancel" variant="default"
-                            >Cancel</wa-button
-                        >
-                        <wa-button id="edit-card-save" variant="primary"
-                            >Save</wa-button
-                        >
-                    </div>
                 </div>
             </div>
-        </div>
+            <div slot="footer" class="edit-overlay-actions">
+                <wa-button id="edit-card-cancel" appearance="plain" variant="neutral" pill data-dialog="close"
+                    >Cancel</wa-button
+                >
+                <wa-button id="edit-card-save" type="button" variant="brand" pill
+                    >Save</wa-button
+                >
+            </div>
+        </wa-dialog>
 
         <wa-dialog
             id="clear-all-confirm-dialog"
@@ -525,6 +529,57 @@
             </wa-button>
             <p id="srd-excluded-explanation"></p>
             <div id="srd-excluded-list" class="srd-excluded-list"></div>
+        </wa-dialog>
+
+        <wa-dialog
+            id="rich-text-info-dialog"
+            label="Rich text formatting"
+            light-dismiss
+            without-footer
+            class="rich-text-info-dialog"
+        >
+            <div class="rich-text-info-content">
+                <h4>Markdown</h4>
+                <ul>
+                    <li><strong>**bold**</strong> — bold text</li>
+                    <li><em>*italic*</em> — italic text</li>
+                    <li><strong>Itemized lists</strong> — start a line with <code>-</code> or <code>*</code> and a space: <code>- First item</code></li>
+                    <li><strong>Ordered lists</strong> — start a line with <code>1.</code> and a space: <code>1. First step</code></li>
+                    <li><strong>Tables</strong> — header row with pipes, separator row, then data rows:<br><code>| Col1 | Col2 |</code><br><code>| --- | --- |</code><br><code>| A | B |</code></li>
+                </ul>
+                <h4>Inline icons</h4>
+                <p>Text in `backticks` (case-insensitive) can render as icons:</p>
+                <ul>
+                    <li><strong>Damage types:</strong> <code>acid damage</code>, <code>cold damage</code>, <code>fire damage</code>, <code>lightning damage</code>, <code>necrotic damage</code>, <code>poison damage</code>, <code>psychic damage</code>, <code>radiant damage</code>, <code>slashing damage</code>, <code>bludgeoning damage</code>, <code>piercing damage</code>, <code>thunder damage</code>, <code>force damage</code></li>
+                    <li><strong>Area types:</strong> <code>emanation</code>, <code>line</code>, <code>cone</code>, <code>cube</code>, <code>cylinder</code>, <code>sphere</code>, <code>hemisphere</code></li>
+                    <li><strong>Action economy:</strong> <code>action</code>, <code>actions</code>, <code>bonus action</code>, <code>reaction</code>, <code>reactions</code></li>
+                    <li><strong>Currency:</strong> <code>gp</code>, <code>sp</code>, <code>cp</code></li>
+                </ul>
+            </div>
+        </wa-dialog>
+
+        <wa-dialog
+            id="rich-text-info-short-dialog"
+            label="Rich text formatting"
+            light-dismiss
+            without-footer
+            class="rich-text-info-dialog"
+        >
+            <div class="rich-text-info-content">
+                <h4>Markdown</h4>
+                <ul>
+                    <li><strong>**bold**</strong> — bold text</li>
+                    <li><em>*italic*</em> — italic text</li>
+                </ul>
+                <h4>Inline icons</h4>
+                <p>Text in `backticks` (case-insensitive) can render as icons:</p>
+                <ul>
+                    <li><strong>Damage types:</strong> <code>acid damage</code>, <code>cold damage</code>, <code>fire damage</code>, <code>lightning damage</code>, <code>necrotic damage</code>, <code>poison damage</code>, <code>psychic damage</code>, <code>radiant damage</code>, <code>slashing damage</code>, <code>bludgeoning damage</code>, <code>piercing damage</code>, <code>thunder damage</code>, <code>force damage</code></li>
+                    <li><strong>Area types:</strong> <code>emanation</code>, <code>line</code>, <code>cone</code>, <code>cube</code>, <code>cylinder</code>, <code>sphere</code>, <code>hemisphere</code></li>
+                    <li><strong>Action economy:</strong> <code>action</code>, <code>actions</code>, <code>bonus action</code>, <code>reaction</code>, <code>reactions</code></li>
+                    <li><strong>Currency:</strong> <code>gp</code>, <code>sp</code>, <code>cp</code></li>
+                </ul>
+            </div>
         </wa-dialog>
 
         <wa-dialog

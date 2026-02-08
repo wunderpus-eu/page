@@ -16,6 +16,7 @@ const MANIFEST_PATH = path.join(__dirname, "icon-manifest.json");
 
 // Spell card colors from css/card.css (6-char hex, no #)
 const FONT = "333333";
+const FONT_LIGHT = "7f7f7f"; // --font-color-light, used for component text
 const SCHOOLS = [
     "55a868", // Abjuration
     "dd8452", // Conjuration
@@ -53,7 +54,7 @@ const CLASS_NAMES = [
 ];
 
 // Area icons used in render_range (icon-${area}); only those that exist in assets
-const AREA_ICONS = ["cone", "cube", "cylinder", "emanation", "line", "sphere", "square", "circle", "wall"];
+const AREA_ICONS = ["cone", "cube", "cylinder", "emanation", "hemisphere", "line", "sphere", "square", "circle", "wall"];
 
 const INLINE_ICONS = [
     "icon-gold", "icon-silver", "icon-copper",
@@ -113,14 +114,23 @@ function main() {
         }
     }
 
-    // --- Inline and glossary: fg on white (var(--font-color) or school when in description?)
-    // Inline uses resolveCssVariable("var(--font-color)") so we need (333, white) and optionally school colors.
-    // Description text is rendered with --font-color, so only 333. Glossary uses iconColor = 333.
-    const FG_ON_WHITE = FOREGROUNDS.map((fg) => ({ fg, bg: BG_WHITE }));
+    // --- Inline and glossary: fg on white (var(--font-color), var(--font-color-light), or school when in description?)
+    // Description/upcast text uses --font-color (333). Component text uses --font-color-light (7f7f7f).
+    // Glossary uses iconColor = 333. Include both font and font-light for inline icons.
+    const FG_ON_WHITE = [
+        ...FOREGROUNDS.map((fg) => ({ fg, bg: BG_WHITE })),
+        { fg: FONT_LIGHT, bg: BG_WHITE },
+    ];
     for (const icon of INLINE_ICONS) {
         for (const { fg, bg } of FG_ON_WHITE) {
             icons.push({ icon, fg, bg });
         }
+    }
+
+    // --- Edit form area dropdown: area icons with (font-color, white)
+    const EDIT_AREA_ICONS = ["icon-line", "icon-cone", "icon-cube", "icon-cylinder", "icon-sphere", "icon-emanation", "icon-hemisphere", "icon-wall", "icon-circle", "icon-square"];
+    for (const icon of EDIT_AREA_ICONS) {
+        icons.push({ icon, fg: FONT, bg: BG_WHITE });
     }
 
     // --- Glossary card: icons not in INLINE_ICONS but used with (font-color, white) in createGlossaryCard

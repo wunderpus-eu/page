@@ -531,31 +531,23 @@ header:not(.header--spell-cards) {
     vertical-align: middle;
 }
 
-/* Edit card overlay */
-.overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    box-sizing: border-box;
+/* Edit card dialog */
+.edit-card-dialog {
+    --width: min(95vw, 900px);
 }
 
-.overlay.hidden {
-    display: none;
-}
-
-.edit-overlay-panel {
-    background: white;
-    border-radius: var(--wa-border-radius-large);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    max-width: 95vw;
-    max-height: 90vh;
+.edit-card-dialog .edit-overlay-panel {
     display: flex;
     overflow: hidden;
+    min-height: 0;
+    max-height: min(80vh, 700px);
+}
+
+@media (max-width: 650px) {
+    .edit-card-dialog .edit-overlay-panel {
+        flex-direction: column;
+        max-height: none;
+    }
 }
 
 .edit-overlay-preview {
@@ -590,20 +582,165 @@ header:not(.header--spell-cards) {
 }
 
 .edit-overlay-form wa-input,
+.edit-overlay-form wa-number-input,
 .edit-overlay-form wa-textarea,
 .edit-overlay-form wa-select {
     width: 100%;
 }
 
-.duration-ends-tokens {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+.edit-overlay-form wa-number-input::part(start),
+.edit-overlay-form wa-number-input::part(end) {
+    display: none;
 }
 
-.duration-ends-tokens .duration-end-tag {
-    margin: 0;
-    cursor: pointer;
+.edit-overlay-form wa-number-input::part(input) {
+    padding: 0;
+}
+
+.edit-area-option-icon {
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.rich-text-hint-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 0.875rem;
+    color: var(--wa-color-neutral-600, #6b7280);
+}
+
+.rich-text-info-content {
+    max-width: 420px;
+}
+.rich-text-info-content h4 {
+    margin: 16px 0 8px;
+    font-size: 0.9375rem;
+}
+.rich-text-info-content h4:first-child {
+    margin-top: 0;
+}
+.rich-text-info-content ul {
+    margin: 0 0 8px;
+    padding-left: 1.25em;
+}
+.rich-text-info-content li {
+    margin-bottom: 4px;
+}
+.rich-text-info-content code {
+    font-size: 0.8125rem;
+    background: var(--wa-color-neutral-100, #f3f4f6);
+    padding: 1px 4px;
+    border-radius: 4px;
+}
+
+.form-field--switch,
+.form-field-components-material,
+.form-field-components-consumed {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.casting-time-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.casting-time-row > wa-number-input {
+    display: none;
+    flex: 0 0 130px;
+    min-width: 130px;
+}
+
+.casting-time-row--with-number > wa-number-input {
+    display: block;
+}
+
+.casting-time-row > wa-select {
+    flex: 1;
+    min-width: 0;
+}
+
+.range-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.range-row > wa-number-input {
+    display: none;
+    flex: 0 0 120px;
+    min-width: 120px;
+}
+
+.range-row--with-number > wa-number-input {
+    display: block;
+}
+
+.range-row > wa-select {
+    flex: 1;
+    min-width: 0;
+}
+
+.dimension-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dimension-row > wa-number-input {
+    display: none;
+    flex: 0 0 120px;
+    min-width: 120px;
+}
+
+.dimension-row--with-number > wa-number-input {
+    display: block;
+}
+
+.dimension-row > wa-select {
+    flex: 1;
+    min-width: 0;
+}
+
+.form-field-area-dims .dimension-row + .form-field-label {
+    margin-top: 8px;
+}
+
+@media (max-width: 400px) {
+    .casting-time-row,
+    .range-row,
+    .dimension-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .casting-time-row > wa-number-input,
+    .range-row > wa-number-input,
+    .dimension-row > wa-number-input {
+        flex: none;
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .casting-time-row > wa-select,
+    .range-row > wa-select,
+    .dimension-row > wa-select {
+        flex: none;
+        width: 100%;
+    }
+}
+
+.form-field-label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
 }
 
 .edit-classes-tokens {
@@ -618,9 +755,6 @@ header:not(.header--spell-cards) {
 }
 
 .edit-overlay-actions {
-    flex-shrink: 0;
-    padding: 16px 20px;
-    border-top: 1px solid var(--wa-color-neutral-200);
     display: flex;
     justify-content: flex-end;
     gap: 10px;
