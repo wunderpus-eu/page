@@ -2267,7 +2267,10 @@ window.onafterprint = function() {
                 return;
             }
             if (e.key === " ") {
-                e.preventDefault();
+                /* Only prevent Space when focus is on a list item (select); allow Space in search input */
+                if (e.target.closest("wa-dropdown-item.spell-list-item")) {
+                    e.preventDefault();
+                }
                 return;
             }
             if (e.key === "ArrowDown") {
