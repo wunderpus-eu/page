@@ -970,11 +970,7 @@ async function render_higher_level_text(
 
     const higherLevelTextContainer = document.createElement("div");
     higherLevelTextContainer.className = "spell-higher-level-text";
-
-    const line = document.createElement("div");
-    line.className = "higher-level-line";
-    line.style.backgroundColor = foregroundColor;
-    higherLevelTextContainer.appendChild(line);
+    higherLevelTextContainer.style.setProperty("--higher-level-line-color", foregroundColor);
 
     const circle = document.createElement("img");
     circle.src = await load_icon("chip-plus", foregroundColor, backgroundColor);

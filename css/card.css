@@ -776,19 +776,47 @@ body.grayscale {
 
 .spell-higher-level-text {
     text-align: justify;
-    margin-top: 3.5pt;
-    padding-top: 4.5pt;
+    margin-top: 0;
+    padding-top: 4pt; /* single value for consistent preview/print (was 3.5pt margin + 4.5pt padding) */
     position: relative;
 }
 
-.higher-level-line {
+/* Match description-text paragraph/list spacing so higher-level block doesn’t look loose */
+.card-body .spell-higher-level-text p {
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+.card-body .spell-higher-level-text p:last-child {
+    margin-bottom: 0;
+}
+
+.card-body .spell-higher-level-text .spell-description-list {
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+.card-body .spell-higher-level-text .spell-description-list:last-child {
+    margin-bottom: 0;
+}
+
+.card-body .spell-higher-level-text .spell-description-list li {
+    margin-bottom: 0.25em;
+}
+
+.card-body .spell-higher-level-text .spell-description-list li:last-child {
+    margin-bottom: 0;
+}
+
+/* Line above higher-level text: box-shadow for consistent thickness (like spell-level ring) */
+.spell-higher-level-text::before {
+    content: "";
     position: absolute;
     top: 0;
     left: -7pt;
-    right: -5pt;
-    height: 1pt;
-    background-color: currentColor;
-    /* Use filled div instead of border-top for consistent rendering */
+    right: -4pt;
+    height: 0;
+    box-shadow: 0 0 0 0.5pt var(--higher-level-line-color, currentColor);
 }
 
 .higher-level-circle {
