@@ -569,20 +569,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (toFocus) toFocus.focus();
     }
 
+    /**
+     * Applies SRD transformation to spell data if in SRD mode and spell has SRD name.
+     * Transforms spell.name to SRD name and ensures isSRD is boolean (not string).
+     * @param {object} spellData - Spell data to transform (will be cloned)
+     * @returns {object} Transformed spell data (cloned)
+     */
+    function applySrdTransformation(spellData) {
+        const data = cloneSpellData(spellData);
+        if (onlySRD && typeof data.isSRD === "string") {
+            // Use SRD name for the card (WYSIWYG: what you see is what you get)
+            data.name = data.isSRD;
+            // Ensure isSRD is boolean (not string) in card data
+            data.isSRD = true;
+        }
+        return data;
+    }
+
     /** Adds a SpellCard to cardList, renders it, and optionally refreshes layout.
      * @param {object} spellData - Spell data for the card
      * @param {object} [originalSpell] - When adding from list, the list spell (stores id for reset)
      * @param {{ skipLayout?: boolean }} [opts] - If skipLayout: true, do not call refreshLayout (caller will refresh once)
      */
     async function addCard(spellData, originalSpell, opts = {}) {
-        // Transform spell data in SRD mode: use SRD name if available
-        const dataToUse = cloneSpellData(spellData);
-        if (onlySRD && typeof dataToUse.isSRD === "string") {
-            // Use SRD name for the card (WYSIWYG: what you see is what you get)
-            dataToUse.name = dataToUse.isSRD;
-            // Ensure isSRD is boolean (not string) in card data
-            dataToUse.isSRD = true;
-        }
+        const dataToUse = applySrdTransformation(spellData);
         const card = new SpellCard(dataToUse);
         if (originalSpell) card.originalId = originalSpell.id;
         await card.render({ measureContainer });
@@ -2942,7 +2952,11 @@ window.onafterprint = function() {
             const spells = getSpells();
             const original = spells.find((s) => s.id === card.originalId);
             if (!original) return;
-            card.setSpellData(cloneSpellData(original));
+            
+            // Reset to original spell data, applying SRD transformation if needed
+            // (same transformation as when card was originally created)
+            const resetData = applySrdTransformation(original);
+            card.setSpellData(resetData);
             await card.render({ measureContainer });
             renderSpellList();
             await refreshLayout();
