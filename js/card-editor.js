@@ -726,6 +726,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     /** Updates the source dropdown with current available sources. */
+    /**
+     * Updates the source dropdown with available spell sources.
+     * Called when dialog opens and when spells are uploaded (sources may change).
+     */
     function updateSourceDropdown() {
         const sourceSel = editCardForm.querySelector("#edit-source");
         if (!sourceSel) return;
@@ -753,7 +757,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    /** Populates the edit form with spell data. */
+    /**
+     * Populates all edit form fields with spell data.
+     * @param {object} spell - Spell data object
+     * @param {object} classIconUrls - Map of class names to icon URLs (default/selected)
+     * @param {object} areaIconUrls - Map of area types to icon URLs
+     */
     function populateEditForm(spell, classIconUrls = {}, areaIconUrls = {}) {
         // Name
         const nameInp = editCardForm.querySelector("#edit-name");
@@ -1014,7 +1023,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         syncFormVisibility();
     }
 
-    /** Syncs form field visibility based on current values. */
+    /**
+     * Syncs form field visibility based on current form values.
+     * Shows/hides conditional fields like casting time number input, range distance input, etc.
+     */
     function syncFormVisibility() {
         // Casting time number visibility
         const timeUnitSel = editCardForm.querySelector("#edit-time_unit");
@@ -1035,7 +1047,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    /** Sets up event handlers for the edit form. */
+    /**
+     * Sets up event handlers for the edit form (one-time setup).
+     * Handlers persist across dialog open/close cycles.
+     * All form changes trigger preview updates.
+     */
     function setupEditFormHandlers() {
         if (editFormHandlersSetup) return;
         editFormHandlersSetup = true;
@@ -1392,7 +1408,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Classes handlers are set up dynamically when classes are populated
     }
     
-    /** Sets up event handlers for dynamically created class tags. */
+    /**
+     * Sets up event handlers for dynamically created class tag buttons.
+     * Clones and replaces tags to ensure clean event listener attachment.
+     */
     function setupClassTagHandlers() {
         const classTags = editCardForm.querySelectorAll(".edit-class-tag");
         classTags.forEach((tag) => {
@@ -1432,9 +1451,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!editPreviewCard)
             editPreviewCard = new SpellCard(cloneSpellData(card.spell));
         editPreviewCard.setSpellData(cloneSpellData(card.spell));
-        editPreviewCard.render().then(() => {
-            updateEditPreviewDisplay();
-        });
+        // Render preview card with measureContainer to handle overflow (creates back if needed)
+        await editPreviewCard.render({ measureContainer });
+        updateEditPreviewDisplay();
         
         // Update source dropdown with current sources
         updateSourceDropdown();
@@ -1470,15 +1489,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         
         editCardDialog.open = true;
         
-        // Sync form visibility after dialog opens
-        const syncSelectValues = () => {
-            syncFormVisibility();
-        };
+        // Sync form visibility after dialog opens (handles conditional field visibility)
+        const syncVisibility = () => syncFormVisibility();
         requestAnimationFrame(() => {
-            requestAnimationFrame(syncSelectValues);
+            requestAnimationFrame(syncVisibility);
         });
-        setTimeout(syncSelectValues, 50);
-        editCardDialog?.addEventListener("wa-after-show", syncSelectValues, { once: true });
+        setTimeout(syncVisibility, 50);
+        editCardDialog?.addEventListener("wa-after-show", syncVisibility, { once: true });
     }
 
     /** Closes the edit overlay. */
@@ -1487,9 +1504,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (editCardDialog) editCardDialog.open = false;
     }
 
-    // Track if handlers have been set up
+    // ============================================================================
+    // Edit Card Overlay Functions
+    // ============================================================================
+    
+    /** Tracks whether edit form event handlers have been set up (one-time setup). */
     let editFormHandlersSetup = false;
     
+    /**
+     * Reads all form field values and returns a spell data object.
+     * @param {SpellCard|null} card - Optional card to use as base (falls back to editingCard or empty template)
+     * @returns {object} Spell data object with all form values
+     */
     function getEditFormData(card = null) {
         if (!editCardForm) {
             throw new Error("editCardForm is not available");
@@ -1670,8 +1696,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         return spell;
     }
 
+    /** Debounce timeout for preview updates to avoid excessive re-renders. */
     let editPreviewTimeout = null;
-    /** Updates the preview display with current card elements. */
+    
+    /**
+     * Updates the preview display by cloning and appending front and back card elements.
+     * Removes card action buttons from preview clones.
+     */
     function updateEditPreviewDisplay() {
         if (!editPreviewCard) return;
         editCardPreview.innerHTML = "";
@@ -1689,7 +1720,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
     
-    /** Debounced update of the edit overlay preview from form data. */
+    /**
+     * Debounced update of the edit overlay preview from form data.
+     * Reads form values, updates preview card, and re-renders with overflow handling.
+     */
     function updateEditPreview() {
         if (!editPreviewCard) return;
         clearTimeout(editPreviewTimeout);
@@ -1709,34 +1743,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /** Applies form data to editing card, closes overlay, refreshes layout. */
     async function saveEditCard() {
-        // Store card reference immediately to prevent race conditions
+        // Store card reference immediately to prevent race conditions with dialog close events
         const card = editingCard;
-        if (!card) {
-            console.error("saveEditCard: editingCard is null");
-            return;
-        }
-        if (!editCardForm) {
-            console.error("saveEditCard: editCardForm is null");
-            return;
-        }
+        if (!card || !editCardForm) return;
         let data;
         try {
             // Pass card reference to getEditFormData to avoid relying on global editingCard
             data = getEditFormData(card);
-            console.log("Form data retrieved successfully");
         } catch (err) {
             console.error("Edit form data error:", err);
-            console.error("Error details:", err.message, err.stack);
-            alert("Error reading form data: " + err.message);
             return;
         }
         try {
             card.setSpellData(data);
-            console.log("Spell data set successfully");
         } catch (err) {
             console.error("Set spell data error:", err);
-            console.error("Error details:", err.message, err.stack);
-            alert("Error setting spell data: " + err.message);
             return;
         }
         // Close overlay after storing card reference
@@ -1744,10 +1765,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
             await card.render({ measureContainer });
             await refreshLayout();
-            console.log("Card rendered and layout refreshed");
         } catch (err) {
             console.error("Save card error:", err);
-            console.error("Error details:", err.message, err.stack);
         }
     }
 
