@@ -200,6 +200,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const clearAllConfirmProceed = document.getElementById("clear-all-confirm-proceed");
     const deleteCardConfirmDialog = document.getElementById("delete-card-confirm-dialog");
     const deleteCardConfirmProceed = document.getElementById("delete-card-confirm-proceed");
+    const resetCardConfirmDialog = document.getElementById("reset-card-confirm-dialog");
+    const resetCardConfirmProceed = document.getElementById("reset-card-confirm-proceed");
     const srdExcludedDialog = document.getElementById("srd-excluded-dialog");
     const srdExcludedExplanation = document.getElementById(
         "srd-excluded-explanation"
@@ -1819,11 +1821,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     /** Applies form data to editing card, closes overlay, refreshes layout. */
     async function saveEditCard() {
         if (!editingCard) return;
-        const data = getEditFormData();
-        editingCard.setSpellData(data);
-        await editingCard.render({ measureContainer });
+        let data;
+        try {
+            data = getEditFormData();
+        } catch (err) {
+            console.error("Edit form data error:", err);
+            closeEditOverlay();
+            return;
+        }
+        const card = editingCard;
+        try {
+            card.setSpellData(data);
+        } catch (err) {
+            console.error("Set spell data error:", err);
+        }
         closeEditOverlay();
-        await refreshLayout();
+        try {
+            await card.render({ measureContainer });
+            await refreshLayout();
+        } catch (err) {
+            console.error("Save card error:", err);
+        }
     }
 
     /** Loads all spells from file, repopulates filters, refreshes layout. */
@@ -2442,12 +2460,17 @@ window.onafterprint = function() {
     let knockKeyIndex = 0;
     document.addEventListener("keydown", (e) => {
         const active = document.activeElement;
-        const isInput =
+        const isTextInputContext =
             active &&
             (active.tagName === "INPUT" ||
                 active.tagName === "TEXTAREA" ||
-                active.isContentEditable);
-        if (isInput) return;
+                active.tagName === "SELECT" ||
+                active.isContentEditable ||
+                active.closest("wa-input") ||
+                active.closest("wa-textarea") ||
+                active.closest("wa-select") ||
+                active.closest("[contenteditable]"));
+        if (isTextInputContext) return;
         const key = e.key.toLowerCase();
         const expected = KNOCK_KEY_SEQUENCE[knockKeyIndex];
         if (key === expected) {
@@ -2465,7 +2488,16 @@ window.onafterprint = function() {
     let headerTapTimes = [];
     const TAP_WINDOW_MS = 2000;
     if (headerEl) {
-        headerEl.addEventListener("click", () => {
+        headerEl.addEventListener("click", (e) => {
+            // Only count taps on the header banner/background, not on menu options or controls
+            if (
+                e.target.closest("wa-button") ||
+                e.target.closest("wa-input") ||
+                e.target.closest("wa-dropdown") ||
+                e.target.closest("wa-popover")
+            ) {
+                return;
+            }
             const now = Date.now();
             headerTapTimes = headerTapTimes.filter(
                 (t) => now - t < TAP_WINDOW_MS
@@ -2856,6 +2888,7 @@ window.onafterprint = function() {
     });
 
     let pendingDeleteCardId = null;
+    let pendingResetCardId = null;
 
     printableArea.addEventListener("card-delete", (event) => {
         event.stopPropagation();
@@ -2881,25 +2914,45 @@ window.onafterprint = function() {
         );
         if (card) openEditOverlay(card);
     });
-    printableArea.addEventListener("card-reset", async (event) => {
+    printableArea.addEventListener("card-cast", (event) => {
         event.stopPropagation();
+        disableOnlySrdAndToast();
+    });
+    printableArea.addEventListener("card-reset", (event) => {
+        event.stopPropagation();
+        const cardId = event.detail.cardId;
         const card = cardList.find(
-            (c) => c instanceof SpellCard && c.id === event.detail.cardId
+            (c) => c instanceof SpellCard && c.id === cardId
         );
         if (!card) return;
         if (card.originalId == null) return;
-        const spells = getSpells();
-        const original = spells.find((s) => s.id === card.originalId);
-        if (!original) return;
-        card.setSpellData(cloneSpellData(original));
-        await card.render({ measureContainer });
-        renderSpellList();
-        await refreshLayout();
+        pendingResetCardId = cardId;
+        if (resetCardConfirmDialog) resetCardConfirmDialog.open = true;
     });
 
+    if (resetCardConfirmProceed) {
+        resetCardConfirmProceed.addEventListener("click", async () => {
+            if (pendingResetCardId == null) return;
+            const card = cardList.find(
+                (c) => c instanceof SpellCard && c.id === pendingResetCardId
+            );
+            pendingResetCardId = null;
+            if (resetCardConfirmDialog) resetCardConfirmDialog.open = false;
+            if (!card) return;
+            if (card.originalId == null) return;
+            const spells = getSpells();
+            const original = spells.find((s) => s.id === card.originalId);
+            if (!original) return;
+            card.setSpellData(cloneSpellData(original));
+            await card.render({ measureContainer });
+            renderSpellList();
+            await refreshLayout();
+        });
+    }
+
     editCardCancel.addEventListener("click", closeEditOverlay);
-    editCardDialog?.addEventListener("click", (e) => {
-        if (e.composedPath().includes(editCardSave)) saveEditCard();
+    editCardSave?.addEventListener("click", () => {
+        saveEditCard();
     });
     editCardDialog?.addEventListener("wa-after-hide", () => {
         editingCard = null;

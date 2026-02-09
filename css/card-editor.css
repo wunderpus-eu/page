@@ -806,9 +806,9 @@ header:not(.header--spell-cards) {
     left: 50%;
     transform: translateX(-50%);
     padding: 12px 20px;
-    background: var(--wa-color-neutral-800);
-    color: var(--wa-color-neutral-0);
-    border-radius: var(--wa-border-radius-medium);
+    background: var(--wa-color-neutral-fill-loud);
+    color: var(--wa-color-neutral-on-loud);
+    border-radius: var(--wa-border-radius-large, 12px);
     font-style: italic;
     z-index: 9999;
     box-shadow: var(--wa-shadow-large);

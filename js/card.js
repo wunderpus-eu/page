@@ -1447,15 +1447,23 @@ export class SpellCard {
 
         const buttons = [
             makeIconButton("trash", "Delete", "card-delete"),
-            makeIconButton("pen-to-square", "Edit", "card-edit"),
             makeIconButton("copy", "Duplicate", "card-duplicate"),
-            makeIconButton("check", "Earmark", "card-earmark", {
+            makeIconButton("file", "Earmark", "card-earmark", {
                 toggleAccent: true,
             }),
+            makeIconButton("pen-to-square", "Edit", "card-edit"),
         ];
         if (this.spell._modified && this.originalId != null) {
             buttons.push(
                 makeIconButton("arrow-rotate-left", "Reset to original", "card-reset")
+            );
+        }
+        if (
+            this.spell.name === "Knock" &&
+            !this.spell._modified
+        ) {
+            buttons.push(
+                makeIconButton("wand-magic-sparkles", "Cast", "card-cast")
             );
         }
 

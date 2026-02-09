@@ -511,6 +511,20 @@
         </wa-dialog>
 
         <wa-dialog
+            id="reset-card-confirm-dialog"
+            label="Reset to original"
+            without-header
+            light-dismiss
+            class="reset-card-confirm-dialog"
+        >
+            <p>Edits to this spell will be lost. Consider downloading your custom spell data.</p>
+            <div slot="footer" class="clear-all-confirm-dialog__footer">
+                <wa-button appearance="plain" variant="neutral" pill data-dialog="close" id="reset-card-confirm-cancel">Cancel</wa-button>
+                <wa-button variant="brand" pill id="reset-card-confirm-proceed">Reset</wa-button>
+            </div>
+        </wa-dialog>
+
+        <wa-dialog
             id="srd-excluded-dialog"
             label="Non-SRD spells"
             class="srd-excluded-dialog"
