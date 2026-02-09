@@ -462,6 +462,7 @@
         <wa-dialog
             id="edit-card-dialog"
             label="Edit card"
+            without-header
             class="edit-card-dialog"
         >
             <div class="edit-overlay-panel">
@@ -469,7 +470,267 @@
                     <div id="edit-card-preview"></div>
                 </div>
                 <div class="edit-overlay-form-wrapper">
-                    <div id="edit-card-form" class="edit-overlay-form"></div>
+                    <form id="edit-card-form" class="edit-overlay-form">
+                        <!-- Name -->
+                        <div class="form-field">
+                            <wa-input id="edit-name" name="name" label="Name"></wa-input>
+                        </div>
+
+                        <!-- Level -->
+                        <div class="form-field">
+                            <wa-select id="edit-level" name="level" label="Level">
+                                <wa-option value="0">Cantrip</wa-option>
+                                <wa-option value="1">1</wa-option>
+                                <wa-option value="2">2</wa-option>
+                                <wa-option value="3">3</wa-option>
+                                <wa-option value="4">4</wa-option>
+                                <wa-option value="5">5</wa-option>
+                                <wa-option value="6">6</wa-option>
+                                <wa-option value="7">7</wa-option>
+                                <wa-option value="8">8</wa-option>
+                                <wa-option value="9">9</wa-option>
+                            </wa-select>
+                        </div>
+
+                        <!-- School -->
+                        <div class="form-field">
+                            <wa-select id="edit-school" name="school" label="School">
+                                <wa-option value="Abjuration">Abjuration</wa-option>
+                                <wa-option value="Conjuration">Conjuration</wa-option>
+                                <wa-option value="Divination">Divination</wa-option>
+                                <wa-option value="Enchantment">Enchantment</wa-option>
+                                <wa-option value="Evocation">Evocation</wa-option>
+                                <wa-option value="Illusion">Illusion</wa-option>
+                                <wa-option value="Necromancy">Necromancy</wa-option>
+                                <wa-option value="Transmutation">Transmutation</wa-option>
+                            </wa-select>
+                        </div>
+
+                        <!-- Source -->
+                        <div class="form-field" id="edit-source-wrap">
+                            <wa-select id="edit-source" name="source" label="Source"></wa-select>
+                        </div>
+                        <div class="form-field form-field-source-other" id="edit-source-other-wrap" style="display: none;">
+                            <wa-input id="edit-source_other" name="source_other" label="Source (specify when Other is selected)"></wa-input>
+                        </div>
+
+                        <wa-divider></wa-divider>
+
+                        <!-- Casting Time -->
+                        <div class="form-field form-field-casting-time">
+                            <span class="form-field-label" id="edit-casting-time-label">Casting time</span>
+                            <div class="casting-time-row">
+                                <wa-number-input id="edit-time_number" name="time_number" aria-label="Casting time amount" min="1" value="1"></wa-number-input>
+                                <wa-select id="edit-time_unit" name="time_unit" aria-labelledby="edit-casting-time-label">
+                                    <wa-option value="action">Action</wa-option>
+                                    <wa-option value="bonus">Bonus action</wa-option>
+                                    <wa-option value="reaction">Reaction</wa-option>
+                                    <wa-option value="minute">Minute(s)</wa-option>
+                                    <wa-option value="hour">Hour(s)</wa-option>
+                                </wa-select>
+                            </div>
+                        </div>
+
+                        <!-- Time Condition -->
+                        <div class="form-field form-field-time-condition" id="edit-time-condition-wrap" style="display: none;">
+                            <wa-textarea id="edit-time_condition" name="time_condition" label="Condition" rows="2"></wa-textarea>
+                            <div class="rich-text-hint-row">
+                                Supports rich text
+                                <wa-tooltip for="rich-text-info-btn-time-condition">Info</wa-tooltip>
+                                <wa-button id="rich-text-info-btn-time-condition" appearance="plain" variant="neutral" size="small" pill aria-label="Info">
+                                    <wa-icon name="circle-info" aria-hidden="true"></wa-icon>
+                                </wa-button>
+                            </div>
+                        </div>
+
+                        <!-- Concentration -->
+                        <div class="form-field form-field--switch">
+                            <wa-switch id="edit-isConcentration" name="isConcentration"></wa-switch>
+                            <label for="edit-isConcentration">Requires concentration</label>
+                        </div>
+
+                        <!-- Ritual -->
+                        <div class="form-field form-field--switch">
+                            <wa-switch id="edit-isRitual" name="isRitual"></wa-switch>
+                            <label for="edit-isRitual">Ritual</label>
+                        </div>
+
+                        <wa-divider></wa-divider>
+
+                        <!-- Range -->
+                        <div class="form-field form-field-range">
+                            <span class="form-field-label" id="edit-range-label">Range</span>
+                            <div class="range-row">
+                                <wa-number-input id="edit-range_distance" name="range_distance" aria-labelledby="edit-range-label" min="1" value="30"></wa-number-input>
+                                <wa-select id="edit-range_type" name="range_type" aria-labelledby="edit-range-label">
+                                    <wa-option value="self">Self</wa-option>
+                                    <wa-option value="touch">Touch</wa-option>
+                                    <wa-option value="feet">Feet</wa-option>
+                                    <wa-option value="miles">Miles</wa-option>
+                                    <wa-option value="special">Special</wa-option>
+                                    <wa-option value="unlimited">Unlimited</wa-option>
+                                </wa-select>
+                            </div>
+                        </div>
+
+                        <!-- Area -->
+                        <div class="form-field" id="edit-range_area-wrap">
+                            <wa-select id="edit-range_area" name="range_area" label="Area">
+                                <wa-option value="">None</wa-option>
+                                <wa-option value="line">Line</wa-option>
+                                <wa-option value="cone">Cone</wa-option>
+                                <wa-option value="cube">Cube</wa-option>
+                                <wa-option value="cylinder">Cylinder</wa-option>
+                                <wa-option value="sphere">Sphere</wa-option>
+                                <wa-option value="emanation">Emanation</wa-option>
+                                <wa-option value="hemisphere">Hemisphere</wa-option>
+                                <wa-option value="wall">Wall</wa-option>
+                                <wa-option value="circle">Circle</wa-option>
+                                <wa-option value="square">Square</wa-option>
+                            </wa-select>
+                        </div>
+
+                        <!-- Area Dimensions -->
+                        <div class="form-field form-field-area-dims" id="edit-area-dims-wrap" style="display: none;">
+                            <span class="form-field-label" id="edit-area-primary-label">Size</span>
+                            <div class="dimension-row dimension-row--with-number">
+                                <wa-number-input id="edit-area_distance" name="area_distance" aria-labelledby="edit-area-primary-label" min="1" value="30"></wa-number-input>
+                                <wa-select id="edit-area_unit" name="area_unit" aria-labelledby="edit-area-primary-label">
+                                    <wa-option value="feet">Feet</wa-option>
+                                    <wa-option value="miles">Miles</wa-option>
+                                </wa-select>
+                            </div>
+                            <span class="form-field-label" id="edit-area-height-label" style="display: none;">Height</span>
+                            <div class="dimension-row dimension-row--with-number" id="edit-area-height-row" style="display: none;">
+                                <wa-number-input id="edit-area_height" name="area_height" aria-labelledby="edit-area-height-label" min="1" value="30"></wa-number-input>
+                                <wa-select id="edit-area_height_unit" name="area_height_unit" aria-labelledby="edit-area-height-label">
+                                    <wa-option value="feet">Feet</wa-option>
+                                    <wa-option value="miles">Miles</wa-option>
+                                </wa-select>
+                            </div>
+                        </div>
+
+                        <!-- Targets -->
+                        <div class="form-field form-field-targets" id="edit-range-targets-wrap">
+                            <wa-number-input id="edit-range_targets" name="range_targets" label="Number of targets" hint="Use 0 for an undefined or area-based number of targets" min="0" step="1" value="0"></wa-number-input>
+                        </div>
+
+                        <!-- Targets Scale -->
+                        <div class="form-field form-field--switch">
+                            <wa-switch id="edit-range_targets_scale" name="range_targets_scale"></wa-switch>
+                            <label for="edit-range_targets_scale">More targets at higher levels</label>
+                        </div>
+
+                        <!-- Requires Sight -->
+                        <div class="form-field form-field--switch">
+                            <wa-switch id="edit-range_requires_sight" name="range_requires_sight"></wa-switch>
+                            <label for="edit-range_requires_sight">Requires sight</label>
+                        </div>
+
+                        <wa-divider></wa-divider>
+
+                        <!-- Duration -->
+                        <div class="form-field form-field-duration">
+                            <span class="form-field-label" id="edit-duration-label">Duration</span>
+                            <div class="range-row">
+                                <wa-number-input id="edit-duration_amount" name="duration_amount" aria-labelledby="edit-duration-label" min="1" value="1"></wa-number-input>
+                                <wa-select id="edit-duration_type" name="duration_type" aria-labelledby="edit-duration-label">
+                                    <wa-option value="instant">Instant</wa-option>
+                                    <wa-option value="round">Round(s)</wa-option>
+                                    <wa-option value="minute">Minute(s)</wa-option>
+                                    <wa-option value="hour">Hour(s)</wa-option>
+                                    <wa-option value="day">Day(s)</wa-option>
+                                    <wa-option value="special">Special</wa-option>
+                                    <wa-option value="permanent">Permanent</wa-option>
+                                </wa-select>
+                            </div>
+                        </div>
+
+                        <!-- Duration Ends -->
+                        <div class="form-field filter-chip-group form-field-duration-ends" id="edit-duration-ends-wrap" style="display: none;" role="group">
+                            <span class="filter-chip-label" id="edit-duration-ends-label">Ending conditions</span>
+                            <div class="filter-chip-list duration-ends-chips">
+                                <wa-button class="filter-chip duration-end-chip" data-value="dispel" size="medium" appearance="filled" variant="neutral" aria-pressed="false">Dispel</wa-button>
+                                <wa-button class="filter-chip duration-end-chip" data-value="trigger" size="medium" appearance="filled" variant="neutral" aria-pressed="false">Trigger</wa-button>
+                            </div>
+                        </div>
+
+                        <wa-divider></wa-divider>
+
+                        <!-- Components Description -->
+                        <div class="form-field form-field-components-description" id="edit-components-description-wrap">
+                            <wa-textarea id="edit-components_description" name="components_description" label="Component description" rows="2"></wa-textarea>
+                            <div class="rich-text-hint-row">
+                                Supports rich text
+                                <wa-tooltip for="rich-text-info-btn-components">Info</wa-tooltip>
+                                <wa-button id="rich-text-info-btn-components" appearance="plain" variant="neutral" size="small" pill aria-label="Info">
+                                    <wa-icon name="circle-info" aria-hidden="true"></wa-icon>
+                                </wa-button>
+                            </div>
+                        </div>
+
+                        <!-- Verbal Component -->
+                        <div class="form-field form-field--switch">
+                            <wa-switch id="edit-components_v" name="components_v"></wa-switch>
+                            <label for="edit-components_v">Verbal component</label>
+                        </div>
+
+                        <!-- Somatic Component -->
+                        <div class="form-field form-field--switch">
+                            <wa-switch id="edit-components_s" name="components_s"></wa-switch>
+                            <label for="edit-components_s">Somatic component</label>
+                        </div>
+
+                        <!-- Material Component -->
+                        <div class="form-field form-field--switch">
+                            <wa-switch id="edit-components_m" name="components_m"></wa-switch>
+                            <label for="edit-components_m">Material component</label>
+                        </div>
+
+                        <!-- Has Cost -->
+                        <div class="form-field form-field--switch form-field-components-material">
+                            <wa-switch id="edit-components_has_cost" name="components_has_cost"></wa-switch>
+                            <label for="edit-components_has_cost">Specified cost</label>
+                        </div>
+
+                        <!-- Is Consumed -->
+                        <div class="form-field form-field--switch form-field-components-consumed" id="edit-components-consumed-wrap">
+                            <wa-switch id="edit-components_is_consumed" name="components_is_consumed"></wa-switch>
+                            <label for="edit-components_is_consumed">Is consumed</label>
+                        </div>
+
+                        <wa-divider></wa-divider>
+
+                        <!-- Description -->
+                        <div class="form-field">
+                            <wa-textarea id="edit-description" name="description" label="Description" rows="6"></wa-textarea>
+                            <div class="rich-text-hint-row">
+                                Supports rich text
+                                <wa-tooltip for="rich-text-info-btn-description">Info</wa-tooltip>
+                                <wa-button id="rich-text-info-btn-description" appearance="plain" variant="neutral" size="small" pill aria-label="Info">
+                                    <wa-icon name="circle-info" aria-hidden="true"></wa-icon>
+                                </wa-button>
+                            </div>
+                        </div>
+
+                        <!-- Upcast -->
+                        <div class="form-field">
+                            <wa-textarea id="edit-upcast" name="upcast" label="At higher levels" rows="2"></wa-textarea>
+                            <div class="rich-text-hint-row">
+                                Supports rich text
+                                <wa-tooltip for="rich-text-info-btn-upcast">Info</wa-tooltip>
+                                <wa-button id="rich-text-info-btn-upcast" appearance="plain" variant="neutral" size="small" pill aria-label="Info">
+                                    <wa-icon name="circle-info" aria-hidden="true"></wa-icon>
+                                </wa-button>
+                            </div>
+                        </div>
+
+                        <!-- Classes -->
+                        <div class="form-field form-field-classes" id="edit-classes-wrap" role="group">
+                            <label id="edit-classes-label">Classes</label>
+                            <div class="edit-classes-tokens"></div>
+                        </div>
+                    </form>
                 </div>
             </div>
             <div slot="footer" class="edit-overlay-actions">

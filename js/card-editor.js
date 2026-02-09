@@ -725,6 +725,707 @@ document.addEventListener("DOMContentLoaded", async () => {
         await refreshLayout();
     }
 
+    /** Updates the source dropdown with current available sources. */
+    function updateSourceDropdown() {
+        const sourceSel = editCardForm.querySelector("#edit-source");
+        if (!sourceSel) return;
+        
+        // Clear existing options except the first one if it exists
+        sourceSel.innerHTML = "";
+        
+        const knownSources = Object.keys(SOURCE_DISPLAY_NAMES).sort((a, b) =>
+            (SOURCE_DISPLAY_NAMES[a] || a).localeCompare(SOURCE_DISPLAY_NAMES[b] || b)
+        );
+        const sourceChoices = [
+            { value: "Homebrew", label: "Homebrew" },
+            ...knownSources.map((abbr) => ({
+                value: abbr,
+                label: `${SOURCE_DISPLAY_NAMES[abbr]} (${abbr})`,
+            })),
+            { value: "__other__", label: "Other (specify)" },
+        ];
+        
+        sourceChoices.forEach((opt) => {
+            const o = document.createElement("wa-option");
+            o.value = opt.value;
+            o.textContent = opt.label;
+            sourceSel.appendChild(o);
+        });
+    }
+
+    /** Populates the edit form with spell data. */
+    function populateEditForm(spell, classIconUrls = {}, areaIconUrls = {}) {
+        // Name
+        const nameInp = editCardForm.querySelector("#edit-name");
+        if (nameInp) nameInp.value = spell.name ?? "";
+
+        // Level
+        const levelSel = editCardForm.querySelector("#edit-level");
+        if (levelSel) {
+            const levelVal = spell.level === 0 ? "0" : String(spell.level);
+            levelSel.value = levelVal;
+            levelSel.dataset.initialValue = levelVal;
+        }
+
+        // School
+        const schoolSel = editCardForm.querySelector("#edit-school");
+        if (schoolSel) {
+            schoolSel.value = spell.school ?? "";
+            schoolSel.dataset.initialValue = spell.school ?? "";
+        }
+
+        // Source
+        const sourceSel = editCardForm.querySelector("#edit-source");
+        const sourceOtherWrap = editCardForm.querySelector("#edit-source-other-wrap");
+        const sourceOtherInp = editCardForm.querySelector("#edit-source_other");
+        if (sourceSel) {
+            const currentSource = spell.source ?? "Homebrew";
+            const knownSources = Object.keys(SOURCE_DISPLAY_NAMES);
+            const isKnown = currentSource === "Homebrew" || knownSources.includes(currentSource);
+            const sourceVal = isKnown ? currentSource : "__other__";
+            sourceSel.value = sourceVal;
+            sourceSel.dataset.initialValue = sourceVal;
+            
+            if (sourceOtherInp) {
+                sourceOtherInp.value = isKnown ? "" : (currentSource || "");
+            }
+            if (sourceOtherWrap) {
+                sourceOtherWrap.style.display = sourceVal === "__other__" ? "block" : "none";
+            }
+        }
+
+        // Casting Time
+        const timeNumberInp = editCardForm.querySelector("#edit-time_number");
+        const timeUnitSel = editCardForm.querySelector("#edit-time_unit");
+        const timeConditionWrap = editCardForm.querySelector("#edit-time-condition-wrap");
+        const timeConditionInp = editCardForm.querySelector("#edit-time_condition");
+        if (timeNumberInp) {
+            timeNumberInp.value = String(Math.max(1, spell.time?.number ?? 1));
+        }
+        if (timeUnitSel) {
+            const timeUnitVal = spell.time?.unit ?? "action";
+            timeUnitSel.value = timeUnitVal;
+            timeUnitSel.dataset.initialValue = timeUnitVal;
+        }
+        if (timeConditionInp) {
+            timeConditionInp.value = spell.time?.condition ?? "";
+        }
+        if (timeConditionWrap) {
+            const unit = spell.time?.unit ?? "action";
+            timeConditionWrap.style.display = unit === "reaction" ? "block" : "none";
+        }
+
+        // Concentration & Ritual
+        const concentrationSwitch = editCardForm.querySelector("#edit-isConcentration");
+        const ritualSwitch = editCardForm.querySelector("#edit-isRitual");
+        if (concentrationSwitch) concentrationSwitch.checked = !!spell.isConcentration;
+        if (ritualSwitch) ritualSwitch.checked = !!spell.isRitual;
+
+        // Range
+        const rangeTypeVal = (() => {
+            const o = spell.range?.origin ?? "point";
+            const u = spell.range?.unit ?? "feet";
+            if (o === "touch" || o === "self" || o === "special") return o;
+            if (o === "point") return u === "unlimited" ? "unlimited" : u;
+            return "feet";
+        })();
+        const rangeTypeSel = editCardForm.querySelector("#edit-range_type");
+        const rangeDistInp = editCardForm.querySelector("#edit-range_distance");
+        if (rangeTypeSel) {
+            rangeTypeSel.value = rangeTypeVal;
+            rangeTypeSel.dataset.initialValue = rangeTypeVal;
+        }
+        if (rangeDistInp) {
+            rangeDistInp.value = String(Math.max(1, spell.range?.distance ?? 30));
+        }
+
+        // Area
+        const areaSel = editCardForm.querySelector("#edit-range_area");
+        const areaVal = spell.range?.area ?? "";
+        if (areaSel) {
+            areaSel.value = areaVal;
+            areaSel.dataset.initialValue = areaVal;
+        }
+
+        // Area Dimensions
+        const areaDimsWrap = editCardForm.querySelector("#edit-area-dims-wrap");
+        const areaDistInp = editCardForm.querySelector("#edit-area_distance");
+        const areaUnitSel = editCardForm.querySelector("#edit-area_unit");
+        const areaHeightInp = editCardForm.querySelector("#edit-area_height");
+        const areaHeightUnitSel = editCardForm.querySelector("#edit-area_height_unit");
+        const areaHeightLab = editCardForm.querySelector("#edit-area-height-label");
+        const areaHeightRow = editCardForm.querySelector("#edit-area-height-row");
+        const areaPrimaryLab = editCardForm.querySelector("#edit-area-primary-label");
+        
+        if (areaDistInp) {
+            areaDistInp.value = String(Math.max(1, spell.range?.areaDistance ?? 30));
+        }
+        if (areaUnitSel) {
+            const areaUnitVal = spell.range?.areaUnit || "feet";
+            areaUnitSel.value = areaUnitVal;
+            areaUnitSel.dataset.initialValue = areaUnitVal;
+        }
+        if (areaHeightInp) {
+            areaHeightInp.value = String(Math.max(1, spell.range?.areaHeight ?? 30));
+        }
+        if (areaHeightUnitSel) {
+            const areaHeightUnitVal = spell.range?.areaHeightUnit || "feet";
+            areaHeightUnitSel.value = areaHeightUnitVal;
+            areaHeightUnitSel.dataset.initialValue = areaHeightUnitVal;
+        }
+        if (areaDimsWrap && areaPrimaryLab) {
+            const show = areaVal !== "";
+            areaDimsWrap.style.display = show ? "" : "none";
+            if (show) {
+                areaPrimaryLab.textContent = AREA_DIMENSION_LABELS[areaVal] ?? "Size";
+            }
+            if (areaHeightLab && areaHeightRow) {
+                const showHeight = show && areaVal === "cylinder";
+                areaHeightLab.style.display = showHeight ? "" : "none";
+                areaHeightRow.style.display = showHeight ? "" : "none";
+            }
+        }
+
+        // Targets
+        const targetsInp = editCardForm.querySelector("#edit-range_targets");
+        const targetsScaleSwitch = editCardForm.querySelector("#edit-range_targets_scale");
+        const requiresSightSwitch = editCardForm.querySelector("#edit-range_requires_sight");
+        if (targetsInp) {
+            const targetsVal = Math.max(0, spell.range?.targets ?? 0);
+            targetsInp.value = String(targetsVal);
+            targetsInp.dataset.initialValue = String(targetsVal);
+        }
+        if (targetsScaleSwitch) targetsScaleSwitch.checked = spell.range?.targetsScale ?? false;
+        if (requiresSightSwitch) requiresSightSwitch.checked = spell.range?.requiresSight ?? false;
+
+        // Duration
+        const durationTypeVal = (() => {
+            const t = spell.duration?.type ?? "timed";
+            const u = spell.duration?.unit ?? "minute";
+            if (t === "instant" || t === "special" || t === "permanent") return t;
+            if (t === "timed" && u) return u;
+            return "minute";
+        })();
+        const durationTypeSel = editCardForm.querySelector("#edit-duration_type");
+        const durationAmountInp = editCardForm.querySelector("#edit-duration_amount");
+        const durationEndsWrap = editCardForm.querySelector("#edit-duration-ends-wrap");
+        const durationRow = editCardForm.querySelector(".form-field-duration .range-row");
+        
+        if (durationTypeSel) {
+            durationTypeSel.value = durationTypeVal;
+            durationTypeSel.dataset.initialValue = durationTypeVal;
+        }
+        if (durationAmountInp) {
+            durationAmountInp.value = String(Math.max(1, spell.duration?.amount ?? 1));
+        }
+        if (durationEndsWrap) {
+            durationEndsWrap.style.display = durationTypeVal === "permanent" ? "" : "none";
+            const durationEnds = spell.duration?.ends ?? [];
+            const chips = durationEndsWrap.querySelectorAll(".duration-end-chip");
+            chips.forEach((chip) => {
+                const isSelected = durationEnds.includes(chip.dataset.value);
+                chip.setAttribute("variant", isSelected ? "brand" : "neutral");
+                chip.setAttribute("aria-pressed", isSelected ? "true" : "false");
+            });
+        }
+        if (durationRow) {
+            const showNum = durationTypeVal === "round" || durationTypeVal === "minute" || durationTypeVal === "hour" || durationTypeVal === "day";
+            durationRow.classList.toggle("range-row--with-number", showNum);
+        }
+
+        // Components
+        const componentsDescInp = editCardForm.querySelector("#edit-components_description");
+        const componentsVSwitch = editCardForm.querySelector("#edit-components_v");
+        const componentsSSwitch = editCardForm.querySelector("#edit-components_s");
+        const componentsMSwitch = editCardForm.querySelector("#edit-components_m");
+        const componentsHasCostSwitch = editCardForm.querySelector("#edit-components_has_cost");
+        const componentsConsumedSwitch = editCardForm.querySelector("#edit-components_is_consumed");
+        
+        if (componentsDescInp) componentsDescInp.value = spell.components?.description ?? "";
+        if (componentsVSwitch) componentsVSwitch.checked = !!spell.components?.v;
+        if (componentsSSwitch) componentsSSwitch.checked = !!spell.components?.s;
+        if (componentsMSwitch) componentsMSwitch.checked = !!spell.components?.m;
+        if (componentsHasCostSwitch) componentsHasCostSwitch.checked = !!spell.components?.hasCost;
+        if (componentsConsumedSwitch) componentsConsumedSwitch.checked = !!spell.components?.isConsumed;
+
+        // Description & Upcast
+        const descriptionInp = editCardForm.querySelector("#edit-description");
+        const upcastInp = editCardForm.querySelector("#edit-upcast");
+        if (descriptionInp) descriptionInp.value = spell.description ?? "";
+        if (upcastInp) upcastInp.value = spell.upcast || "";
+
+        // Classes
+        const classesWrap = editCardForm.querySelector("#edit-classes-wrap");
+        const classesTokens = classesWrap?.querySelector(".edit-classes-tokens");
+        if (classesTokens) {
+            classesTokens.innerHTML = "";
+            const spellClasses = spell.classes || [];
+            SPELL_CLASSES.forEach((className) => {
+                const btn = document.createElement("wa-button");
+                btn.className = "filter-chip filter-chip--class edit-class-tag";
+                btn.dataset.value = className;
+                btn.setAttribute("size", "small");
+                btn.setAttribute("appearance", "filled");
+                const isSelected = spellClasses.includes(className);
+                btn.setAttribute("variant", isSelected ? "brand" : "neutral");
+                btn.setAttribute("aria-pressed", isSelected ? "true" : "false");
+                const iconOpts = classIconUrls[className];
+                if (iconOpts?.default) {
+                    btn.dataset.iconUrl = iconOpts.default;
+                    if (iconOpts.selected) btn.dataset.iconUrlSelected = iconOpts.selected;
+                    const iconSpan = document.createElement("span");
+                    iconSpan.className = "filter-class-icon";
+                    iconSpan.setAttribute("slot", "start");
+                    const img = document.createElement("img");
+                    img.src = isSelected && iconOpts.selected ? iconOpts.selected : iconOpts.default;
+                    img.alt = "";
+                    iconSpan.appendChild(img);
+                    btn.appendChild(iconSpan);
+                    btn.appendChild(document.createTextNode(" " + className));
+                } else {
+                    btn.textContent = className;
+                }
+                classesTokens.appendChild(btn);
+            });
+            setupClassTagHandlers();
+        }
+
+        // Update area icons in dropdown
+        const areaOptions = editCardForm.querySelectorAll("#edit-range_area wa-option");
+        areaOptions.forEach((opt) => {
+            const areaValue = opt.value;
+            if (areaValue && areaIconUrls[areaValue]) {
+                // Remove existing icon if any
+                const existingIcon = opt.querySelector("span[slot='start']");
+                if (existingIcon) existingIcon.remove();
+                
+                const iconSpan = document.createElement("span");
+                iconSpan.setAttribute("slot", "start");
+                const img = document.createElement("img");
+                img.src = areaIconUrls[areaValue];
+                img.alt = "";
+                img.className = "edit-area-option-icon";
+                iconSpan.appendChild(img);
+                opt.insertBefore(iconSpan, opt.firstChild);
+            }
+        });
+
+        // Sync visibility states
+        syncFormVisibility();
+    }
+
+    /** Syncs form field visibility based on current values. */
+    function syncFormVisibility() {
+        // Casting time number visibility
+        const timeUnitSel = editCardForm.querySelector("#edit-time_unit");
+        const castingTimeRow = editCardForm.querySelector(".casting-time-row");
+        if (timeUnitSel && castingTimeRow) {
+            const unit = String(timeUnitSel.value ?? "action");
+            const showNumber = unit === "minute" || unit === "hour";
+            castingTimeRow.classList.toggle("casting-time-row--with-number", showNumber);
+        }
+
+        // Range number visibility
+        const rangeTypeSel = editCardForm.querySelector("#edit-range_type");
+        const rangeRow = editCardForm.querySelector(".form-field-range .range-row");
+        if (rangeTypeSel && rangeRow) {
+            const type = rangeTypeSel.value ?? "touch";
+            const showNumber = type === "feet" || type === "miles";
+            rangeRow.classList.toggle("range-row--with-number", showNumber);
+        }
+    }
+
+    /** Sets up event handlers for the edit form. */
+    function setupEditFormHandlers() {
+        if (editFormHandlersSetup) return;
+        editFormHandlersSetup = true;
+        
+        // Rich text info buttons
+        const richTextButtons = editCardForm.querySelectorAll("[id^='rich-text-info-btn-']");
+        richTextButtons.forEach((btn) => {
+            const isShort = btn.id.includes("time-condition") || btn.id.includes("components");
+            const dialog = isShort ? richTextInfoShortDialog : richTextInfoDialog;
+            btn.addEventListener("click", () => {
+                if (dialog) dialog.open = true;
+            });
+        });
+
+        // Source dropdown change handler
+        const sourceSel = editCardForm.querySelector("#edit-source");
+        const sourceOtherWrap = editCardForm.querySelector("#edit-source-other-wrap");
+        const sourceOtherInp = editCardForm.querySelector("#edit-source_other");
+        if (sourceSel && sourceOtherWrap && sourceOtherInp) {
+            const showHideSourceOther = () => {
+                const val = String(sourceSel.value ?? "Homebrew");
+                const isOther = val === "__other__";
+                sourceOtherWrap.style.display = isOther ? "block" : "none";
+                if (!isOther) sourceOtherInp.value = "";
+                else requestAnimationFrame(() => {
+                    sourceOtherInp.focus?.();
+                });
+            };
+            sourceSel.addEventListener("wa-change", () => {
+                setTimeout(showHideSourceOther, 0);
+                updateEditPreview();
+            });
+            sourceSel.addEventListener("change", () => {
+                showHideSourceOther();
+                updateEditPreview();
+            });
+            sourceOtherInp.addEventListener("wa-input", () => updateEditPreview());
+            sourceOtherInp.addEventListener("input", () => updateEditPreview());
+            sourceOtherInp.addEventListener("change", () => updateEditPreview());
+        }
+
+        // Casting time handlers
+        const timeUnitSel = editCardForm.querySelector("#edit-time_unit");
+        const timeNumberInp = editCardForm.querySelector("#edit-time_number");
+        const timeConditionWrap = editCardForm.querySelector("#edit-time-condition-wrap");
+        const timeConditionInp = editCardForm.querySelector("#edit-time_condition");
+        const castingTimeRow = editCardForm.querySelector(".casting-time-row");
+        
+        if (timeUnitSel) {
+            const showHideTimeNumber = () => {
+                const unit = String(timeUnitSel.value ?? "action");
+                const showNumber = unit === "minute" || unit === "hour";
+                if (castingTimeRow) {
+                    castingTimeRow.classList.toggle("casting-time-row--with-number", showNumber);
+                }
+                if (!showNumber && timeNumberInp) timeNumberInp.value = "1";
+            };
+            const showHideTimeCondition = () => {
+                const unit = String(timeUnitSel.value ?? "action");
+                const show = unit === "reaction";
+                if (timeConditionWrap) {
+                    timeConditionWrap.style.display = show ? "block" : "none";
+                }
+                if (!show && timeConditionInp) timeConditionInp.value = "";
+            };
+            const onTimeUnitChange = () => {
+                setTimeout(() => {
+                    showHideTimeNumber();
+                    showHideTimeCondition();
+                }, 0);
+                updateEditPreview();
+            };
+            timeUnitSel.addEventListener("wa-change", onTimeUnitChange);
+            timeUnitSel.addEventListener("change", () => {
+                showHideTimeNumber();
+                showHideTimeCondition();
+                updateEditPreview();
+            });
+        }
+        if (timeNumberInp) {
+            timeNumberInp.addEventListener("input", () => updateEditPreview());
+            timeNumberInp.addEventListener("change", () => updateEditPreview());
+        }
+        if (timeConditionInp) {
+            timeConditionInp.addEventListener("wa-input", () => updateEditPreview());
+            timeConditionInp.addEventListener("input", () => updateEditPreview());
+        }
+
+        // Range handlers
+        const rangeTypeSel = editCardForm.querySelector("#edit-range_type");
+        const rangeDistInp = editCardForm.querySelector("#edit-range_distance");
+        const rangeRow = editCardForm.querySelector(".form-field-range .range-row");
+        
+        if (rangeTypeSel) {
+            const showHideRangeNumber = () => {
+                const type = rangeTypeSel.value ?? "touch";
+                const showNumber = type === "feet" || type === "miles";
+                if (rangeRow) {
+                    rangeRow.classList.toggle("range-row--with-number", showNumber);
+                }
+            };
+            rangeTypeSel.addEventListener("wa-change", () => {
+                showHideRangeNumber();
+                updateEditPreview();
+            });
+            rangeTypeSel.addEventListener("change", () => {
+                showHideRangeNumber();
+                updateEditPreview();
+            });
+        }
+        if (rangeDistInp) {
+            rangeDistInp.addEventListener("input", () => updateEditPreview());
+            rangeDistInp.addEventListener("change", () => updateEditPreview());
+        }
+
+        // Area handlers
+        const areaSel = editCardForm.querySelector("#edit-range_area");
+        const areaDimsWrap = editCardForm.querySelector("#edit-area-dims-wrap");
+        const areaDistInp = editCardForm.querySelector("#edit-area_distance");
+        const areaUnitSel = editCardForm.querySelector("#edit-area_unit");
+        const areaHeightInp = editCardForm.querySelector("#edit-area_height");
+        const areaHeightUnitSel = editCardForm.querySelector("#edit-area_height_unit");
+        const areaHeightLab = editCardForm.querySelector("#edit-area-height-label");
+        const areaHeightRow = editCardForm.querySelector("#edit-area-height-row");
+        const areaPrimaryLab = editCardForm.querySelector("#edit-area-primary-label");
+        
+        if (areaSel && areaDimsWrap) {
+            const showHideAreaDims = () => {
+                const area = areaSel.value ?? "";
+                const show = area !== "";
+                areaDimsWrap.style.display = show ? "" : "none";
+                const showHeight = show && area === "cylinder";
+                if (areaHeightLab) areaHeightLab.style.display = showHeight ? "" : "none";
+                if (areaHeightRow) areaHeightRow.style.display = showHeight ? "" : "none";
+                if (show && areaPrimaryLab) {
+                    areaPrimaryLab.textContent = AREA_DIMENSION_LABELS[area] ?? "Size";
+                }
+            };
+            areaSel.addEventListener("wa-change", () => {
+                showHideAreaDims();
+                updateEditPreview();
+            });
+            areaSel.addEventListener("change", () => {
+                showHideAreaDims();
+                updateEditPreview();
+            });
+        }
+        if (areaDistInp) {
+            areaDistInp.addEventListener("input", () => updateEditPreview());
+            areaDistInp.addEventListener("change", () => updateEditPreview());
+        }
+        if (areaUnitSel) {
+            areaUnitSel.addEventListener("wa-change", () => updateEditPreview());
+            areaUnitSel.addEventListener("change", () => updateEditPreview());
+        }
+        if (areaHeightInp) {
+            areaHeightInp.addEventListener("input", () => updateEditPreview());
+            areaHeightInp.addEventListener("change", () => updateEditPreview());
+        }
+        if (areaHeightUnitSel) {
+            areaHeightUnitSel.addEventListener("wa-change", () => updateEditPreview());
+            areaHeightUnitSel.addEventListener("change", () => updateEditPreview());
+        }
+
+        // Targets handlers
+        const targetsInp = editCardForm.querySelector("#edit-range_targets");
+        const targetsScaleSwitch = editCardForm.querySelector("#edit-range_targets_scale");
+        const requiresSightSwitch = editCardForm.querySelector("#edit-range_requires_sight");
+        
+        if (targetsInp) {
+            targetsInp.addEventListener("input", () => updateEditPreview());
+            targetsInp.addEventListener("change", () => updateEditPreview());
+        }
+        if (targetsScaleSwitch) {
+            targetsScaleSwitch.addEventListener("wa-change", () => updateEditPreview());
+            targetsScaleSwitch.addEventListener("change", () => updateEditPreview());
+        }
+        if (requiresSightSwitch) {
+            requiresSightSwitch.addEventListener("wa-change", () => updateEditPreview());
+            requiresSightSwitch.addEventListener("change", () => updateEditPreview());
+        }
+
+        // Duration handlers
+        const durationTypeSel = editCardForm.querySelector("#edit-duration_type");
+        const durationAmountInp = editCardForm.querySelector("#edit-duration_amount");
+        const durationRow = editCardForm.querySelector(".form-field-duration .range-row");
+        const durationEndsWrap = editCardForm.querySelector("#edit-duration-ends-wrap");
+        
+        if (durationTypeSel) {
+            const showHideDurationNumber = () => {
+                const type = durationTypeSel.value ?? "instant";
+                const showNumber = type === "round" || type === "minute" || type === "hour" || type === "day";
+                if (durationRow) {
+                    durationRow.classList.toggle("range-row--with-number", showNumber);
+                }
+            };
+            const showHideDurationEnds = () => {
+                const type = durationTypeSel.value ?? "instant";
+                if (durationEndsWrap) {
+                    durationEndsWrap.style.display = type === "permanent" ? "" : "none";
+                }
+            };
+            const onDurationTypeChange = () => {
+                showHideDurationNumber();
+                showHideDurationEnds();
+                updateEditPreview();
+            };
+            durationTypeSel.addEventListener("wa-change", onDurationTypeChange);
+            durationTypeSel.addEventListener("change", () => {
+                showHideDurationNumber();
+                showHideDurationEnds();
+                updateEditPreview();
+            });
+        }
+        if (durationAmountInp) {
+            durationAmountInp.addEventListener("input", () => updateEditPreview());
+            durationAmountInp.addEventListener("change", () => updateEditPreview());
+        }
+        
+        // Duration ends chips
+        const durationEndChips = editCardForm.querySelectorAll(".duration-end-chip");
+        durationEndChips.forEach((chip) => {
+            chip.addEventListener("click", () => {
+                const container = editCardForm.querySelector("#edit-duration-ends-wrap");
+                const chips = container.querySelectorAll(".duration-end-chip");
+                const ends = Array.from(chips)
+                    .filter((c) => c.getAttribute("variant") === "brand")
+                    .map((c) => c.dataset.value);
+                const value = chip.dataset.value;
+                const idx = ends.indexOf(value);
+                if (idx >= 0) ends.splice(idx, 1);
+                else ends.push(value);
+                chips.forEach((c) => {
+                    const sel = ends.includes(c.dataset.value);
+                    c.setAttribute("variant", sel ? "brand" : "neutral");
+                    c.setAttribute("aria-pressed", sel ? "true" : "false");
+                });
+                updateEditPreview();
+            });
+        });
+
+        // Components handlers
+        const componentsDescInp = editCardForm.querySelector("#edit-components_description");
+        const componentsVSwitch = editCardForm.querySelector("#edit-components_v");
+        const componentsSSwitch = editCardForm.querySelector("#edit-components_s");
+        const componentsMSwitch = editCardForm.querySelector("#edit-components_m");
+        const componentsHasCostSwitch = editCardForm.querySelector("#edit-components_has_cost");
+        const componentsConsumedSwitch = editCardForm.querySelector("#edit-components_is_consumed");
+        
+        if (componentsDescInp) {
+            componentsDescInp.addEventListener("wa-input", () => updateEditPreview());
+            componentsDescInp.addEventListener("input", () => updateEditPreview());
+        }
+        if (componentsVSwitch) {
+            componentsVSwitch.addEventListener("wa-change", () => updateEditPreview());
+            componentsVSwitch.addEventListener("change", () => updateEditPreview());
+        }
+        if (componentsSSwitch) {
+            componentsSSwitch.addEventListener("wa-change", () => updateEditPreview());
+            componentsSSwitch.addEventListener("change", () => updateEditPreview());
+        }
+        if (componentsMSwitch) {
+            const updateComponentsMaterialDisabled = () => {
+                const material = componentsMSwitch.checked ?? false;
+                const hasCost = componentsHasCostSwitch?.checked ?? false;
+                if (componentsHasCostSwitch) componentsHasCostSwitch.disabled = !material;
+                if (componentsConsumedSwitch) componentsConsumedSwitch.disabled = !material || !hasCost;
+                if (!material) {
+                    if (componentsHasCostSwitch) componentsHasCostSwitch.checked = false;
+                    if (componentsConsumedSwitch) componentsConsumedSwitch.checked = false;
+                }
+                if (!hasCost && componentsConsumedSwitch) componentsConsumedSwitch.checked = false;
+            };
+            componentsMSwitch.addEventListener("wa-change", () => {
+                requestAnimationFrame(() => {
+                    updateComponentsMaterialDisabled();
+                    updateEditPreview();
+                });
+            });
+            componentsMSwitch.addEventListener("change", () => {
+                updateComponentsMaterialDisabled();
+                updateEditPreview();
+            });
+            componentsMSwitch.addEventListener("input", () => {
+                updateComponentsMaterialDisabled();
+                updateEditPreview();
+            });
+            // Initial call
+            requestAnimationFrame(() => updateComponentsMaterialDisabled());
+        }
+        if (componentsHasCostSwitch) {
+            const updateComponentsMaterialDisabled = () => {
+                const material = componentsMSwitch?.checked ?? false;
+                const hasCost = componentsHasCostSwitch.checked ?? false;
+                if (componentsConsumedSwitch) componentsConsumedSwitch.disabled = !material || !hasCost;
+                if (!hasCost && componentsConsumedSwitch) componentsConsumedSwitch.checked = false;
+            };
+            componentsHasCostSwitch.addEventListener("wa-change", () => {
+                updateComponentsMaterialDisabled();
+                updateEditPreview();
+            });
+            componentsHasCostSwitch.addEventListener("change", () => {
+                updateComponentsMaterialDisabled();
+                updateEditPreview();
+            });
+        }
+        if (componentsConsumedSwitch) {
+            componentsConsumedSwitch.addEventListener("wa-change", () => updateEditPreview());
+            componentsConsumedSwitch.addEventListener("change", () => updateEditPreview());
+        }
+
+        // Description & Upcast handlers
+        const descriptionInp = editCardForm.querySelector("#edit-description");
+        const upcastInp = editCardForm.querySelector("#edit-upcast");
+        if (descriptionInp) {
+            descriptionInp.addEventListener("wa-input", () => updateEditPreview());
+            descriptionInp.addEventListener("input", () => updateEditPreview());
+        }
+        if (upcastInp) {
+            upcastInp.addEventListener("wa-input", () => updateEditPreview());
+            upcastInp.addEventListener("input", () => updateEditPreview());
+        }
+
+        // Level, School, Concentration, Ritual handlers
+        const levelSel = editCardForm.querySelector("#edit-level");
+        const schoolSel = editCardForm.querySelector("#edit-school");
+        const concentrationSwitch = editCardForm.querySelector("#edit-isConcentration");
+        const ritualSwitch = editCardForm.querySelector("#edit-isRitual");
+        
+        if (levelSel) {
+            levelSel.addEventListener("wa-change", () => updateEditPreview());
+            levelSel.addEventListener("change", () => updateEditPreview());
+        }
+        if (schoolSel) {
+            schoolSel.addEventListener("wa-change", () => updateEditPreview());
+            schoolSel.addEventListener("change", () => updateEditPreview());
+        }
+        if (concentrationSwitch) {
+            concentrationSwitch.addEventListener("wa-change", () => updateEditPreview());
+            concentrationSwitch.addEventListener("change", () => updateEditPreview());
+        }
+        if (ritualSwitch) {
+            ritualSwitch.addEventListener("wa-change", () => updateEditPreview());
+            ritualSwitch.addEventListener("change", () => updateEditPreview());
+        }
+
+        // Name handler
+        const nameInp = editCardForm.querySelector("#edit-name");
+        if (nameInp) {
+            nameInp.addEventListener("wa-input", () => updateEditPreview());
+            nameInp.addEventListener("input", () => updateEditPreview());
+        }
+
+        // Classes handlers are set up dynamically when classes are populated
+    }
+    
+    /** Sets up event handlers for dynamically created class tags. */
+    function setupClassTagHandlers() {
+        const classTags = editCardForm.querySelectorAll(".edit-class-tag");
+        classTags.forEach((tag) => {
+            // Remove existing listeners if any
+            const newTag = tag.cloneNode(true);
+            tag.parentNode.replaceChild(newTag, tag);
+            
+            newTag.addEventListener("click", () => {
+                const wrap = editCardForm.querySelector("#edit-classes-wrap");
+                const tags = wrap.querySelectorAll(".edit-class-tag");
+                const selected = Array.from(tags)
+                    .filter((t) => t.getAttribute("variant") === "brand")
+                    .map((t) => t.dataset.value);
+                const className = newTag.dataset.value;
+                const idx = selected.indexOf(className);
+                if (idx >= 0) selected.splice(idx, 1);
+                else selected.push(className);
+                tags.forEach((t) => {
+                    const sel = selected.includes(t.dataset.value);
+                    t.setAttribute("variant", sel ? "brand" : "neutral");
+                    t.setAttribute("aria-pressed", sel ? "true" : "false");
+                    if (t.dataset.iconUrl) {
+                        const img = t.querySelector(".filter-class-icon img");
+                        if (img && t.dataset.iconUrlSelected) {
+                            img.src = selected.includes(t.dataset.value) ? t.dataset.iconUrlSelected : t.dataset.iconUrl;
+                        }
+                    }
+                });
+                updateEditPreview();
+            });
+        });
+    }
+
     /** Opens the edit overlay with a preview and form for the card's spell. */
     async function openEditOverlay(card) {
         editingCard = card;
@@ -732,14 +1433,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             editPreviewCard = new SpellCard(cloneSpellData(card.spell));
         editPreviewCard.setSpellData(cloneSpellData(card.spell));
         editPreviewCard.render().then(() => {
-            editCardPreview.innerHTML = "";
-            if (editPreviewCard.frontElement) {
-                const clone = editPreviewCard.frontElement.cloneNode(true);
-                const actions = clone.querySelector(".card-actions");
-                if (actions) actions.remove();
-                editCardPreview.appendChild(clone);
-            }
+            updateEditPreviewDisplay();
         });
+        
+        // Update source dropdown with current sources
+        updateSourceDropdown();
+        
+        // Load icons
         const chipTextColor = "#374151";
         const brandOnNormal = getComputedStyle(document.documentElement).getPropertyValue("--wa-color-brand-30").trim() || "#612692";
         const iconFg = "333333";
@@ -759,41 +1459,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (url) areaIconUrls[a.value] = url;
             }),
         ]);
-        buildEditForm(card.spell, classIconUrls, areaIconUrls);
+        
+        // Populate form with spell data
+        populateEditForm(card.spell, classIconUrls, areaIconUrls);
+        
+        // Setup event handlers (only once, handlers persist)
+        if (!editFormHandlersSetup) {
+            setupEditFormHandlers();
+        }
+        
         editCardDialog.open = true;
+        
+        // Sync form visibility after dialog opens
         const syncSelectValues = () => {
-            editCardForm.querySelectorAll("wa-select").forEach((sel) => {
-                const v = sel.dataset.initialValue;
-                if (v !== undefined) sel.value = v;
-            });
-            const targetsInp = editCardForm.querySelector("#edit-range_targets");
-            if (targetsInp && targetsInp.dataset.initialValue !== undefined) {
-                targetsInp.value = targetsInp.dataset.initialValue;
-            }
-            const areaSel = editCardForm.querySelector("#edit-range_area");
-            const areaDimsWrap = editCardForm.querySelector("#edit-area-dims-wrap");
-            if (areaSel && areaDimsWrap) {
-                const area = areaSel.value ?? "";
-                const show = area !== "";
-                areaDimsWrap.style.display = show ? "" : "none";
-                const areaHeightLab = areaDimsWrap.querySelector("#edit-area-height-label");
-                const areaHeightRow = areaDimsWrap.querySelector("#edit-area-height-row");
-                const areaPrimaryLab = areaDimsWrap.querySelector("#edit-area-primary-label");
-                if (areaPrimaryLab) areaPrimaryLab.textContent = AREA_DIMENSION_LABELS[area] ?? "Size";
-                if (areaHeightLab) areaHeightLab.style.display = show && area === "cylinder" ? "" : "none";
-                if (areaHeightRow) areaHeightRow.style.display = show && area === "cylinder" ? "" : "none";
-            }
-            const durationTypeSel = editCardForm.querySelector("#edit-duration_type");
-            const durationRow = editCardForm.querySelector(".form-field-duration .range-row");
-            const durationEndsWrap = editCardForm.querySelector("#edit-duration-ends-wrap");
-            if (durationTypeSel && durationRow) {
-                const dt = durationTypeSel.value ?? "instant";
-                const showNum = dt === "round" || dt === "minute" || dt === "hour" || dt === "day";
-                durationRow.classList.toggle("range-row--with-number", showNum);
-            }
-            if (durationTypeSel && durationEndsWrap) {
-                durationEndsWrap.style.display = (durationTypeSel.value ?? "") === "permanent" ? "" : "none";
-            }
+            syncFormVisibility();
         };
         requestAnimationFrame(() => {
             requestAnimationFrame(syncSelectValues);
@@ -808,838 +1487,43 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (editCardDialog) editCardDialog.open = false;
     }
 
-    function buildEditForm(spell, classIconUrls = {}, areaIconUrls = {}) {
-        editCardForm.innerHTML = "";
-        let richTextInfoButtonCounter = 0;
-        const addRichTextHint = (wrap, options = {}) => {
-            const row = document.createElement("div");
-            row.className = "rich-text-hint-row";
-            row.appendChild(document.createTextNode("Supports rich text"));
-            const btnId = "rich-text-info-btn-" + richTextInfoButtonCounter++;
-            const tooltipEl = document.createElement("wa-tooltip");
-            tooltipEl.setAttribute("for", btnId);
-            tooltipEl.textContent = "Info";
-            const btn = document.createElement("wa-button");
-            btn.id = btnId;
-            btn.setAttribute("appearance", "plain");
-            btn.setAttribute("variant", "neutral");
-            btn.setAttribute("size", "small");
-            btn.setAttribute("pill", "");
-            btn.setAttribute("aria-label", "Info");
-            const icon = document.createElement("wa-icon");
-            icon.setAttribute("name", "circle-info");
-            icon.setAttribute("aria-hidden", "true");
-            btn.appendChild(icon);
-            const dialog = options.short ? richTextInfoShortDialog : richTextInfoDialog;
-            btn.addEventListener("click", () => {
-                if (dialog) dialog.open = true;
-            });
-            row.appendChild(tooltipEl);
-            row.appendChild(btn);
-            wrap.appendChild(row);
-        };
-        const addField = (label, name, value, type = "text", options = {}) => {
-            const wrap = document.createElement("div");
-            wrap.className = "form-field";
-            if (type === "textarea") {
-                const ta = document.createElement("wa-textarea");
-                ta.id = `edit-${name}`;
-                ta.name = name;
-                ta.label = label;
-                ta.value = value ?? "";
-                ta.rows = options.rows || 3;
-                wrap.appendChild(ta);
-                ta.addEventListener("wa-input", () => updateEditPreview());
-                ta.addEventListener("input", () => updateEditPreview());
-                ta.addEventListener("change", () => updateEditPreview());
-                if (options.richTextHint) addRichTextHint(wrap);
-            } else if (type === "number") {
-                const inp = document.createElement("wa-input");
-                inp.type = "number";
-                inp.id = `edit-${name}`;
-                inp.name = name;
-                inp.label = label;
-                inp.value = String(value ?? "");
-                wrap.appendChild(inp);
-                inp.addEventListener("wa-input", () => updateEditPreview());
-                inp.addEventListener("input", () => updateEditPreview());
-                inp.addEventListener("change", () => updateEditPreview());
-            } else if (type === "select") {
-                const sel = document.createElement("wa-select");
-                sel.id = `edit-${name}`;
-                sel.name = name;
-                sel.label = label;
-                const targetValue = String(value ?? "");
-                (options.choices || []).forEach((opt) => {
-                    const o = document.createElement("wa-option");
-                    o.value = opt.value;
-                    o.textContent = opt.label;
-                    if (String(opt.value) === targetValue) o.setAttribute("selected", "");
-                    sel.appendChild(o);
-                });
-                wrap.appendChild(sel);
-                sel.dataset.initialValue = targetValue;
-                sel.value = targetValue;
-                sel.addEventListener("wa-change", () => updateEditPreview());
-                sel.addEventListener("change", () => updateEditPreview());
-            } else if (type === "switch") {
-                wrap.classList.add("form-field--switch");
-                const sw = document.createElement("wa-switch");
-                sw.id = `edit-${name}`;
-                sw.name = name;
-                sw.checked = !!value;
-                wrap.appendChild(sw);
-                const lab = document.createElement("label");
-                lab.textContent = label;
-                lab.htmlFor = `edit-${name}`;
-                wrap.appendChild(lab);
-                sw.addEventListener("wa-change", () => updateEditPreview());
-                sw.addEventListener("change", () => updateEditPreview());
-                sw.addEventListener("input", () => updateEditPreview());
-            } else {
-                const inp = document.createElement("wa-input");
-                inp.id = `edit-${name}`;
-                inp.name = name;
-                inp.label = label;
-                inp.value = value ?? "";
-                wrap.appendChild(inp);
-                inp.addEventListener("wa-input", () => updateEditPreview());
-                inp.addEventListener("input", () => updateEditPreview());
-            }
-            editCardForm.appendChild(wrap);
-        };
-
-        addField("Name", "name", spell.name);
-        addField(
-            "Level",
-            "level",
-            spell.level === 0 ? "0" : String(spell.level),
-            "select",
-            {
-                choices: [
-                    { value: "0", label: "Cantrip" },
-                    ...Array.from({ length: 9 }, (_, i) => ({
-                        value: String(i + 1),
-                        label: String(i + 1),
-                    })),
-                ],
-            }
-        );
-        addField("School", "school", spell.school, "select", {
-            choices: SCHOOLS.map((s) => ({ value: s, label: s })),
-        });
-        const sourceWrap = document.createElement("div");
-        sourceWrap.className = "form-field";
-        sourceWrap.id = "edit-source-wrap";
-        const knownSources = Object.keys(SOURCE_DISPLAY_NAMES).sort((a, b) =>
-            (SOURCE_DISPLAY_NAMES[a] || a).localeCompare(SOURCE_DISPLAY_NAMES[b] || b)
-        );
-        const sourceChoices = [
-            { value: "Homebrew", label: "Homebrew" },
-            ...knownSources.map((abbr) => ({
-                value: abbr,
-                label: `${SOURCE_DISPLAY_NAMES[abbr]} (${abbr})`,
-            })),
-            { value: "__other__", label: "Other (specify)" },
-        ];
-        const sourceSel = document.createElement("wa-select");
-        sourceSel.id = "edit-source";
-        sourceSel.name = "source";
-        sourceSel.label = "Source";
-        const currentSource = spell.source ?? "Homebrew";
-        const isKnown = currentSource === "Homebrew" || knownSources.includes(currentSource);
-        const sourceVal = isKnown ? currentSource : "__other__";
-        sourceChoices.forEach((opt) => {
-            const o = document.createElement("wa-option");
-            o.value = opt.value;
-            o.textContent = opt.label;
-            if (opt.value === sourceVal) o.setAttribute("selected", "");
-            sourceSel.appendChild(o);
-        });
-        sourceSel.dataset.initialValue = sourceVal;
-        sourceSel.value = sourceVal;
-        sourceWrap.appendChild(sourceSel);
-        const sourceOtherWrap = document.createElement("div");
-        sourceOtherWrap.className = "form-field form-field-source-other";
-        sourceOtherWrap.id = "edit-source-other-wrap";
-        const sourceOtherInp = document.createElement("wa-input");
-        sourceOtherInp.id = "edit-source_other";
-        sourceOtherInp.name = "source_other";
-        sourceOtherInp.label = "Source (specify when Other is selected)";
-        sourceOtherInp.value = isKnown ? "" : (currentSource || "");
-        sourceOtherWrap.appendChild(sourceOtherInp);
-        sourceOtherWrap.style.display = sourceSel.value === "__other__" ? "block" : "none";
-        const showHideSourceOther = () => {
-            const val = String(sourceSel.value ?? "Homebrew");
-            const isOther = val === "__other__";
-            sourceOtherWrap.style.display = isOther ? "block" : "none";
-            if (!isOther) sourceOtherInp.value = "";
-            else requestAnimationFrame(() => {
-                sourceOtherInp.focus?.();
-            });
-        };
-        sourceSel.addEventListener("wa-change", () => {
-            setTimeout(showHideSourceOther, 0);
-            updateEditPreview();
-        });
-        sourceSel.addEventListener("change", () => {
-            showHideSourceOther();
-            updateEditPreview();
-        });
-        sourceSel.addEventListener("input", () => {
-            showHideSourceOther();
-            updateEditPreview();
-        });
-        sourceOtherInp.addEventListener("wa-input", () => updateEditPreview());
-        sourceOtherInp.addEventListener("input", () => updateEditPreview());
-        sourceOtherInp.addEventListener("change", () => updateEditPreview());
-        editCardForm.appendChild(sourceWrap);
-        editCardForm.appendChild(sourceOtherWrap);
-        setTimeout(showHideSourceOther, 50);
-        editCardForm.appendChild(document.createElement("wa-divider"));
-        const castingTimeWrap = document.createElement("div");
-        castingTimeWrap.className = "form-field form-field-casting-time";
-        const castingTimeLab = document.createElement("span");
-        castingTimeLab.className = "form-field-label";
-        castingTimeLab.textContent = "Casting time";
-        castingTimeLab.id = "edit-casting-time-label";
-        castingTimeWrap.appendChild(castingTimeLab);
-        const castingTimeRow = document.createElement("div");
-        castingTimeRow.className = "casting-time-row";
-        const timeNumberInp = document.createElement("wa-number-input");
-        timeNumberInp.id = "edit-time_number";
-        timeNumberInp.name = "time_number";
-        timeNumberInp.setAttribute("aria-label", "Casting time amount");
-        timeNumberInp.min = 1;
-        timeNumberInp.value = String(Math.max(1, spell.time?.number ?? 1));
-        castingTimeRow.appendChild(timeNumberInp);
-        timeNumberInp.addEventListener("input", () => updateEditPreview());
-        timeNumberInp.addEventListener("change", () => updateEditPreview());
-        const timeUnitSel = document.createElement("wa-select");
-        timeUnitSel.id = "edit-time_unit";
-        timeUnitSel.name = "time_unit";
-        timeUnitSel.setAttribute("aria-labelledby", "edit-casting-time-label");
-        const timeUnitVal = spell.time?.unit ?? "action";
-        [
-            { value: "action", label: "Action" },
-            { value: "bonus", label: "Bonus action" },
-            { value: "reaction", label: "Reaction" },
-            { value: "minute", label: "Minute(s)" },
-            { value: "hour", label: "Hour(s)" },
-        ].forEach((opt) => {
-            const o = document.createElement("wa-option");
-            o.value = opt.value;
-            o.textContent = opt.label;
-            if (String(opt.value) === timeUnitVal) o.setAttribute("selected", "");
-            timeUnitSel.appendChild(o);
-        });
-        timeUnitSel.dataset.initialValue = timeUnitVal;
-        timeUnitSel.value = timeUnitVal;
-        castingTimeRow.appendChild(timeUnitSel);
-        timeUnitSel.addEventListener("wa-change", () => updateEditPreview());
-        timeUnitSel.addEventListener("change", () => updateEditPreview());
-        castingTimeWrap.appendChild(castingTimeRow);
-        editCardForm.appendChild(castingTimeWrap);
-        const showHideTimeNumber = () => {
-            const unit = String(timeUnitSel?.value ?? "action");
-            const showNumber = unit === "minute" || unit === "hour";
-            castingTimeRow.classList.toggle("casting-time-row--with-number", showNumber);
-            if (!showNumber) timeNumberInp.value = "1";
-        };
-        const timeConditionWrap = document.createElement("div");
-        timeConditionWrap.className = "form-field form-field-time-condition";
-        timeConditionWrap.id = "edit-time-condition-wrap";
-        const timeConditionInp = document.createElement("wa-textarea");
-        timeConditionInp.id = "edit-time_condition";
-        timeConditionInp.name = "time_condition";
-        timeConditionInp.label = "Condition";
-        timeConditionInp.value = spell.time?.condition ?? "";
-        timeConditionInp.rows = 2;
-        timeConditionWrap.appendChild(timeConditionInp);
-        timeConditionInp.addEventListener("wa-input", () =>
-            updateEditPreview()
-        );
-        timeConditionInp.addEventListener("input", () => updateEditPreview());
-        addRichTextHint(timeConditionWrap, { short: true });
-        editCardForm.appendChild(timeConditionWrap);
-        const showHideTimeCondition = () => {
-            const unit = String(timeUnitSel?.value ?? "action");
-            const show = unit === "reaction";
-            timeConditionWrap.style.display = show ? "block" : "none";
-            if (!show) timeConditionInp.value = "";
-        };
-        const onTimeUnitChange = () => {
-            setTimeout(() => {
-                showHideTimeNumber();
-                showHideTimeCondition();
-            }, 0);
-            updateEditPreview();
-        };
-        timeUnitSel?.addEventListener("wa-change", onTimeUnitChange);
-        timeUnitSel?.addEventListener("change", () => {
-            showHideTimeNumber();
-            showHideTimeCondition();
-            updateEditPreview();
-        });
-        timeUnitSel?.addEventListener("input", () => {
-            showHideTimeNumber();
-            showHideTimeCondition();
-            updateEditPreview();
-        });
-        setTimeout(() => {
-            showHideTimeNumber();
-            showHideTimeCondition();
-        }, 50);
-        addField(
-            "Requires concentration",
-            "isConcentration",
-            spell.isConcentration,
-            "switch"
-        );
-        addField("Ritual", "isRitual", spell.isRitual, "switch");
-        editCardForm.appendChild(document.createElement("wa-divider"));
-        const rangeTypeVal = (() => {
-            const o = spell.range?.origin ?? "point";
-            const u = spell.range?.unit ?? "feet";
-            if (o === "touch" || o === "self" || o === "special") return o;
-            if (o === "point") return u === "unlimited" ? "unlimited" : u;
-            return "feet";
-        })();
-        const rangeWrap = document.createElement("div");
-        rangeWrap.className = "form-field form-field-range";
-        const rangeLab = document.createElement("span");
-        rangeLab.className = "form-field-label";
-        rangeLab.textContent = "Range";
-        rangeLab.id = "edit-range-label";
-        rangeWrap.appendChild(rangeLab);
-        const rangeRow = document.createElement("div");
-        rangeRow.className = "range-row";
-        const rangeDistInp = document.createElement("wa-number-input");
-        rangeDistInp.id = "edit-range_distance";
-        rangeDistInp.name = "range_distance";
-        rangeDistInp.setAttribute("aria-labelledby", "edit-range-label");
-        rangeDistInp.min = 1;
-        rangeDistInp.value = String(Math.max(1, spell.range?.distance ?? 30));
-        rangeRow.appendChild(rangeDistInp);
-        rangeDistInp.addEventListener("input", () => updateEditPreview());
-        rangeDistInp.addEventListener("change", () => updateEditPreview());
-        const rangeTypeSel = document.createElement("wa-select");
-        rangeTypeSel.id = "edit-range_type";
-        rangeTypeSel.name = "range_type";
-        rangeTypeSel.setAttribute("aria-labelledby", "edit-range-label");
-        RANGE_OPTIONS.forEach((opt) => {
-            const o = document.createElement("wa-option");
-            o.value = opt.value;
-            o.textContent = opt.label;
-            if (opt.value === rangeTypeVal) o.setAttribute("selected", "");
-            rangeTypeSel.appendChild(o);
-        });
-        rangeTypeSel.dataset.initialValue = rangeTypeVal;
-        rangeTypeSel.value = rangeTypeVal;
-        rangeRow.appendChild(rangeTypeSel);
-        rangeTypeSel.addEventListener("wa-change", () => {
-            showHideRangeNumber();
-            updateEditPreview();
-        });
-        rangeTypeSel.addEventListener("change", () => {
-            showHideRangeNumber();
-            updateEditPreview();
-        });
-        rangeWrap.appendChild(rangeRow);
-        editCardForm.appendChild(rangeWrap);
-        const showHideRangeNumber = () => {
-            const type = rangeTypeSel?.value ?? "touch";
-            const showNumber = type === "feet" || type === "miles";
-            rangeRow.classList.toggle("range-row--with-number", showNumber);
-        };
-        requestAnimationFrame(() => showHideRangeNumber());
-
-        const areaWrap = document.createElement("div");
-        areaWrap.className = "form-field";
-        areaWrap.id = "edit-range_area-wrap";
-        const areaSel = document.createElement("wa-select");
-        areaSel.id = "edit-range_area";
-        areaSel.name = "range_area";
-        areaSel.label = "Area";
-        const areaVal = spell.range?.area ?? "";
-        AREA_TYPES.forEach((opt) => {
-            const o = document.createElement("wa-option");
-            o.value = opt.value;
-            if (opt.value === areaVal) o.setAttribute("selected", "");
-            if (opt.value && areaIconUrls[opt.value]) {
-                const iconSpan = document.createElement("span");
-                iconSpan.setAttribute("slot", "start");
-                const img = document.createElement("img");
-                img.src = areaIconUrls[opt.value];
-                img.alt = "";
-                img.className = "edit-area-option-icon";
-                iconSpan.appendChild(img);
-                o.appendChild(iconSpan);
-            }
-            o.appendChild(document.createTextNode(opt.label));
-            areaSel.appendChild(o);
-        });
-        areaSel.dataset.initialValue = areaVal;
-        areaSel.value = areaVal;
-        areaSel.addEventListener("wa-change", () => {
-            showHideAreaDims();
-            updateEditPreview();
-        });
-        areaSel.addEventListener("change", () => {
-            showHideAreaDims();
-            updateEditPreview();
-        });
-        areaWrap.appendChild(areaSel);
-        editCardForm.appendChild(areaWrap);
-        const areaDimsWrap = document.createElement("div");
-        areaDimsWrap.className = "form-field form-field-area-dims";
-        areaDimsWrap.id = "edit-area-dims-wrap";
-        const areaPrimaryLab = document.createElement("span");
-        areaPrimaryLab.className = "form-field-label";
-        areaPrimaryLab.id = "edit-area-primary-label";
-        areaDimsWrap.appendChild(areaPrimaryLab);
-        const areaPrimaryRow = document.createElement("div");
-        areaPrimaryRow.className = "dimension-row dimension-row--with-number";
-        const areaDistInp = document.createElement("wa-number-input");
-        areaDistInp.id = "edit-area_distance";
-        areaDistInp.name = "area_distance";
-        areaDistInp.setAttribute("aria-labelledby", "edit-area-primary-label");
-        areaDistInp.min = 1;
-        areaDistInp.value = String(Math.max(1, spell.range?.areaDistance ?? 30));
-        areaPrimaryRow.appendChild(areaDistInp);
-        areaDistInp.addEventListener("input", () => updateEditPreview());
-        areaDistInp.addEventListener("change", () => updateEditPreview());
-        const areaUnitSel = document.createElement("wa-select");
-        areaUnitSel.id = "edit-area_unit";
-        areaUnitSel.name = "area_unit";
-        areaUnitSel.setAttribute("aria-labelledby", "edit-area-primary-label");
-        const areaUnitVal = spell.range?.areaUnit || "feet";
-        [
-            { value: "feet", label: "Feet" },
-            { value: "miles", label: "Miles" },
-        ].forEach((opt) => {
-            const o = document.createElement("wa-option");
-            o.value = opt.value;
-            o.textContent = opt.label;
-            if (opt.value === areaUnitVal) o.setAttribute("selected", "");
-            areaUnitSel.appendChild(o);
-        });
-        areaUnitSel.dataset.initialValue = areaUnitVal;
-        areaUnitSel.value = areaUnitVal;
-        areaPrimaryRow.appendChild(areaUnitSel);
-        areaUnitSel.addEventListener("wa-change", () => updateEditPreview());
-        areaUnitSel.addEventListener("change", () => updateEditPreview());
-        areaDimsWrap.appendChild(areaPrimaryRow);
-        const areaHeightLab = document.createElement("span");
-        areaHeightLab.className = "form-field-label";
-        areaHeightLab.textContent = "Height";
-        areaHeightLab.id = "edit-area-height-label";
-        areaDimsWrap.appendChild(areaHeightLab);
-        const areaHeightRow = document.createElement("div");
-        areaHeightRow.className = "dimension-row dimension-row--with-number";
-        areaHeightRow.id = "edit-area-height-row";
-        const areaHeightInp = document.createElement("wa-number-input");
-        areaHeightInp.id = "edit-area_height";
-        areaHeightInp.name = "area_height";
-        areaHeightInp.setAttribute("aria-labelledby", "edit-area-height-label");
-        areaHeightInp.min = 1;
-        areaHeightInp.value = String(Math.max(1, spell.range?.areaHeight ?? 30));
-        areaHeightRow.appendChild(areaHeightInp);
-        areaHeightInp.addEventListener("input", () => updateEditPreview());
-        areaHeightInp.addEventListener("change", () => updateEditPreview());
-        const areaHeightUnitSel = document.createElement("wa-select");
-        areaHeightUnitSel.id = "edit-area_height_unit";
-        areaHeightUnitSel.name = "area_height_unit";
-        areaHeightUnitSel.setAttribute("aria-labelledby", "edit-area-height-label");
-        const areaHeightUnitVal = spell.range?.areaHeightUnit || "feet";
-        [
-            { value: "feet", label: "Feet" },
-            { value: "miles", label: "Miles" },
-        ].forEach((opt) => {
-            const o = document.createElement("wa-option");
-            o.value = opt.value;
-            o.textContent = opt.label;
-            if (opt.value === areaHeightUnitVal) o.setAttribute("selected", "");
-            areaHeightUnitSel.appendChild(o);
-        });
-        areaHeightUnitSel.dataset.initialValue = areaHeightUnitVal;
-        areaHeightUnitSel.value = areaHeightUnitVal;
-        areaHeightRow.appendChild(areaHeightUnitSel);
-        areaHeightUnitSel.addEventListener("wa-change", () =>
-            updateEditPreview()
-        );
-        areaHeightUnitSel.addEventListener("change", () => updateEditPreview());
-        areaDimsWrap.appendChild(areaHeightRow);
-        editCardForm.appendChild(areaDimsWrap);
-        const rangeAreaSel = editCardForm.querySelector("#edit-range_area");
-        const showHideAreaDims = () => {
-            const area = rangeAreaSel?.value ?? "";
-            const show = area !== "";
-            areaDimsWrap.style.display = show ? "" : "none";
-            const showHeight = show && area === "cylinder";
-            areaHeightLab.style.display = showHeight ? "" : "none";
-            areaHeightRow.style.display = showHeight ? "" : "none";
-            if (show) {
-                areaPrimaryLab.textContent = AREA_DIMENSION_LABELS[area] ?? "Size";
-            }
-        };
-        requestAnimationFrame(() => showHideAreaDims());
-        setTimeout(showHideAreaDims, 50);
-
-        const targetsWrap = document.createElement("div");
-        targetsWrap.className = "form-field form-field-targets";
-        targetsWrap.id = "edit-range-targets-wrap";
-        const targetsInp = document.createElement("wa-number-input");
-        targetsInp.id = "edit-range_targets";
-        targetsInp.name = "range_targets";
-        targetsInp.label = "Number of targets";
-        targetsInp.hint = "Use 0 for an undefined or area-based number of targets";
-        targetsInp.min = 0;
-        targetsInp.step = 1;
-        const targetsVal = Math.max(0, spell.range?.targets ?? 0);
-        targetsInp.value = String(targetsVal);
-        targetsInp.dataset.initialValue = String(targetsVal);
-        targetsInp.addEventListener("input", () => updateEditPreview());
-        targetsInp.addEventListener("change", () => updateEditPreview());
-        targetsWrap.appendChild(targetsInp);
-        editCardForm.appendChild(targetsWrap);
-
-        const targetsScaleWrap = document.createElement("div");
-        targetsScaleWrap.className = "form-field form-field--switch";
-        const targetsScaleSwitch = document.createElement("wa-switch");
-        targetsScaleSwitch.id = "edit-range_targets_scale";
-        targetsScaleSwitch.name = "range_targets_scale";
-        targetsScaleSwitch.checked = spell.range?.targetsScale ?? false;
-        targetsScaleWrap.appendChild(targetsScaleSwitch);
-        const targetsScaleLab = document.createElement("label");
-        targetsScaleLab.textContent = "More targets at higher levels";
-        targetsScaleLab.htmlFor = "edit-range_targets_scale";
-        targetsScaleWrap.appendChild(targetsScaleLab);
-        targetsScaleSwitch.addEventListener("wa-change", () => updateEditPreview());
-        targetsScaleSwitch.addEventListener("change", () => updateEditPreview());
-        editCardForm.appendChild(targetsScaleWrap);
-
-        addField(
-            "Requires sight",
-            "range_requires_sight",
-            spell.range?.requiresSight ?? false,
-            "switch"
-        );
-        editCardForm.appendChild(document.createElement("wa-divider"));
-        const durationTypeVal = (() => {
-            const t = spell.duration?.type ?? "timed";
-            const u = spell.duration?.unit ?? "minute";
-            if (t === "instant" || t === "special" || t === "permanent") return t;
-            if (t === "timed" && u) return u;
-            return "minute";
-        })();
-        const durationWrap = document.createElement("div");
-        durationWrap.className = "form-field form-field-duration";
-        const durationLab = document.createElement("span");
-        durationLab.className = "form-field-label";
-        durationLab.textContent = "Duration";
-        durationLab.id = "edit-duration-label";
-        durationWrap.appendChild(durationLab);
-        const durationRow = document.createElement("div");
-        durationRow.className = "range-row";
-        const durationAmountInp = document.createElement("wa-number-input");
-        durationAmountInp.id = "edit-duration_amount";
-        durationAmountInp.name = "duration_amount";
-        durationAmountInp.setAttribute("aria-labelledby", "edit-duration-label");
-        durationAmountInp.min = 1;
-        durationAmountInp.value = String(
-            Math.max(1, spell.duration?.amount ?? 1)
-        );
-        durationRow.appendChild(durationAmountInp);
-        durationAmountInp.addEventListener("input", () => updateEditPreview());
-        durationAmountInp.addEventListener("change", () => updateEditPreview());
-        const durationTypeSel = document.createElement("wa-select");
-        durationTypeSel.id = "edit-duration_type";
-        durationTypeSel.name = "duration_type";
-        durationTypeSel.setAttribute("aria-labelledby", "edit-duration-label");
-        DURATION_OPTIONS.forEach((opt) => {
-            const o = document.createElement("wa-option");
-            o.value = opt.value;
-            o.textContent = opt.label;
-            if (opt.value === durationTypeVal) o.setAttribute("selected", "");
-            durationTypeSel.appendChild(o);
-        });
-        durationTypeSel.dataset.initialValue = durationTypeVal;
-        durationTypeSel.value = durationTypeVal;
-        durationRow.appendChild(durationTypeSel);
-        const showHideDurationNumber = () => {
-            const type = durationTypeSel?.value ?? "instant";
-            const showNumber = type === "round" || type === "minute" || type === "hour" || type === "day";
-            durationRow.classList.toggle("range-row--with-number", showNumber);
-        };
-        const showHideDurationEnds = () => {
-            const type = durationTypeSel?.value ?? "instant";
-            durationEndsWrap.style.display = type === "permanent" ? "" : "none";
-        };
-        durationTypeSel.addEventListener("wa-change", () => {
-            showHideDurationNumber();
-            showHideDurationEnds();
-            updateEditPreview();
-        });
-        durationTypeSel.addEventListener("change", () => {
-            showHideDurationNumber();
-            showHideDurationEnds();
-            updateEditPreview();
-        });
-        durationWrap.appendChild(durationRow);
-        editCardForm.appendChild(durationWrap);
-        requestAnimationFrame(() => {
-            showHideDurationNumber();
-            showHideDurationEnds();
-        });
-        const durationEndsWrap = document.createElement("div");
-        durationEndsWrap.className = "form-field filter-chip-group form-field-duration-ends";
-        durationEndsWrap.id = "edit-duration-ends-wrap";
-        durationEndsWrap.setAttribute("role", "group");
-        const durationEndsLab = document.createElement("span");
-        durationEndsLab.id = "edit-duration-ends-label";
-        durationEndsLab.textContent = "Ending conditions";
-        durationEndsLab.className = "filter-chip-label";
-        durationEndsWrap.setAttribute("aria-labelledby", "edit-duration-ends-label");
-        durationEndsWrap.appendChild(durationEndsLab);
-        const durationEndsList = document.createElement("div");
-        durationEndsList.className = "filter-chip-list duration-ends-chips";
-        const durationEnds = spell.duration?.ends ?? [];
-        DURATION_END_OPTIONS.forEach(({ value, label }) => {
-            const btn = document.createElement("wa-button");
-            btn.className = "filter-chip duration-end-chip";
-            btn.dataset.value = value;
-            btn.setAttribute("size", "medium");
-            btn.setAttribute("appearance", "filled");
-            const isEndSelected = durationEnds.includes(value);
-            btn.setAttribute("variant", isEndSelected ? "brand" : "neutral");
-            btn.setAttribute("aria-pressed", isEndSelected ? "true" : "false");
-            btn.textContent = label;
-            btn.addEventListener("click", () => {
-                const container = document.getElementById(
-                    "edit-duration-ends-wrap"
-                );
-                const chips = container.querySelectorAll(".duration-end-chip");
-                const ends = Array.from(chips)
-                    .filter((c) => c.getAttribute("variant") === "brand")
-                    .map((c) => c.dataset.value);
-                const idx = ends.indexOf(value);
-                if (idx >= 0) ends.splice(idx, 1);
-                else ends.push(value);
-                chips.forEach((c) => {
-                    const sel = ends.includes(c.dataset.value);
-                    c.setAttribute("variant", sel ? "brand" : "neutral");
-                    c.setAttribute("aria-pressed", sel ? "true" : "false");
-                });
-                updateEditPreview();
-            });
-            durationEndsList.appendChild(btn);
-        });
-        durationEndsWrap.appendChild(durationEndsList);
-        editCardForm.appendChild(durationEndsWrap);
-        editCardForm.appendChild(document.createElement("wa-divider"));
-        const componentsDescWrap = document.createElement("div");
-        componentsDescWrap.className =
-            "form-field form-field-components-description";
-        componentsDescWrap.id = "edit-components-description-wrap";
-        const componentsDescInp = document.createElement("wa-textarea");
-        componentsDescInp.id = "edit-components_description";
-        componentsDescInp.name = "components_description";
-        componentsDescInp.label = "Component description";
-        componentsDescInp.value = spell.components?.description ?? "";
-        componentsDescInp.rows = 2;
-        componentsDescWrap.appendChild(componentsDescInp);
-        componentsDescInp.addEventListener("wa-input", () =>
-            updateEditPreview()
-        );
-        componentsDescInp.addEventListener("input", () => updateEditPreview());
-        addRichTextHint(componentsDescWrap, { short: true });
-        editCardForm.appendChild(componentsDescWrap);
-        addField(
-            "Verbal component",
-            "components_v",
-            spell.components?.v,
-            "switch"
-        );
-        addField(
-            "Somatic component",
-            "components_s",
-            spell.components?.s,
-            "switch"
-        );
-        addField(
-            "Material component",
-            "components_m",
-            spell.components?.m,
-            "switch"
-        );
-        const componentsHasCostWrap = document.createElement("div");
-        componentsHasCostWrap.className =
-            "form-field form-field--switch form-field-components-material";
-        const componentsHasCostCb = document.createElement("wa-switch");
-        componentsHasCostCb.id = "edit-components_has_cost";
-        componentsHasCostCb.name = "components_has_cost";
-        componentsHasCostCb.checked = !!spell.components?.hasCost;
-        componentsHasCostWrap.appendChild(componentsHasCostCb);
-        const componentsHasCostLab = document.createElement("label");
-        componentsHasCostLab.textContent = "Specified cost";
-        componentsHasCostLab.htmlFor = "edit-components_has_cost";
-        componentsHasCostWrap.appendChild(componentsHasCostLab);
-        componentsHasCostCb.addEventListener("wa-change", () => {
-            updateComponentsMaterialDisabled();
-            updateEditPreview();
-        });
-        componentsHasCostCb.addEventListener("change", () => {
-            updateComponentsMaterialDisabled();
-            updateEditPreview();
-        });
-        editCardForm.appendChild(componentsHasCostWrap);
-        const componentsConsumedWrap = document.createElement("div");
-        componentsConsumedWrap.className =
-            "form-field form-field--switch form-field-components-consumed";
-        componentsConsumedWrap.id = "edit-components-consumed-wrap";
-        const componentsConsumedCb = document.createElement("wa-switch");
-        componentsConsumedCb.id = "edit-components_is_consumed";
-        componentsConsumedCb.name = "components_is_consumed";
-        componentsConsumedCb.checked = !!spell.components?.isConsumed;
-        componentsConsumedWrap.appendChild(componentsConsumedCb);
-        const componentsConsumedLab = document.createElement("label");
-        componentsConsumedLab.textContent = "Is consumed";
-        componentsConsumedLab.htmlFor = "edit-components_is_consumed";
-        componentsConsumedWrap.appendChild(componentsConsumedLab);
-        componentsConsumedCb.addEventListener("wa-change", () =>
-            updateEditPreview()
-        );
-        componentsConsumedCb.addEventListener("change", () => updateEditPreview());
-        editCardForm.appendChild(componentsConsumedWrap);
-        const componentsMCb = editCardForm.querySelector("#edit-components_m");
-        const updateComponentsMaterialDisabled = () => {
-            const material = componentsMCb?.checked ?? false;
-            const hasCost = componentsHasCostCb?.checked ?? false;
-            componentsHasCostCb.disabled = !material;
-            componentsConsumedCb.disabled = !material || !hasCost;
-            if (!material) {
-                componentsHasCostCb.checked = false;
-                componentsConsumedCb.checked = false;
-            }
-            if (!hasCost) componentsConsumedCb.checked = false;
-        };
-        componentsMCb?.addEventListener("wa-change", () => {
-            requestAnimationFrame(() => {
-                updateComponentsMaterialDisabled();
-                updateEditPreview();
-            });
-        });
-        componentsMCb?.addEventListener("change", () => {
-            updateComponentsMaterialDisabled();
-            updateEditPreview();
-        });
-        componentsMCb?.addEventListener("input", () => {
-            updateComponentsMaterialDisabled();
-            updateEditPreview();
-        });
-        requestAnimationFrame(() => updateComponentsMaterialDisabled());
-        editCardForm.appendChild(document.createElement("wa-divider"));
-        addField("Description", "description", spell.description, "textarea", {
-            rows: 6,
-            richTextHint: true,
-        });
-        addField("At higher levels", "upcast", spell.upcast || "", "textarea", {
-            rows: 2,
-            richTextHint: true,
-        });
-        const classesWrap = document.createElement("div");
-        classesWrap.className = "form-field form-field-classes";
-        classesWrap.id = "edit-classes-wrap";
-        classesWrap.setAttribute("role", "group");
-        const classesLab = document.createElement("label");
-        classesLab.id = "edit-classes-label";
-        classesLab.textContent = "Classes";
-        classesWrap.setAttribute("aria-labelledby", "edit-classes-label");
-        classesWrap.appendChild(classesLab);
-        const classesTokens = document.createElement("div");
-        classesTokens.className = "edit-classes-tokens";
-        const spellClasses = spell.classes || [];
-        SPELL_CLASSES.forEach((className) => {
-            const btn = document.createElement("wa-button");
-            btn.className = "filter-chip filter-chip--class edit-class-tag";
-            btn.dataset.value = className;
-            btn.setAttribute("size", "small");
-            btn.setAttribute("appearance", "filled");
-            const isSelected = spellClasses.includes(className);
-            btn.setAttribute("variant", isSelected ? "brand" : "neutral");
-            btn.setAttribute("aria-pressed", isSelected ? "true" : "false");
-            const iconOpts = classIconUrls[className];
-            if (iconOpts?.default) {
-                btn.dataset.iconUrl = iconOpts.default;
-                if (iconOpts.selected) btn.dataset.iconUrlSelected = iconOpts.selected;
-                const iconSpan = document.createElement("span");
-                iconSpan.className = "filter-class-icon";
-                iconSpan.setAttribute("slot", "start");
-                const img = document.createElement("img");
-                img.src = isSelected && iconOpts.selected ? iconOpts.selected : iconOpts.default;
-                img.alt = "";
-                iconSpan.appendChild(img);
-                btn.appendChild(iconSpan);
-                btn.appendChild(document.createTextNode(" " + className));
-            } else {
-                btn.textContent = className;
-            }
-            btn.addEventListener("click", () => {
-                const wrap = document.getElementById("edit-classes-wrap");
-                const tags = wrap.querySelectorAll(".edit-class-tag");
-                const selected = Array.from(tags)
-                    .filter((t) => t.getAttribute("variant") === "brand")
-                    .map((t) => t.dataset.value);
-                const idx = selected.indexOf(className);
-                if (idx >= 0) selected.splice(idx, 1);
-                else selected.push(className);
-                tags.forEach((t) => {
-                    const sel = selected.includes(t.dataset.value);
-                    t.setAttribute("variant", sel ? "brand" : "neutral");
-                    t.setAttribute("aria-pressed", sel ? "true" : "false");
-                    if (t.dataset.iconUrl) {
-                        const img = t.querySelector(".filter-class-icon img");
-                        if (img && t.dataset.iconUrlSelected) {
-                            img.src = selected.includes(t.dataset.value) ? t.dataset.iconUrlSelected : t.dataset.iconUrl;
-                        }
-                    }
-                });
-                updateEditPreview();
-            });
-            classesTokens.appendChild(btn);
-        });
-        classesWrap.appendChild(classesTokens);
-        editCardForm.appendChild(classesWrap);
-    }
-
-    /** Reads form values and returns a spell object. */
-    function getEditFormData() {
-        const spell = editingCard
-            ? cloneSpellData(editingCard.spell)
+    // Track if handlers have been set up
+    let editFormHandlersSetup = false;
+    
+    function getEditFormData(card = null) {
+        if (!editCardForm) {
+            throw new Error("editCardForm is not available");
+        }
+        // Use provided card, or fall back to editingCard, or use empty template
+        const sourceCard = card || editingCard;
+        const spell = sourceCard
+            ? cloneSpellData(sourceCard.spell)
             : emptySpellTemplate();
+        
+        // Read form values - Web Awesome wa-select components expose .value property directly
         spell.name =
             editCardForm.querySelector("#edit-name")?.value ?? spell.name;
-        spell.level = parseInt(
-            editCardForm.querySelector("#edit-level")?.value ?? "0",
-            10
-        );
-        spell.school =
-            editCardForm.querySelector("#edit-school")?.value ?? spell.school;
-        const sourceVal = editCardForm.querySelector("#edit-source")?.value ?? "Homebrew";
+        const levelSelect = editCardForm.querySelector("#edit-level");
+        const levelValStr = levelSelect?.value ?? "0";
+        const levelVal = parseInt(levelValStr, 10);
+        spell.level = isNaN(levelVal) ? 0 : levelVal;
+        
+        const schoolSelect = editCardForm.querySelector("#edit-school");
+        spell.school = schoolSelect?.value ?? spell.school;
+        
+        const sourceSelect = editCardForm.querySelector("#edit-source");
+        const sourceVal = sourceSelect?.value ?? "Homebrew";
         spell.source = sourceVal === "__other__"
             ? (editCardForm.querySelector("#edit-source_other")?.value ?? "").trim() || "Homebrew"
             : sourceVal;
         spell.time = spell.time || { number: 1, unit: "action" };
-        spell.time.number = Math.max(
-            1,
-            parseInt(
-                editCardForm.querySelector("#edit-time_number")?.value ?? "1",
-                10
-            )
+        const timeNumberVal = parseInt(
+            editCardForm.querySelector("#edit-time_number")?.value ?? "1",
+            10
         );
-        spell.time.unit =
-            editCardForm.querySelector("#edit-time_unit")?.value ?? "action";
+        spell.time.number = Math.max(1, isNaN(timeNumberVal) ? 1 : timeNumberVal);
+        const timeUnitSelect = editCardForm.querySelector("#edit-time_unit");
+        spell.time.unit = timeUnitSelect?.value ?? "action";
         spell.time.condition =
             spell.time.unit === "reaction"
                 ? normalizeConditionText(
@@ -1648,8 +1532,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                   )
                 : "";
         spell.range = spell.range || {};
-        const rangeType =
-            editCardForm.querySelector("#edit-range_type")?.value ?? "touch";
+        const rangeTypeSelect = editCardForm.querySelector("#edit-range_type");
+        const rangeType = rangeTypeSelect?.value ?? "touch";
         if (rangeType === "touch" || rangeType === "self" || rangeType === "special") {
             spell.range.origin = rangeType;
             spell.range.unit = "";
@@ -1661,39 +1545,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else {
             spell.range.origin = "point";
             spell.range.unit = rangeType;
-            spell.range.distance = Math.max(
-                1,
-                parseInt(
-                    editCardForm.querySelector("#edit-range_distance")?.value ?? "1",
-                    10
-                )
+            const rangeDistVal = parseInt(
+                editCardForm.querySelector("#edit-range_distance")?.value ?? "1",
+                10
             );
+            spell.range.distance = Math.max(1, isNaN(rangeDistVal) ? 1 : rangeDistVal);
         }
-        spell.range.area =
-            editCardForm.querySelector("#edit-range_area")?.value ?? "";
+        const areaSelect = editCardForm.querySelector("#edit-range_area");
+        spell.range.area = areaSelect?.value ?? "";
         if (spell.range.area) {
-            spell.range.areaDistance = Math.max(
-                1,
-                parseInt(
-                    editCardForm.querySelector("#edit-area_distance")?.value ??
-                        "1",
-                    10
-                )
+            const areaDistVal = parseInt(
+                editCardForm.querySelector("#edit-area_distance")?.value ?? "1",
+                10
             );
-            spell.range.areaUnit =
-                editCardForm.querySelector("#edit-area_unit")?.value ?? "feet";
+            spell.range.areaDistance = Math.max(1, isNaN(areaDistVal) ? 1 : areaDistVal);
+            const areaUnitSelect = editCardForm.querySelector("#edit-area_unit");
+            spell.range.areaUnit = areaUnitSelect?.value ?? "feet";
             if (spell.range.area === "cylinder") {
-                spell.range.areaHeight = Math.max(
-                    1,
-                    parseInt(
-                        editCardForm.querySelector("#edit-area_height")?.value ??
-                            "1",
-                        10
-                    )
+                const areaHeightVal = parseInt(
+                    editCardForm.querySelector("#edit-area_height")?.value ?? "1",
+                    10
                 );
-                spell.range.areaHeightUnit =
-                    editCardForm.querySelector("#edit-area_height_unit")?.value ??
-                    "feet";
+                spell.range.areaHeight = Math.max(1, isNaN(areaHeightVal) ? 1 : areaHeightVal);
+                const areaHeightUnitSelect = editCardForm.querySelector("#edit-area_height_unit");
+                spell.range.areaHeightUnit = areaHeightUnitSelect?.value ?? "feet";
             } else {
                 spell.range.areaHeight = 0;
                 spell.range.areaHeightUnit = "";
@@ -1707,10 +1582,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         spell.range.requiresSight =
             editCardForm.querySelector("#edit-range_requires_sight")?.checked ??
             false;
-        spell.range.targets = parseInt(
+        const targetsVal = parseInt(
             editCardForm.querySelector("#edit-range_targets")?.value ?? "0",
             10
         );
+        spell.range.targets = isNaN(targetsVal) ? 0 : targetsVal;
         spell.range.targetsScale =
             editCardForm.querySelector("#edit-range_targets_scale")?.checked ??
             false;
@@ -1743,8 +1619,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             unit: "minute",
             ends: [],
         };
-        const durationTypeVal =
-            editCardForm.querySelector("#edit-duration_type")?.value ?? "minute";
+        const durationTypeSelect = editCardForm.querySelector("#edit-duration_type");
+        const durationTypeVal = durationTypeSelect?.value ?? "minute";
         const isTimed =
             durationTypeVal === "round" ||
             durationTypeVal === "minute" ||
@@ -1752,14 +1628,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             durationTypeVal === "day";
         if (isTimed) {
             spell.duration.type = "timed";
-            spell.duration.amount = Math.max(
-                1,
-                parseInt(
-                    editCardForm.querySelector("#edit-duration_amount")
-                        ?.value ?? "1",
-                    10
-                )
+            const durationAmountVal = parseInt(
+                editCardForm.querySelector("#edit-duration_amount")?.value ?? "1",
+                10
             );
+            spell.duration.amount = Math.max(1, isNaN(durationAmountVal) ? 1 : durationAmountVal);
             spell.duration.unit = durationTypeVal;
         } else {
             spell.duration.type = durationTypeVal;
@@ -1798,21 +1671,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     let editPreviewTimeout = null;
+    /** Updates the preview display with current card elements. */
+    function updateEditPreviewDisplay() {
+        if (!editPreviewCard) return;
+        editCardPreview.innerHTML = "";
+        if (editPreviewCard.frontElement) {
+            const clone = editPreviewCard.frontElement.cloneNode(true);
+            const actions = clone.querySelector(".card-actions");
+            if (actions) actions.remove();
+            editCardPreview.appendChild(clone);
+        }
+        if (editPreviewCard.backElement) {
+            const clone = editPreviewCard.backElement.cloneNode(true);
+            const actions = clone.querySelector(".card-actions");
+            if (actions) actions.remove();
+            editCardPreview.appendChild(clone);
+        }
+    }
+    
     /** Debounced update of the edit overlay preview from form data. */
     function updateEditPreview() {
         if (!editPreviewCard) return;
         clearTimeout(editPreviewTimeout);
         const runUpdate = async () => {
-            await new Promise((r) => requestAnimationFrame(r));
-            const data = getEditFormData();
-            editPreviewCard.setSpellData(data);
-            await editPreviewCard.render();
-            editCardPreview.innerHTML = "";
-            if (editPreviewCard.frontElement) {
-                const clone = editPreviewCard.frontElement.cloneNode(true);
-                const actions = clone.querySelector(".card-actions");
-                if (actions) actions.remove();
-                editCardPreview.appendChild(clone);
+            try {
+                await new Promise((r) => requestAnimationFrame(r));
+                const data = getEditFormData();
+                editPreviewCard.setSpellData(data);
+                await editPreviewCard.render({ measureContainer });
+                updateEditPreviewDisplay();
+            } catch (err) {
+                console.error("Preview update error:", err);
             }
         };
         editPreviewTimeout = setTimeout(runUpdate, 0);
@@ -1820,27 +1709,45 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /** Applies form data to editing card, closes overlay, refreshes layout. */
     async function saveEditCard() {
-        if (!editingCard) return;
-        let data;
-        try {
-            data = getEditFormData();
-        } catch (err) {
-            console.error("Edit form data error:", err);
-            closeEditOverlay();
+        // Store card reference immediately to prevent race conditions
+        const card = editingCard;
+        if (!card) {
+            console.error("saveEditCard: editingCard is null");
             return;
         }
-        const card = editingCard;
+        if (!editCardForm) {
+            console.error("saveEditCard: editCardForm is null");
+            return;
+        }
+        let data;
+        try {
+            // Pass card reference to getEditFormData to avoid relying on global editingCard
+            data = getEditFormData(card);
+            console.log("Form data retrieved successfully");
+        } catch (err) {
+            console.error("Edit form data error:", err);
+            console.error("Error details:", err.message, err.stack);
+            alert("Error reading form data: " + err.message);
+            return;
+        }
         try {
             card.setSpellData(data);
+            console.log("Spell data set successfully");
         } catch (err) {
             console.error("Set spell data error:", err);
+            console.error("Error details:", err.message, err.stack);
+            alert("Error setting spell data: " + err.message);
+            return;
         }
+        // Close overlay after storing card reference
         closeEditOverlay();
         try {
             await card.render({ measureContainer });
             await refreshLayout();
+            console.log("Card rendered and layout refreshed");
         } catch (err) {
             console.error("Save card error:", err);
+            console.error("Error details:", err.message, err.stack);
         }
     }
 
@@ -2845,6 +2752,18 @@ window.onafterprint = function() {
             appendSpells(arr);
             renderSpellList();
             await populateFilterChips();
+            // Update source dropdown if edit dialog is open
+            if (editCardDialog?.open) {
+                const currentSource = editCardForm.querySelector("#edit-source")?.value;
+                updateSourceDropdown();
+                // Restore the selected source if it still exists
+                if (currentSource) {
+                    const sourceSel = editCardForm.querySelector("#edit-source");
+                    if (sourceSel && Array.from(sourceSel.querySelectorAll("wa-option")).some(opt => opt.value === currentSource)) {
+                        sourceSel.value = currentSource;
+                    }
+                }
+            }
         } catch (err) {
             console.error("Upload spells error:", err);
         }
@@ -2951,11 +2870,23 @@ window.onafterprint = function() {
     }
 
     editCardCancel.addEventListener("click", closeEditOverlay);
-    editCardSave?.addEventListener("click", () => {
+    editCardSave?.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         saveEditCard();
     });
-    editCardDialog?.addEventListener("wa-after-hide", () => {
-        editingCard = null;
+    // Prevent form submission
+    editCardForm?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        saveEditCard();
+    });
+    // Only clear editingCard when the edit *dialog* hides, not when a child (e.g. wa-select)
+    // fires wa-after-hide on its dropdown close
+    editCardDialog?.addEventListener("wa-after-hide", (e) => {
+        if (e.target === editCardDialog) {
+            editingCard = null;
+        }
     });
 
     window.addEventListener("resize", handleZoom);
