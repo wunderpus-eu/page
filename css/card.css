@@ -599,11 +599,63 @@ body.grayscale {
 }
 
 .card-body.back {
-    margin: 0;
+    margin-left: 4pt;
+    margin-right: 1pt;
+    margin-bottom: 5.5pt;
+    padding: 3.5pt 4pt;
     color: var(--font-color);
     background-color: white;
     /* Border in spell-school color (set via --back-border-color in JS) */
     box-shadow: inset 0 0 0 1pt var(--back-border-color, var(--card-border-color));
+}
+
+/* Match front description/list styling on the back for consistent bullets and spacing */
+.card-body.back .description-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.card-body.back .description-text p {
+    text-align: justify;
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+.card-body.back .description-text p:last-child {
+    margin-bottom: 0;
+}
+
+.card-body.back .description-text .spell-description-list {
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+    padding-left: 0;
+    list-style-type: none;
+    text-align: justify;
+}
+
+.card-body.back .description-text .spell-description-list:last-child {
+    margin-bottom: 0;
+}
+
+.card-body.back .description-text .spell-description-list li {
+    position: relative;
+    margin-left: 0.25em;
+    padding-left: 0.5em;
+    margin-bottom: 0.25em;
+    text-align: justify;
+}
+
+.card-body.back .description-text .spell-description-list li:last-child {
+    margin-bottom: 0;
+}
+
+.card-body.back .description-text .spell-description-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    top: -0.05em;
 }
 
 .spell-condition-text {
@@ -620,13 +672,14 @@ body.grayscale {
     min-height: 0;
 }
 
-.description-text p {
+/* Front and back: paragraphs and lists in card body description (bullet position, spacing, justify) */
+.card-body .description-text p {
     text-align: justify;
     margin-top: 0em;
     margin-bottom: 0.5em;
 }
 
-.description-text p:last-child {
+.card-body .description-text p:last-child {
     margin-bottom: 0;
 }
 
@@ -635,7 +688,7 @@ body.grayscale {
     padding-right: 0.5em;
 }
 
-.spell-description-list {
+.card-body .spell-description-list {
     margin-top: 0em;
     margin-bottom: 0.5em;
     padding-left: 0;
@@ -643,21 +696,23 @@ body.grayscale {
     text-align: justify;
 }
 
-.spell-description-list:last-child {
+.card-body .spell-description-list:last-child {
     margin-bottom: 0;
 }
 
-.spell-description-list li {
+.card-body .spell-description-list li {
     position: relative;
+    margin-left: 0.25em;
     padding-left: 0.5em;
     margin-bottom: 0.25em;
+    text-align: justify;
 }
 
-.spell-description-list li:last-child {
+.card-body .spell-description-list li:last-child {
     margin-bottom: 0;
 }
 
-.spell-description-list li::before {
+.card-body .spell-description-list li::before {
     content: "•";
     position: absolute;
     left: 0;
@@ -675,10 +730,30 @@ body.grayscale {
     margin-bottom: 0.5em;
     border-collapse: separate;
     border-spacing: 0 0em;
+    line-height: 1.2;
 }
 
+.spell-table th,
 .spell-table td {
+    padding: 0 0.25em;
     vertical-align: top;
+    line-height: inherit;
+}
+
+.spell-table th:first-child,
+.spell-table td:first-child {
+    width: 1%;
+}
+
+.spell-table thead th {
+    padding-top: 0;
+    padding-bottom: 0;
+    vertical-align: bottom;
+}
+
+.spell-table tbody td {
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 .spell-table thead {

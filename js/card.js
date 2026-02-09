@@ -1064,16 +1064,20 @@ async function render_markdown_ordered_list(listText) {
     return ol;
 }
 
+const CARD_BODY_BASE_FONT_PT = 7;
+const CARD_BODY_MIN_FONT_PT = 5.5;
+const CARD_BODY_FONT_STEP_PT = 0.5;
+
 /**
  * If the description overflows, creates a back card and moves content there.
+ * Decreases font size by small steps from base to min until content fits (front only or front+back).
+ * Bulleted/numbered lists can split across front and back.
  * Runs only when a card is rendered (card must be in DOM for measurement).
- * Card dimensions are constant; no need to re-run when page size or layout options change.
  *
  * @param {SpellCard} spellCard
  * @param {HTMLElement} measureContainer - Parent for measuring (e.g. off-screen div)
- * @param {number} [fontLevel] - 0=normal, 1=6pt, 2=5.5pt
  */
-async function handleOverflow(spellCard, measureContainer, fontLevel = 0) {
+async function handleOverflow(spellCard, measureContainer) {
     const card = spellCard.frontElement;
     const spell = spellCard.spell;
     const cardBody = card.querySelector(".card-body");
@@ -1084,68 +1088,84 @@ async function handleOverflow(spellCard, measureContainer, fontLevel = 0) {
     }
 
     const componentText = card.querySelector(".spell-component-text");
+    const schoolColor = getSpellSchoolColor(spell);
 
     function isOverflowing(element) {
         return element.scrollHeight > element.clientHeight;
     }
 
-    if (isOverflowing(descriptionText)) {
-        if (fontLevel === 0) {
-            cardBody.style.fontSize = "6pt";
-            cardBody.style.lineHeight = "6pt";
-            if (componentText) {
-                componentText.style.fontSize = "6pt";
-                componentText.style.lineHeight = "6pt";
-            }
+    function applyFontSize(pt) {
+        const s = `${pt}pt`;
+        cardBody.style.fontSize = s;
+        cardBody.style.lineHeight = s;
+        if (componentText) {
+            componentText.style.fontSize = s;
+            componentText.style.lineHeight = s;
+        }
+    }
 
-            if (isOverflowing(descriptionText)) {
-                cardBody.style.fontSize = "";
-                cardBody.style.lineHeight = "";
-                if (componentText) {
-                    componentText.style.fontSize = "";
-                    componentText.style.lineHeight = "";
-                }
-            } else {
-                return null;
-            }
+    function clearFontSize() {
+        cardBody.style.fontSize = "";
+        cardBody.style.lineHeight = "";
+        if (componentText) {
+            componentText.style.fontSize = "";
+            componentText.style.lineHeight = "";
+        }
+    }
+
+    // Try smaller font sizes until content fits on front only
+    for (let pt = CARD_BODY_BASE_FONT_PT; pt >= CARD_BODY_MIN_FONT_PT; pt -= CARD_BODY_FONT_STEP_PT) {
+        applyFontSize(pt);
+        void descriptionText.offsetHeight; // force reflow so scrollHeight/clientHeight reflect new font
+        if (!isOverflowing(descriptionText)) {
+            // Leave reduced font applied so the card actually fits (do not clearFontSize)
+            return null;
+        }
+    }
+
+    // Still overflows at min font; create back and distribute content
+    const backCardContainer = document.createElement("div");
+    backCardContainer.className = "spell-card";
+    backCardContainer.dataset.cardId = spellCard.id;
+    backCardContainer.dataset.spellName = spell.name;
+    backCardContainer.style.backgroundColor = spellCard.backgroundColor;
+
+    const back = document.createElement("div");
+    back.className = "spell-card-back";
+
+    const backCardBody = document.createElement("div");
+    backCardBody.className = "card-body back";
+    backCardBody.style.setProperty("--back-border-color", schoolColor);
+    back.appendChild(backCardBody);
+
+    const backDescriptionText = document.createElement("div");
+    backDescriptionText.className = "description-text";
+    backCardBody.appendChild(backDescriptionText);
+
+    backCardContainer.appendChild(back);
+
+    if (measureContainer) {
+        measureContainer.appendChild(backCardContainer);
+    }
+
+    // Try each font size from base down to min until front+back both fit
+    for (let pt = CARD_BODY_BASE_FONT_PT; pt >= CARD_BODY_MIN_FONT_PT; pt -= CARD_BODY_FONT_STEP_PT) {
+        const s = `${pt}pt`;
+        cardBody.style.fontSize = s;
+        cardBody.style.lineHeight = s;
+        if (componentText) {
+            componentText.style.fontSize = s;
+            componentText.style.lineHeight = s;
+        }
+        backCardBody.style.fontSize = s;
+        backCardBody.style.lineHeight = s;
+
+        // Restore any content from a previous attempt: move everything from back to front (same order as back = correct reading order)
+        for (const el of Array.from(backDescriptionText.children)) {
+            descriptionText.appendChild(el);
         }
 
-        const backCardContainer = document.createElement("div");
-        backCardContainer.className = "spell-card";
-        backCardContainer.dataset.cardId = spellCard.id;
-        backCardContainer.dataset.spellName = spell.name;
-        backCardContainer.style.backgroundColor = spellCard.backgroundColor;
-
-        const back = document.createElement("div");
-        back.className = "spell-card-back";
-
-        const backCardBody = document.createElement("div");
-        backCardBody.className = "card-body back";
-        backCardBody.style.setProperty("--back-border-color", getSpellSchoolColor(spell));
-        back.appendChild(backCardBody);
-
-        const backDescriptionText = document.createElement("div");
-        backDescriptionText.className = "description-text";
-        backCardBody.appendChild(backDescriptionText);
-
-        backCardContainer.appendChild(back);
-
-        if (measureContainer) {
-            measureContainer.appendChild(backCardContainer);
-        }
-
-        if (fontLevel > 0) {
-            const fontSize = fontLevel === 1 ? "6pt" : "5.5pt";
-            const frontCardBody = card.querySelector(".card-body");
-            frontCardBody.style.fontSize = fontSize;
-            frontCardBody.style.lineHeight = fontSize;
-            if (componentText) {
-                componentText.style.fontSize = fontSize;
-                componentText.style.lineHeight = fontSize;
-            }
-            backCardBody.style.fontSize = fontSize;
-            backCardBody.style.lineHeight = fontSize;
-        }
+        void descriptionText.offsetHeight; // force reflow so overflow check reflects current font and content
 
         const descriptionElements = Array.from(descriptionText.children);
 
@@ -1154,40 +1174,89 @@ async function handleOverflow(spellCard, measureContainer, fontLevel = 0) {
             descriptionElements.length > 0
         ) {
             const elementToMove = descriptionElements.pop();
-            backDescriptionText.prepend(elementToMove);
+
+            if (elementToMove.tagName === "UL" || elementToMove.tagName === "OL") {
+                const tagName = elementToMove.tagName;
+                const existingBackList =
+                    backDescriptionText.firstChild &&
+                    backDescriptionText.firstChild.tagName === tagName &&
+                    backDescriptionText.firstChild.className === "spell-description-list"
+                        ? backDescriptionText.firstChild
+                        : null;
+                backDescriptionText.prepend(elementToMove);
+                const lastFront = descriptionText.lastChild;
+                const frontList =
+                    lastFront &&
+                    lastFront.tagName === tagName &&
+                    lastFront.className === "spell-description-list"
+                        ? lastFront
+                        : (() => {
+                              const list = document.createElement(tagName);
+                              list.className = "spell-description-list";
+                              descriptionText.appendChild(list);
+                              return list;
+                          })();
+                while (elementToMove.firstChild) {
+                    const li = elementToMove.firstChild;
+                    frontList.appendChild(li);
+                    if (isOverflowing(descriptionText)) {
+                        elementToMove.prepend(li);
+                        break;
+                    }
+                }
+                if (existingBackList) {
+                    while (elementToMove.firstChild) {
+                        existingBackList.appendChild(elementToMove.firstChild);
+                    }
+                    backDescriptionText.removeChild(elementToMove);
+                } else if (!elementToMove.firstChild) {
+                    backDescriptionText.removeChild(elementToMove);
+                }
+            } else {
+                backDescriptionText.prepend(elementToMove);
+            }
         }
 
-        if (isOverflowing(backCardBody) && fontLevel < 2) {
-            const backElements = Array.from(backDescriptionText.children);
-            for (const elementToMove of backElements) {
-                descriptionText.appendChild(elementToMove);
+        if (!isOverflowing(backCardBody)) {
+            let lastTextBlock = descriptionText.lastElementChild;
+            while (
+                lastTextBlock &&
+                (lastTextBlock.tagName === "TABLE" || lastTextBlock.classList?.contains("spell-table"))
+            ) {
+                lastTextBlock = lastTextBlock.previousElementSibling;
+            }
+            let insertTarget = null;
+            if (lastTextBlock) {
+                if (lastTextBlock.tagName === "UL" || lastTextBlock.tagName === "OL") {
+                    const lastLi = lastTextBlock.lastElementChild;
+                    insertTarget = lastLi || lastTextBlock;
+                } else {
+                    insertTarget = lastTextBlock;
+                }
+            }
+            if (insertTarget) {
+                insertTarget.appendChild(document.createTextNode(" "));
+                const arrow = document.createElement("i");
+                arrow.className = "fa-solid fa-circle-arrow-right";
+                arrow.style.color = schoolColor;
+                arrow.setAttribute("aria-hidden", "true");
+                insertTarget.appendChild(arrow);
             }
 
             if (measureContainer) {
                 measureContainer.removeChild(backCardContainer);
             }
 
-            return await handleOverflow(
-                spellCard,
-                measureContainer,
-                fontLevel + 1
-            );
+            spellCard.backElement = backCardContainer;
+            return;
         }
-
-        const lastParagraph = descriptionText.querySelector("p:last-of-type");
-        if (lastParagraph) {
-            lastParagraph.appendChild(document.createTextNode(" →"));
-        }
-
-        if (measureContainer) {
-            measureContainer.removeChild(backCardContainer);
-        }
-
-        spellCard.backElement = backCardContainer;
-        return;
     }
 
-    return null;
+    if (measureContainer) {
+        measureContainer.removeChild(backCardContainer);
+    }
+    spellCard.backElement = backCardContainer;
+    return;
 }
 
 /**
