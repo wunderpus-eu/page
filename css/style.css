@@ -194,7 +194,7 @@ body.spell-cards-page {
 .spell-cards-scroll {
     flex: 1 1 0;
     min-height: 0;
-    overflow-x: hidden;
+    overflow-x: auto;
     overflow-y: auto;
     scrollbar-gutter: auto;
     display: flex;

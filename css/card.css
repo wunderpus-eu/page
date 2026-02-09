@@ -236,6 +236,7 @@ body.grayscale {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
+    z-index: 10;
 }
 
 .spell-card:hover::before,
@@ -297,6 +298,11 @@ body.grayscale {
     right: 8.5pt;
     bottom: 8pt;
     left: 7.5pt;
+    pointer-events: none;
+}
+
+.spell-card-front-border img {
+    border-radius: 0;
 }
 
 .card-header {
@@ -415,6 +421,7 @@ body.grayscale {
     margin-top: -1pt;
     margin-right: 3pt;
     border-radius: 0;
+    pointer-events: none;
 }
 
 .spell-range-icon.area {
@@ -442,6 +449,7 @@ body.grayscale {
     margin-top: -1pt;
     margin-right: 3pt;
     border-radius: 0;
+    pointer-events: none;
 }
 
 .spell-duration-icon:last-child {
@@ -459,6 +467,7 @@ body.grayscale {
     display: inline-block;
     vertical-align: top;
     border-radius: 0;
+    pointer-events: none;
 }
 
 .spell-component-text {
@@ -487,6 +496,7 @@ body.grayscale {
 
 .spell-concentration-and-ritual img {
     border-radius: 0;
+    pointer-events: none;
 }
 
 .spell-school-container {
@@ -528,6 +538,7 @@ body.grayscale {
     vertical-align: top;
     margin-right: 2pt;
     border-radius: 0;
+    pointer-events: none;
 }
 
 .spell-class-icons img:last-child {
@@ -671,6 +682,7 @@ body.grayscale {
     height: 10pt;
     object-fit: contain;
     border-radius: 0;
+    pointer-events: none;
 }
 
 .higher-level-plus {
@@ -707,6 +719,7 @@ body.use-inline-text .inline-icon-wrapper .inline-icon-alt {
     height: 100%;
     width: 100%;
     border-radius: 0;
+    pointer-events: none;
 }
 
 .dice-formula {
@@ -751,4 +764,5 @@ body.use-inline-text .inline-icon-wrapper .inline-icon-alt {
     margin-right: 0.5em;
     transform: translateY(0.25em);
     border-radius: 0;
+    pointer-events: none;
 }

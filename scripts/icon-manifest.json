@@ -967,6 +967,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-line",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-cone",
       "fg": "ffffff",
       "bg": "ffffff"
@@ -982,7 +987,7 @@
       "bg": "ffffff"
     },
     {
-      "icon": "icon-emanation",
+      "icon": "icon-sphere",
       "fg": "ffffff",
       "bg": "ffffff"
     },
@@ -992,22 +997,17 @@
       "bg": "ffffff"
     },
     {
-      "icon": "icon-line",
-      "fg": "ffffff",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "icon-sphere",
-      "fg": "ffffff",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "icon-square",
+      "icon": "icon-emanation",
       "fg": "ffffff",
       "bg": "ffffff"
     },
     {
       "icon": "icon-circle",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-square",
       "fg": "ffffff",
       "bg": "ffffff"
     },
@@ -2292,17 +2292,12 @@
       "bg": "ffffff"
     },
     {
-      "icon": "icon-emanation",
-      "fg": "333333",
-      "bg": "ffffff"
-    },
-    {
       "icon": "icon-hemisphere",
       "fg": "333333",
       "bg": "ffffff"
     },
     {
-      "icon": "icon-wall",
+      "icon": "icon-emanation",
       "fg": "333333",
       "bg": "ffffff"
     },
@@ -2313,6 +2308,11 @@
     },
     {
       "icon": "icon-square",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wall",
       "fg": "333333",
       "bg": "ffffff"
     },
