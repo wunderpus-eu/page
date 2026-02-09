@@ -834,6 +834,16 @@ body.grayscale {
     padding-top: 0.5pt;
 }
 
+/* Back: line and plus need different offsets (layout differs from front) */
+.card-body.back .spell-higher-level-text::before {
+    right: -3pt;
+}
+
+.card-body.back .higher-level-circle {
+    left: -8.5pt;
+    top: -5pt;
+}
+
 .inline-icon-wrapper {
     display: inline-block;
     vertical-align: middle;

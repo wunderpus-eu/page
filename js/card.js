@@ -1064,11 +1064,266 @@ const CARD_BODY_BASE_FONT_PT = 7;
 const CARD_BODY_MIN_FONT_PT = 5.5;
 const CARD_BODY_FONT_STEP_PT = 0.5;
 
+/** Max height (pt) for the "at higher levels" block on the front; excess is moved to the back by paragraph. */
+const HIGHER_LEVEL_FRONT_MAX_HEIGHT_PT = 60;
+
+/**
+ * If the front higher-level text overflows HIGHER_LEVEL_FRONT_MAX_HEIGHT_PT, creates or reuses the back,
+ * adds a higher-level block on the back, and moves paragraphs from the end of the front to the back until the front fits.
+ * @param {SpellCard} spellCard
+ * @param {HTMLElement|null} measureContainer
+ * @param {HTMLElement|null} existingBackCardContainer - Back already created for description overflow, or null
+ * @returns {Promise<boolean>} true if a back was created or used for higher-level split
+ */
+async function splitHigherLevelIfNeeded(spellCard, measureContainer, existingBackCardContainer) {
+    const card = spellCard.frontElement;
+    const cardBody = card?.querySelector(".card-body");
+    const frontHigherLevel = cardBody?.querySelector(".spell-higher-level-text");
+    if (!frontHigherLevel) return false;
+
+    /* Reserve space for measurement: flex layout gives description all space, so set min-height
+       to force the higher-level block to get at least this much space before checking overflow. */
+    frontHigherLevel.style.minHeight = `${HIGHER_LEVEL_FRONT_MAX_HEIGHT_PT}pt`;
+    frontHigherLevel.style.maxHeight = `${HIGHER_LEVEL_FRONT_MAX_HEIGHT_PT}pt`;
+    frontHigherLevel.style.overflow = "hidden";
+    void frontHigherLevel.offsetHeight;
+    if (frontHigherLevel.scrollHeight <= frontHigherLevel.clientHeight) {
+        frontHigherLevel.style.minHeight = "";
+        frontHigherLevel.style.maxHeight = "";
+        frontHigherLevel.style.overflow = "";
+        return false;
+    }
+
+    const foregroundColor = spellCard.foregroundColor || getSpellSchoolColor(spellCard.spell);
+    const backgroundColor = spellCard.backgroundColor || "white";
+    const schoolColor = getSpellSchoolColor(spellCard.spell);
+
+    let backCardContainer = existingBackCardContainer;
+    let backCardBody;
+
+    if (backCardContainer) {
+        backCardBody = backCardContainer.querySelector(".card-body.back");
+    } else {
+        backCardContainer = document.createElement("div");
+        backCardContainer.className = "spell-card";
+        backCardContainer.dataset.cardId = spellCard.id;
+        backCardContainer.dataset.spellName = spellCard.spell.name;
+        backCardContainer.style.backgroundColor = spellCard.backgroundColor;
+        const back = document.createElement("div");
+        back.className = "spell-card-back";
+        backCardBody = document.createElement("div");
+        backCardBody.className = "card-body back";
+        backCardBody.style.setProperty("--back-border-color", schoolColor);
+        const cs = cardBody && getComputedStyle(cardBody);
+        if (cs) {
+            backCardBody.style.fontSize = cs.fontSize;
+            backCardBody.style.lineHeight = cs.lineHeight;
+        }
+        back.appendChild(backCardBody);
+        backCardContainer.appendChild(back);
+        if (measureContainer) measureContainer.appendChild(backCardContainer);
+        spellCard.backElement = backCardContainer;
+    }
+
+    /* Ensure description container exists (empty when only higher-level split); flex-grow pushes higher-level down */
+    ensureBackDescriptionText(backCardBody);
+
+    const backHigherLevel = document.createElement("div");
+    backHigherLevel.className = "spell-higher-level-text";
+    backHigherLevel.style.setProperty("--higher-level-line-color", foregroundColor);
+    const circle = document.createElement("img");
+    circle.src = await load_icon("chip-plus", foregroundColor, backgroundColor);
+    circle.className = "higher-level-circle";
+    backHigherLevel.appendChild(circle);
+    const plus = document.createElement("span");
+    plus.className = "higher-level-plus";
+    plus.textContent = "+";
+    circle.appendChild(plus);
+    backCardBody.appendChild(backHigherLevel);
+
+    while (
+        frontHigherLevel.scrollHeight > frontHigherLevel.clientHeight &&
+        frontHigherLevel.children.length > 2
+    ) {
+        const lastContentNode = frontHigherLevel.lastChild;
+        frontHigherLevel.removeChild(lastContentNode);
+        backHigherLevel.insertBefore(lastContentNode, backHigherLevel.children[1] || null);
+        void frontHigherLevel.offsetHeight;
+    }
+
+    /* If we didn't move any content (e.g. only one paragraph and it stayed on front), don't add back block or flip icon */
+    if (backHigherLevel.children.length <= 1) {
+        backCardBody.removeChild(backHigherLevel);
+        if (!existingBackCardContainer) {
+            if (measureContainer && spellCard.backElement?.parentNode === measureContainer) {
+                measureContainer.removeChild(spellCard.backElement);
+            }
+            spellCard.backElement = null;
+        }
+        frontHigherLevel.style.minHeight = "";
+        frontHigherLevel.style.maxHeight = "";
+        frontHigherLevel.style.overflow = "";
+        return false;
+    }
+
+    /* Add flip icon to last paragraph in higher-level text (whether or not description also has one) */
+    let lastTextBlock = frontHigherLevel.lastElementChild;
+    while (
+        lastTextBlock &&
+        (lastTextBlock.tagName === "TABLE" || lastTextBlock.classList?.contains("spell-table"))
+    ) {
+        lastTextBlock = lastTextBlock.previousElementSibling;
+    }
+    let insertTarget = null;
+    if (lastTextBlock) {
+        if (lastTextBlock.tagName === "UL" || lastTextBlock.tagName === "OL") {
+            const lastLi = lastTextBlock.lastElementChild;
+            insertTarget = lastLi || lastTextBlock;
+        } else {
+            insertTarget = lastTextBlock;
+        }
+    }
+    if (insertTarget) {
+        insertTarget.appendChild(document.createTextNode(" "));
+        const arrow = document.createElement("i");
+        arrow.className = "fa-solid fa-circle-arrow-right";
+        arrow.style.color = schoolColor;
+        arrow.setAttribute("aria-hidden", "true");
+        insertTarget.appendChild(arrow);
+    }
+
+    frontHigherLevel.style.minHeight = "";
+    frontHigherLevel.style.overflow = ""; /* only needed for measurement; keep maxHeight for constraint */
+    return true;
+}
+
+/**
+ * Restores higher-level content from back to front so it can be re-checked at a new font size.
+ * @param {HTMLElement|null} backCardContainer
+ * @param {HTMLElement} cardBody
+ */
+function restoreHigherLevelToFront(backCardContainer, cardBody) {
+    if (!backCardContainer) return;
+    const backHigherLevel = backCardContainer.querySelector(".spell-higher-level-text");
+    const frontHigherLevel = cardBody?.querySelector(".spell-higher-level-text");
+    if (!backHigherLevel || !frontHigherLevel) return;
+    for (const el of Array.from(backHigherLevel.children).slice(1)) {
+        frontHigherLevel.appendChild(el);
+    }
+    backHigherLevel.parentNode?.removeChild(backHigherLevel);
+}
+
+/**
+ * Restores description content from back to front.
+ * @param {HTMLElement|null} backDescriptionText
+ * @param {HTMLElement} descriptionText
+ */
+function restoreDescriptionToFront(backDescriptionText, descriptionText) {
+    if (!backDescriptionText) return;
+    for (const el of Array.from(backDescriptionText.children)) {
+        descriptionText.appendChild(el);
+    }
+}
+
+/**
+ * Ensures the back has a description-text element (inserted before higher-level if any). Returns it.
+ * @param {HTMLElement} backCardBody
+ * @returns {HTMLElement}
+ */
+function ensureBackDescriptionText(backCardBody) {
+    let el = backCardBody.querySelector(".description-text");
+    if (el) return el;
+    el = document.createElement("div");
+    el.className = "description-text";
+    backCardBody.insertBefore(el, backCardBody.firstChild);
+    return el;
+}
+
+/**
+ * Distributes overflowing description to the back. Adds flip icon to last block on front.
+ * @param {HTMLElement} descriptionText
+ * @param {HTMLElement} backDescriptionText
+ * @param {function(HTMLElement): boolean} isOverflowing
+ * @param {string} schoolColor
+ */
+function distributeDescriptionToBack(descriptionText, backDescriptionText, isOverflowing, schoolColor) {
+    const descriptionElements = Array.from(descriptionText.children);
+    while (isOverflowing(descriptionText) && descriptionElements.length > 0) {
+        const elementToMove = descriptionElements.pop();
+        if (elementToMove.tagName === "UL" || elementToMove.tagName === "OL") {
+            const tagName = elementToMove.tagName;
+            const existingBackList =
+                backDescriptionText.firstChild &&
+                backDescriptionText.firstChild.tagName === tagName &&
+                backDescriptionText.firstChild.className === "spell-description-list"
+                    ? backDescriptionText.firstChild
+                    : null;
+            backDescriptionText.prepend(elementToMove);
+            const lastFront = descriptionText.lastChild;
+            const frontList =
+                lastFront &&
+                lastFront.tagName === tagName &&
+                lastFront.className === "spell-description-list"
+                    ? lastFront
+                    : (() => {
+                          const list = document.createElement(tagName);
+                          list.className = "spell-description-list";
+                          descriptionText.appendChild(list);
+                          return list;
+                      })();
+            while (elementToMove.firstChild) {
+                const li = elementToMove.firstChild;
+                frontList.appendChild(li);
+                if (isOverflowing(descriptionText)) {
+                    elementToMove.prepend(li);
+                    break;
+                }
+            }
+            if (existingBackList) {
+                while (elementToMove.firstChild) {
+                    existingBackList.appendChild(elementToMove.firstChild);
+                }
+                backDescriptionText.removeChild(elementToMove);
+            } else if (!elementToMove.firstChild) {
+                backDescriptionText.removeChild(elementToMove);
+            }
+        } else {
+            backDescriptionText.prepend(elementToMove);
+        }
+    }
+    let lastTextBlock = descriptionText.lastElementChild;
+    while (
+        lastTextBlock &&
+        (lastTextBlock.tagName === "TABLE" || lastTextBlock.classList?.contains("spell-table"))
+    ) {
+        lastTextBlock = lastTextBlock.previousElementSibling;
+    }
+    let insertTarget = null;
+    if (lastTextBlock) {
+        if (lastTextBlock.tagName === "UL" || lastTextBlock.tagName === "OL") {
+            const lastLi = lastTextBlock.lastElementChild;
+            insertTarget = lastLi || lastTextBlock;
+        } else {
+            insertTarget = lastTextBlock;
+        }
+    }
+    if (insertTarget) {
+        descriptionText.querySelectorAll(".fa-circle-arrow-right").forEach((el) => el.remove());
+        insertTarget.appendChild(document.createTextNode(" "));
+        const arrow = document.createElement("i");
+        arrow.className = "fa-solid fa-circle-arrow-right";
+        arrow.style.color = schoolColor;
+        arrow.setAttribute("aria-hidden", "true");
+        insertTarget.appendChild(arrow);
+    }
+}
+
 /**
  * If the description overflows, creates a back card and moves content there.
- * Decreases font size by small steps from base to min until content fits (front only or front+back).
+ * Phase 1: Try to fit on front by reducing font; never create a back for description overflow.
+ * Phase 2: Create back for description, reset font to base, reduce until front+back fit.
  * Bulleted/numbered lists can split across front and back.
- * Runs only when a card is rendered (card must be in DOM for measurement).
+ * Higher-level text is fit and distributed first at each font size.
  *
  * @param {SpellCard} spellCard
  * @param {HTMLElement} measureContainer - Parent for measuring (e.g. off-screen div)
@@ -1079,9 +1334,7 @@ async function handleOverflow(spellCard, measureContainer) {
     const cardBody = card.querySelector(".card-body");
     const descriptionText = card.querySelector(".description-text");
 
-    if (!cardBody || !descriptionText) {
-        return null;
-    }
+    if (!cardBody || !descriptionText) return null;
 
     const componentText = card.querySelector(".spell-component-text");
     const schoolColor = getSpellSchoolColor(spell);
@@ -1100,158 +1353,108 @@ async function handleOverflow(spellCard, measureContainer) {
         }
     }
 
-    function clearFontSize() {
-        cardBody.style.fontSize = "";
-        cardBody.style.lineHeight = "";
-        if (componentText) {
-            componentText.style.fontSize = "";
-            componentText.style.lineHeight = "";
-        }
-    }
-
-    // Try smaller font sizes until content fits on front only
+    // Phase 1: Try to fit everything on front by reducing font. Never create a back for description overflow.
     for (let pt = CARD_BODY_BASE_FONT_PT; pt >= CARD_BODY_MIN_FONT_PT; pt -= CARD_BODY_FONT_STEP_PT) {
+        const backCardContainer = spellCard.backElement;
+
+        restoreHigherLevelToFront(backCardContainer, cardBody);
+        if (backCardContainer) {
+            const backDescriptionText = backCardContainer.querySelector(".description-text");
+            restoreDescriptionToFront(backDescriptionText, descriptionText);
+            const backBody = backCardContainer.querySelector(".card-body.back");
+            if (backBody && !backBody.querySelector(".spell-higher-level-text") && !backBody.querySelector(".description-text")?.children.length) {
+                if (measureContainer && backCardContainer.parentNode === measureContainer) {
+                    measureContainer.removeChild(backCardContainer);
+                }
+                spellCard.backElement = null;
+            }
+        }
+
         applyFontSize(pt);
-        void descriptionText.offsetHeight; // force reflow so scrollHeight/clientHeight reflect new font
-        if (!isOverflowing(descriptionText)) {
-            // Leave reduced font applied so the card actually fits (do not clearFontSize)
-            return null;
-        }
-    }
-
-    // Still overflows at min font; create back and distribute content
-    const backCardContainer = document.createElement("div");
-    backCardContainer.className = "spell-card";
-    backCardContainer.dataset.cardId = spellCard.id;
-    backCardContainer.dataset.spellName = spell.name;
-    backCardContainer.style.backgroundColor = spellCard.backgroundColor;
-
-    const back = document.createElement("div");
-    back.className = "spell-card-back";
-
-    const backCardBody = document.createElement("div");
-    backCardBody.className = "card-body back";
-    backCardBody.style.setProperty("--back-border-color", schoolColor);
-    back.appendChild(backCardBody);
-
-    const backDescriptionText = document.createElement("div");
-    backDescriptionText.className = "description-text";
-    backCardBody.appendChild(backDescriptionText);
-
-    backCardContainer.appendChild(back);
-
-    if (measureContainer) {
-        measureContainer.appendChild(backCardContainer);
-    }
-
-    // Try each font size from base down to min until front+back both fit
-    for (let pt = CARD_BODY_BASE_FONT_PT; pt >= CARD_BODY_MIN_FONT_PT; pt -= CARD_BODY_FONT_STEP_PT) {
-        const s = `${pt}pt`;
-        cardBody.style.fontSize = s;
-        cardBody.style.lineHeight = s;
-        if (componentText) {
-            componentText.style.fontSize = s;
-            componentText.style.lineHeight = s;
-        }
-        backCardBody.style.fontSize = s;
-        backCardBody.style.lineHeight = s;
-
-        // Restore any content from a previous attempt: move everything from back to front (same order as back = correct reading order)
-        for (const el of Array.from(backDescriptionText.children)) {
-            descriptionText.appendChild(el);
-        }
-
-        void descriptionText.offsetHeight; // force reflow so overflow check reflects current font and content
-
-        const descriptionElements = Array.from(descriptionText.children);
-
-        while (
-            isOverflowing(descriptionText) &&
-            descriptionElements.length > 0
-        ) {
-            const elementToMove = descriptionElements.pop();
-
-            if (elementToMove.tagName === "UL" || elementToMove.tagName === "OL") {
-                const tagName = elementToMove.tagName;
-                const existingBackList =
-                    backDescriptionText.firstChild &&
-                    backDescriptionText.firstChild.tagName === tagName &&
-                    backDescriptionText.firstChild.className === "spell-description-list"
-                        ? backDescriptionText.firstChild
-                        : null;
-                backDescriptionText.prepend(elementToMove);
-                const lastFront = descriptionText.lastChild;
-                const frontList =
-                    lastFront &&
-                    lastFront.tagName === tagName &&
-                    lastFront.className === "spell-description-list"
-                        ? lastFront
-                        : (() => {
-                              const list = document.createElement(tagName);
-                              list.className = "spell-description-list";
-                              descriptionText.appendChild(list);
-                              return list;
-                          })();
-                while (elementToMove.firstChild) {
-                    const li = elementToMove.firstChild;
-                    frontList.appendChild(li);
-                    if (isOverflowing(descriptionText)) {
-                        elementToMove.prepend(li);
-                        break;
-                    }
-                }
-                if (existingBackList) {
-                    while (elementToMove.firstChild) {
-                        existingBackList.appendChild(elementToMove.firstChild);
-                    }
-                    backDescriptionText.removeChild(elementToMove);
-                } else if (!elementToMove.firstChild) {
-                    backDescriptionText.removeChild(elementToMove);
-                }
-            } else {
-                backDescriptionText.prepend(elementToMove);
+        if (spellCard.backElement) {
+            const backCardBody = spellCard.backElement.querySelector(".card-body.back");
+            if (backCardBody) {
+                backCardBody.style.fontSize = cardBody.style.fontSize;
+                backCardBody.style.lineHeight = cardBody.style.lineHeight;
             }
         }
+        void descriptionText.offsetHeight;
 
-        if (!isOverflowing(backCardBody)) {
-            let lastTextBlock = descriptionText.lastElementChild;
-            while (
-                lastTextBlock &&
-                (lastTextBlock.tagName === "TABLE" || lastTextBlock.classList?.contains("spell-table"))
-            ) {
-                lastTextBlock = lastTextBlock.previousElementSibling;
-            }
-            let insertTarget = null;
-            if (lastTextBlock) {
-                if (lastTextBlock.tagName === "UL" || lastTextBlock.tagName === "OL") {
-                    const lastLi = lastTextBlock.lastElementChild;
-                    insertTarget = lastLi || lastTextBlock;
-                } else {
-                    insertTarget = lastTextBlock;
-                }
-            }
-            if (insertTarget) {
-                insertTarget.appendChild(document.createTextNode(" "));
-                const arrow = document.createElement("i");
-                arrow.className = "fa-solid fa-circle-arrow-right";
-                arrow.style.color = schoolColor;
-                arrow.setAttribute("aria-hidden", "true");
-                insertTarget.appendChild(arrow);
-            }
+        await splitHigherLevelIfNeeded(spellCard, measureContainer, null);
 
-            if (measureContainer) {
-                measureContainer.removeChild(backCardContainer);
-            }
+        if (isOverflowing(descriptionText) && spellCard.backElement) {
+            const backCardBody = spellCard.backElement.querySelector(".card-body.back");
+            const backDescriptionText = ensureBackDescriptionText(backCardBody);
+            distributeDescriptionToBack(descriptionText, backDescriptionText, isOverflowing, schoolColor);
+        }
 
-            spellCard.backElement = backCardContainer;
+        const bc = spellCard.backElement;
+        const fits =
+            !isOverflowing(descriptionText) &&
+            (!bc || !isOverflowing(bc.querySelector(".card-body.back")));
+
+        if (fits) {
+            if (measureContainer && bc?.parentNode === measureContainer) {
+                measureContainer.removeChild(bc);
+            }
+            if (bc) spellCard.backElement = bc;
             return;
         }
     }
 
-    if (measureContainer) {
-        measureContainer.removeChild(backCardContainer);
+    // Phase 2: Create back for description, reset font to base, reduce until front+back fit.
+    let backContainer = spellCard.backElement;
+    if (!backContainer) {
+        backContainer = document.createElement("div");
+        backContainer.className = "spell-card";
+        backContainer.dataset.cardId = spellCard.id;
+        backContainer.dataset.spellName = spell.name;
+        backContainer.style.backgroundColor = spellCard.backgroundColor;
+        const back = document.createElement("div");
+        back.className = "spell-card-back";
+        const backBodyEl = document.createElement("div");
+        backBodyEl.className = "card-body back";
+        backBodyEl.style.setProperty("--back-border-color", schoolColor);
+        const backDescEl = document.createElement("div");
+        backDescEl.className = "description-text";
+        backBodyEl.appendChild(backDescEl);
+        back.appendChild(backBodyEl);
+        backContainer.appendChild(back);
+        if (measureContainer) measureContainer.appendChild(backContainer);
+        spellCard.backElement = backContainer;
     }
-    spellCard.backElement = backCardContainer;
+
+    const backCardBody = backContainer.querySelector(".card-body.back");
+    const backDescriptionText = ensureBackDescriptionText(backCardBody);
+
+    for (let pt = CARD_BODY_BASE_FONT_PT; pt >= CARD_BODY_MIN_FONT_PT; pt -= CARD_BODY_FONT_STEP_PT) {
+        restoreHigherLevelToFront(backContainer, cardBody);
+        restoreDescriptionToFront(backDescriptionText, descriptionText);
+
+        applyFontSize(pt);
+        backCardBody.style.fontSize = cardBody.style.fontSize;
+        backCardBody.style.lineHeight = cardBody.style.lineHeight;
+        void descriptionText.offsetHeight;
+
+        await splitHigherLevelIfNeeded(spellCard, measureContainer, backContainer);
+
+        if (isOverflowing(descriptionText)) {
+            distributeDescriptionToBack(descriptionText, backDescriptionText, isOverflowing, schoolColor);
+        }
+
+        if (!isOverflowing(backCardBody)) {
+            if (measureContainer && backContainer.parentNode === measureContainer) {
+                measureContainer.removeChild(backContainer);
+            }
+            spellCard.backElement = backContainer;
+            return;
+        }
+    }
+
+    if (measureContainer && backContainer.parentNode === measureContainer) {
+        measureContainer.removeChild(backContainer);
+    }
+    spellCard.backElement = backContainer;
     return;
 }
 
