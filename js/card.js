@@ -321,7 +321,7 @@ export function spellToExportFormat(spell) {
 function render_spell_level(spell, computedColor) {
     const outerCircle = document.createElement("div");
     outerCircle.className = "spell-level-outer-circle";
-    outerCircle.style.borderColor = computedColor;
+    outerCircle.style.setProperty("--border-color", computedColor);
     outerCircle.style.backgroundColor = computedColor;
 
     const spellLevel = spell.level;
@@ -360,7 +360,7 @@ function render_casting_time(spell, foregroundColor, backgroundColor) {
     const castingTimeContainer = document.createElement("div");
     castingTimeContainer.className = "spell-casting-time";
     castingTimeContainer.style.backgroundColor = foregroundColor;
-    castingTimeContainer.style.borderColor = backgroundColor;
+    castingTimeContainer.style.setProperty("--border-color", backgroundColor);
     castingTimeWrapper.appendChild(castingTimeContainer);
 
     if (spell.time) {
@@ -969,7 +969,7 @@ async function render_higher_level_text(
 
     const line = document.createElement("div");
     line.className = "higher-level-line";
-    line.style.borderColor = foregroundColor;
+    line.style.backgroundColor = foregroundColor;
     higherLevelTextContainer.appendChild(line);
 
     const circle = document.createElement("img");
@@ -1117,7 +1117,7 @@ async function handleOverflow(spellCard, measureContainer, fontLevel = 0) {
 
         const backCardBody = document.createElement("div");
         backCardBody.className = "card-body back";
-        backCardBody.style.borderColor = getSpellSchoolColor(spell);
+        backCardBody.style.setProperty("--back-border-color", getSpellSchoolColor(spell));
         back.appendChild(backCardBody);
 
         const backDescriptionText = document.createElement("div");

@@ -320,7 +320,6 @@ body.grayscale {
     width: 33pt;
     height: 33pt;
     box-sizing: border-box;
-    border: 1pt solid;
     border-radius: 50%;
     padding: 2pt;
     display: flex;
@@ -328,6 +327,12 @@ body.grayscale {
     align-items: center;
     background-clip: content-box;
     flex-shrink: 0;
+    position: relative;
+    /* Use box-shadow to create white gap ring and colored outer border ring.
+       Slight overlap (2.2pt) so inner edge of color doesn’t align with white edge. */
+    box-shadow:
+        0 0 0 1pt white,
+        0 0 0 2pt var(--border-color, currentColor);
 }
 
 .spell-level-text {
@@ -373,13 +378,14 @@ body.grayscale {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 1; /* Above spell level circle when overlapping */
 }
 
 .spell-casting-time {
-    height: 17pt;
+    height: 15pt; /* Match spell-range and spell-duration height */
     line-height: 15pt;
     padding: 0 4pt;
-    border: 1pt solid;
     border-radius: var(--casting-time-size);
     color: white;
     font-weight: bold;
@@ -387,10 +393,12 @@ body.grayscale {
     box-sizing: border-box;
     background-clip: padding-box;
     text-align: center;
+    /* Use box-shadow for white border around colored casting time */
+    box-shadow: 0 0 0 1pt var(--border-color, white);
 }
 
 .spell-casting-time.is-circular {
-    width: 17pt;
+    width: 15pt; /* Match height for a perfect circle */
     padding: 0;
 }
 
@@ -561,9 +569,10 @@ body.grayscale {
 
 .card-body.back {
     margin: 0;
-    border: 1pt solid;
-    border: 1pt solid var(--card-border-color);
     color: var(--font-color);
+    background-color: white;
+    /* Border in spell-school color (set via --back-border-color in JS) */
+    box-shadow: inset 0 0 0 1pt var(--back-border-color, var(--card-border-color));
 }
 
 .spell-condition-text {
@@ -671,7 +680,9 @@ body.grayscale {
     top: 0;
     left: -7pt;
     right: -5pt;
-    border-top: 1pt solid;
+    height: 1pt;
+    background-color: currentColor;
+    /* Use filled div instead of border-top for consistent rendering */
 }
 
 .higher-level-circle {

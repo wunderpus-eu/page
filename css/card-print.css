@@ -28,3 +28,7 @@ header {
 .spell-casting-time {
     background-clip: border-box !important;
 }
+
+/* Note: Borders for spell-level-outer-circle, spell-casting-time, and card-body.back
+   are now rendered as pseudo-elements (::before) instead of CSS borders for consistent
+   rendering across browsers and in print. See card.css for implementation. */
