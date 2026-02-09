@@ -1597,6 +1597,22 @@ export async function createGlossaryCard() {
 
     const allColumns = [...frontColumns, ...backColumns];
 
+    // Collect all items with their icon loading promises for parallel loading
+    const allItems = [];
+    for (const section of glossaryData) {
+        for (const item of section.items) {
+            allItems.push({
+                item,
+                iconPromise: load_icon(item.icon, iconColor, "white"),
+            });
+        }
+    }
+    
+    // Load all icons in parallel (all HTTP requests happen simultaneously)
+    const iconUrls = await Promise.all(allItems.map((entry) => entry.iconPromise));
+    
+    // Build DOM structure with pre-loaded icons
+    let itemIndex = 0;
     for (let i = 0; i < allColumns.length; i++) {
         const column = allColumns[i];
         const sections = columnLayout[i];
@@ -1615,13 +1631,14 @@ export async function createGlossaryCard() {
                     itemDiv.className = "glossary-item";
 
                     const icon = document.createElement("img");
-                    icon.src = await load_icon(item.icon, iconColor, "white");
+                    icon.src = iconUrls[itemIndex];
                     itemDiv.appendChild(icon);
 
                     const text = document.createElement("span");
                     text.textContent = item.text;
                     itemDiv.appendChild(text);
                     sectionDiv.appendChild(itemDiv);
+                    itemIndex++;
                 }
                 column.appendChild(sectionDiv);
             }
