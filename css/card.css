@@ -87,22 +87,7 @@
     text-align: right;
 }
 
-/* SRD source shown by default; full source when vault is open */
-.spell-source-text .source-srd {
-    display: block;
-}
-.spell-source-text .source-full {
-    display: none;
-}
-.spell-source-text:not(:has(.source-srd)) .source-full {
-    display: block;
-}
-body.vault-open .spell-source-text .source-srd {
-    display: none;
-}
-body.vault-open .spell-source-text .source-full {
-    display: block;
-}
+/* Source is displayed directly from spell.source via SOURCE_MAP */
 
 /* Spell-cards page: overscroll matches light grey (layout in style.css) */
 html.spell-cards-page {
@@ -349,22 +334,7 @@ body.grayscale {
     min-height: 26pt;
 }
 
-/* SRD name shown by default; real name when vault is open (body.vault-open) */
-.spell-name-srd {
-    display: block;
-}
-.spell-name-real {
-    display: none;
-}
-.spell-name-container:not(:has(.spell-name-srd)) .spell-name-real {
-    display: block;
-}
-body.vault-open .spell-name-srd {
-    display: none;
-}
-body.vault-open .spell-name-real {
-    display: block;
-}
+/* Spell name is displayed directly from spell.name (WYSIWYG) */
 
 .spell-card h3 {
     margin-top: 0;

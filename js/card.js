@@ -339,25 +339,14 @@ function render_spell_level(spell, computedColor) {
     return outerCircle;
 }
 
-/** Renders the spell name heading. Outputs both real and SRD name when present; CSS (body.vault-open) controls which is visible. */
+/** Renders the spell name heading. Shows the spell name as stored in the data (WYSIWYG). */
 function render_spell_name(spell) {
     const spellNameContainer = document.createElement("div");
     spellNameContainer.className = "spell-name-container";
 
     const spellNameElement = document.createElement("h3");
     spellNameElement.className = "spell-name";
-
-    const realSpan = document.createElement("span");
-    realSpan.className = "spell-name-real";
-    realSpan.textContent = spell.name;
-    spellNameElement.appendChild(realSpan);
-
-    if (typeof spell.isSRD === "string") {
-        const srdSpan = document.createElement("span");
-        srdSpan.className = "spell-name-srd";
-        srdSpan.textContent = spell.isSRD;
-        spellNameElement.appendChild(srdSpan);
-    }
+    spellNameElement.textContent = spell.name;
 
     spellNameContainer.appendChild(spellNameElement);
     return spellNameContainer;
@@ -869,25 +858,12 @@ async function render_class_icons(spell, foregroundColor, backgroundColor) {
     return classIconsContainer;
 }
 
-/** Renders the spell source. For SRD spells, outputs "SRD" and full source; CSS (body.vault-open) controls which is visible. */
+/** Renders the spell source. Shows the actual source (PHB/XPHB) mapped to display name (PHB'14/PHB'24). */
 function render_spell_source(spell, foregroundColor) {
     const wrapper = document.createElement("div");
     wrapper.className = "spell-source-text";
     wrapper.style.color = foregroundColor;
-
-    const fullSource = SOURCE_MAP[spell.source] || spell.source;
-    const fullSpan = document.createElement("span");
-    fullSpan.className = "source-full";
-    fullSpan.textContent = fullSource;
-    wrapper.appendChild(fullSpan);
-
-    if (spell.isSRD) {
-        const srdSpan = document.createElement("span");
-        srdSpan.className = "source-srd";
-        srdSpan.textContent = "SRD";
-        wrapper.appendChild(srdSpan);
-    }
-
+    wrapper.textContent = SOURCE_MAP[spell.source] || spell.source;
     return wrapper;
 }
 
@@ -1454,6 +1430,9 @@ export class SpellCard {
             makeIconButton("pen-to-square", "Edit", "card-edit"),
         ];
         if (this.spell._modified && this.originalId != null) {
+            buttons.push(
+                makeIconButton("download", "Download spell JSON", "card-download")
+            );
             buttons.push(
                 makeIconButton("arrow-rotate-left", "Reset to original", "card-reset")
             );

@@ -575,7 +575,15 @@ document.addEventListener("DOMContentLoaded", async () => {
      * @param {{ skipLayout?: boolean }} [opts] - If skipLayout: true, do not call refreshLayout (caller will refresh once)
      */
     async function addCard(spellData, originalSpell, opts = {}) {
-        const card = new SpellCard(spellData);
+        // Transform spell data in SRD mode: use SRD name if available
+        const dataToUse = cloneSpellData(spellData);
+        if (onlySRD && typeof dataToUse.isSRD === "string") {
+            // Use SRD name for the card (WYSIWYG: what you see is what you get)
+            dataToUse.name = dataToUse.isSRD;
+            // Ensure isSRD is boolean (not string) in card data
+            dataToUse.isSRD = true;
+        }
+        const card = new SpellCard(dataToUse);
         if (originalSpell) card.originalId = originalSpell.id;
         await card.render({ measureContainer });
         cardList.push(card);
@@ -767,6 +775,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Name
         const nameInp = editCardForm.querySelector("#edit-name");
         if (nameInp) nameInp.value = spell.name ?? "";
+
+        // Subtitle
+        const subtitleInp = editCardForm.querySelector("#edit-subtitle");
+        if (subtitleInp) subtitleInp.value = spell.subtitle ?? "";
 
         // Level
         const levelSel = editCardForm.querySelector("#edit-level");
@@ -1405,6 +1417,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             nameInp.addEventListener("input", () => updateEditPreview());
         }
 
+        // Subtitle handler
+        const subtitleInp = editCardForm.querySelector("#edit-subtitle");
+        if (subtitleInp) {
+            subtitleInp.addEventListener("wa-input", () => updateEditPreview());
+            subtitleInp.addEventListener("input", () => updateEditPreview());
+        }
+
         // Classes handlers are set up dynamically when classes are populated
     }
     
@@ -1529,6 +1548,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Read form values - Web Awesome wa-select components expose .value property directly
         spell.name =
             editCardForm.querySelector("#edit-name")?.value ?? spell.name;
+        spell.subtitle =
+            editCardForm.querySelector("#edit-subtitle")?.value ?? spell.subtitle ?? "";
         const levelSelect = editCardForm.querySelector("#edit-level");
         const levelValStr = levelSelect?.value ?? "0";
         const levelVal = parseInt(levelValStr, 10);
@@ -2703,7 +2724,14 @@ window.onafterprint = function() {
             (c) => c instanceof SpellCard && c.spell._modified
         );
         if (modified.length === 0) return;
-        const data = modified.map((c) => spellToExportFormat(c.spell));
+        const data = modified.map((c) => {
+            const spell = spellToExportFormat(c.spell);
+            // Ensure isSRD is only true/false (not string)
+            if (spell.isSRD) {
+                spell.isSRD = true;
+            }
+            return spell;
+        });
         const blob = new Blob([JSON.stringify(data, null, 2)], {
             type: "application/json",
         });
@@ -2856,6 +2884,39 @@ window.onafterprint = function() {
         event.stopPropagation();
         disableOnlySrdAndToast();
     });
+    printableArea.addEventListener("card-download", (event) => {
+        event.stopPropagation();
+        const cardId = event.detail.cardId;
+        const card = cardList.find(
+            (c) => c instanceof SpellCard && c.id === cardId
+        );
+        if (!card || !card.spell._modified) return;
+        
+        // Slugify spell name for filename
+        const slugify = (str) => {
+            return str
+                .toLowerCase()
+                .trim()
+                .replace(/[^\w\s-]/g, '') // Remove special characters
+                .replace(/[\s_-]+/g, '-') // Replace spaces, underscores, multiple hyphens with single hyphen
+                .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+        };
+        
+        const spellData = spellToExportFormat(card.spell);
+        // Ensure isSRD is only true/false (not string)
+        if (spellData.isSRD) {
+            spellData.isSRD = true;
+        }
+        const json = JSON.stringify(spellData, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${slugify(card.spell.name)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
     printableArea.addEventListener("card-reset", (event) => {
         event.stopPropagation();
         const cardId = event.detail.cardId;
