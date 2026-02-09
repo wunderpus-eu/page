@@ -972,6 +972,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-permanent-triggered",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-line",
       "fg": "ffffff",
       "bg": "ffffff"
@@ -2332,12 +2337,22 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-targets",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-duration",
       "fg": "333333",
       "bg": "ffffff"
     },
     {
       "icon": "icon-permanent",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-permanent-triggered",
       "fg": "333333",
       "bg": "ffffff"
     }

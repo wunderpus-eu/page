@@ -105,7 +105,7 @@ export function emptySpellTemplate() {
             type: "timed",
             amount: 1,
             unit: "minute",
-            ends: [],
+            endsOnTrigger: false,
         },
         description: "",
         classes: [],
@@ -509,7 +509,7 @@ async function render_range(spell, foregroundColor, backgroundColor) {
     return rangeContainer;
 }
 
-/** Renders the duration section (timed amount or permanent). */
+/** Renders the duration section (timed amount, permanent, or special). */
 async function render_duration(spell, foregroundColor, backgroundColor) {
     const durationContainer = document.createElement("div");
     durationContainer.className = "spell-duration";
@@ -520,21 +520,26 @@ async function render_duration(spell, foregroundColor, backgroundColor) {
     const durationType = duration.type;
     const durationAmount = duration.amount;
     const durationUnit = duration.unit;
-    const ends = duration.ends || [];
+    const endsOnTrigger =
+        duration.endsOnTrigger === true ||
+        (Array.isArray(duration.ends) && duration.ends.includes("trigger"));
 
-    if (["instant", "special"].includes(durationType)) {
+    if (durationType === "instant") {
         return null;
     }
 
-    const iconName =
-        durationType === "timed" ? "icon-duration" : "icon-permanent";
-    // Duration/permanent icons have no background in SVG, so bg param doesn't matter - use white
-    const iconUrl = await load_icon(iconName, "white", "white");
-    if (iconUrl) {
-        const icon = document.createElement("img");
-        icon.src = iconUrl;
-        icon.className = "spell-duration-icon";
-        durationContainer.appendChild(icon);
+    // Hourglass (timed) icon for all non-instant duration types
+    const hourglassUrl = await load_icon("icon-duration", "white", "white");
+    if (hourglassUrl) {
+        const hourglassImg = document.createElement("img");
+        hourglassImg.src = hourglassUrl;
+        hourglassImg.className = "spell-duration-icon";
+        durationContainer.appendChild(hourglassImg);
+    }
+
+    if (durationType === "special") {
+        durationContainer.appendChild(document.createTextNode("Special"));
+        return durationContainer;
     }
 
     if (durationType === "timed") {
@@ -544,18 +549,22 @@ async function render_duration(spell, foregroundColor, backgroundColor) {
             day: "d",
             round: "Round",
         };
-        let durationText = `${durationAmount} ${
+        const durationText = `${durationAmount} ${
             durationUnitAbbrev[durationUnit] || durationUnit
         }`;
-        const durationSpan = document.createElement("span");
-        durationSpan.textContent = durationText;
-        durationContainer.appendChild(durationSpan);
-    } else {
-        if (ends.includes("trigger")) {
-            const durationSpan = document.createElement("span");
-            durationSpan.textContent = "or Triggered";
-            durationContainer.appendChild(durationSpan);
-        }
+        durationContainer.appendChild(document.createTextNode(durationText));
+        return durationContainer;
+    }
+
+    // Permanent: show permanent icon (triggered variant if ends when triggered)
+    const permanentIcon =
+        endsOnTrigger ? "icon-permanent-triggered" : "icon-permanent";
+    const permUrl = await load_icon(permanentIcon, "white", "white");
+    if (permUrl) {
+        const permImg = document.createElement("img");
+        permImg.src = permUrl;
+        permImg.className = "spell-duration-icon";
+        durationContainer.appendChild(permImg);
     }
 
     return durationContainer;
@@ -1483,10 +1492,12 @@ export async function createGlossaryCard() {
             ],
         },
         {
-            category: "Target & Range",
+            category: "Range",
+            categoryIcon: "icon-range",
             items: [
-                { icon: "icon-range", text: "Generic Target" },
                 { icon: "icon-range-los", text: "Target You Can See" },
+                { icon: "icon-permanent", text: "Unlimited" },
+                { icon: "icon-targets", text: "Number of Targets" },
                 { icon: "icon-line", text: "Line" },
                 { icon: "icon-cone", text: "Cone" },
                 { icon: "icon-cube", text: "Cube" },
@@ -1501,9 +1512,10 @@ export async function createGlossaryCard() {
         },
         {
             category: "Duration",
+            categoryIcon: "icon-duration",
             items: [
-                { icon: "icon-duration", text: "Timed" },
                 { icon: "icon-permanent", text: "Until Dispelled" },
+                { icon: "icon-permanent-triggered", text: "Until Dispelled or Triggered" },
             ],
         },
         {
@@ -1587,13 +1599,22 @@ export async function createGlossaryCard() {
     const iconColor = resolveCssVariable("var(--font-color)");
 
     const columnLayout = {
-        0: [glossaryData[0], glossaryData[1]], // Casting Time, Target & Range
-        1: [glossaryData[2], glossaryData[3], glossaryData[4]], // Duration, Tags, Components
+        0: [glossaryData[0], glossaryData[3], glossaryData[4]], // Casting Time, Tags, Components
+        1: [glossaryData[1], glossaryData[2]], // Range, Duration
         2: [glossaryData[5]], // Damage Types
         3: [glossaryData[6]], // Classes
     };
 
     const allColumns = [...frontColumns, ...backColumns];
+
+    // Load category header icons for sections that have categoryIcon
+    const categoryIconUrls = await Promise.all(
+        glossaryData.map((s) =>
+            s.categoryIcon
+                ? load_icon(s.categoryIcon, iconColor, "white")
+                : Promise.resolve(null)
+        )
+    );
 
     // Collect all items with their icon loading promises for parallel loading
     const allItems = [];
@@ -1605,38 +1626,55 @@ export async function createGlossaryCard() {
             });
         }
     }
-    
-    // Load all icons in parallel (all HTTP requests happen simultaneously)
+
+    // Load all item icons in parallel (iconUrls order matches glossaryData: section 0 items, then section 1 items, ...)
     const iconUrls = await Promise.all(allItems.map((entry) => entry.iconPromise));
-    
-    // Build DOM structure with pre-loaded icons
-    let itemIndex = 0;
+
+    // Start index in iconUrls for each section (glossaryData order)
+    const sectionOffsets = [0];
+    for (let s = 0; s < glossaryData.length; s++) {
+        sectionOffsets.push(sectionOffsets[s] + glossaryData[s].items.length);
+    }
+
+    // Build DOM structure with pre-loaded icons (sections in columnLayout order; icon index by glossaryData position)
     for (let i = 0; i < allColumns.length; i++) {
         const column = allColumns[i];
         const sections = columnLayout[i];
 
         if (sections) {
             for (const section of sections) {
+                const sectionIdx = glossaryData.indexOf(section);
                 const sectionDiv = document.createElement("div");
                 sectionDiv.className = "glossary-section";
 
                 const title = document.createElement("h4");
-                title.textContent = section.category;
+                const categoryIconUrl = categoryIconUrls[sectionIdx];
+                if (categoryIconUrl) {
+                    const titleIcon = document.createElement("img");
+                    titleIcon.src = categoryIconUrl;
+                    titleIcon.className = "glossary-section-title-icon";
+                    title.appendChild(titleIcon);
+                }
+                title.appendChild(document.createTextNode(section.category));
                 sectionDiv.appendChild(title);
 
-                for (const item of section.items) {
+                for (let itemIdx = 0; itemIdx < section.items.length; itemIdx++) {
+                    const item = section.items[itemIdx];
+                    const globalIconIndex = sectionOffsets[sectionIdx] + itemIdx;
                     const itemDiv = document.createElement("div");
                     itemDiv.className = "glossary-item";
 
+                    const iconWrap = document.createElement("div");
+                    iconWrap.className = "glossary-item-icon-wrap";
                     const icon = document.createElement("img");
-                    icon.src = iconUrls[itemIndex];
-                    itemDiv.appendChild(icon);
+                    icon.src = iconUrls[globalIconIndex];
+                    iconWrap.appendChild(icon);
+                    itemDiv.appendChild(iconWrap);
 
                     const text = document.createElement("span");
                     text.textContent = item.text;
                     itemDiv.appendChild(text);
                     sectionDiv.appendChild(itemDiv);
-                    itemIndex++;
                 }
                 column.appendChild(sectionDiv);
             }

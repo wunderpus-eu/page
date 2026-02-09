@@ -107,6 +107,7 @@ function main() {
     // --- Duration/permanent: white foreground only (no background in SVG, so bg doesn't matter)
     icons.push({ icon: "icon-duration", fg: "ffffff", bg: BG_WHITE });
     icons.push({ icon: "icon-permanent", fg: "ffffff", bg: BG_WHITE });
+    icons.push({ icon: "icon-permanent-triggered", fg: "ffffff", bg: BG_WHITE });
     // --- Area icons: white foreground only (no background in SVG, so bg doesn't matter)
     // Area icons are stroke-only with transparent backgrounds. Background color has no effect.
     // Generate one variant per area icon (white fg, white bg) - the bg value doesn't matter since SVG has no background.
@@ -135,7 +136,7 @@ function main() {
     }
 
     // --- Glossary card: icons not in INLINE_ICONS but used with (font-color, white) in createGlossaryCard
-    const GLOSSARY_ICONS = ["icon-range", "icon-range-los", "icon-duration", "icon-permanent"];
+    const GLOSSARY_ICONS = ["icon-range", "icon-range-los", "icon-targets", "icon-duration", "icon-permanent", "icon-permanent-triggered"];
     for (const icon of GLOSSARY_ICONS) {
         icons.push({ icon, fg: FONT, bg: BG_WHITE });
     }

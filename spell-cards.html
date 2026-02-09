@@ -645,18 +645,15 @@
                                     <wa-option value="hour">Hour(s)</wa-option>
                                     <wa-option value="day">Day(s)</wa-option>
                                     <wa-option value="special">Special</wa-option>
-                                    <wa-option value="permanent">Permanent</wa-option>
+                                    <wa-option value="permanent">Until dispelled</wa-option>
                                 </wa-select>
                             </div>
                         </div>
 
-                        <!-- Duration Ends -->
-                        <div class="form-field filter-chip-group form-field-duration-ends" id="edit-duration-ends-wrap" style="display: none;" role="group">
-                            <span class="filter-chip-label" id="edit-duration-ends-label">Ending conditions</span>
-                            <div class="filter-chip-list duration-ends-chips">
-                                <wa-button class="filter-chip duration-end-chip" data-value="dispel" size="medium" appearance="filled" variant="neutral" aria-pressed="false">Dispel</wa-button>
-                                <wa-button class="filter-chip duration-end-chip" data-value="trigger" size="medium" appearance="filled" variant="neutral" aria-pressed="false">Trigger</wa-button>
-                            </div>
+                        <!-- Permanent duration: Ends when triggered -->
+                        <div class="form-field form-field--switch form-field-duration-ends-on-trigger" id="edit-duration-ends-on-trigger-wrap" style="display: none;">
+                            <wa-switch id="edit-duration_ends_on_trigger" name="duration_ends_on_trigger"></wa-switch>
+                            <label for="edit-duration_ends_on_trigger">Ends when triggered</label>
                         </div>
 
                         <wa-divider></wa-divider>

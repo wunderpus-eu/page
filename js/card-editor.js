@@ -113,12 +113,6 @@ const DURATION_OPTIONS = [
     { value: "permanent", label: "Permanent" },
 ];
 
-/** Ending condition options for permanent duration. */
-const DURATION_END_OPTIONS = [
-    { value: "dispel", label: "Dispel" },
-    { value: "trigger", label: "Trigger" },
-];
-
 /** Spell class options for the edit form (clickable tokens). */
 const SPELL_CLASSES = [
     "Artificer",
@@ -938,7 +932,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         })();
         const durationTypeSel = editCardForm.querySelector("#edit-duration_type");
         const durationAmountInp = editCardForm.querySelector("#edit-duration_amount");
-        const durationEndsWrap = editCardForm.querySelector("#edit-duration-ends-wrap");
+        const durationEndsOnTriggerWrap = editCardForm.querySelector("#edit-duration-ends-on-trigger-wrap");
+        const durationEndsOnTriggerSwitch = editCardForm.querySelector("#edit-duration_ends_on_trigger");
         const durationRow = editCardForm.querySelector(".form-field-duration .range-row");
         
         if (durationTypeSel) {
@@ -948,15 +943,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (durationAmountInp) {
             durationAmountInp.value = String(Math.max(1, spell.duration?.amount ?? 1));
         }
-        if (durationEndsWrap) {
-            durationEndsWrap.style.display = durationTypeVal === "permanent" ? "" : "none";
-            const durationEnds = spell.duration?.ends ?? [];
-            const chips = durationEndsWrap.querySelectorAll(".duration-end-chip");
-            chips.forEach((chip) => {
-                const isSelected = durationEnds.includes(chip.dataset.value);
-                chip.setAttribute("variant", isSelected ? "brand" : "neutral");
-                chip.setAttribute("aria-pressed", isSelected ? "true" : "false");
-            });
+        if (durationEndsOnTriggerWrap) {
+            durationEndsOnTriggerWrap.style.display = durationTypeVal === "permanent" ? "" : "none";
+        }
+        if (durationEndsOnTriggerSwitch) {
+            const endsOnTrigger =
+                spell.duration?.endsOnTrigger === true ||
+                (Array.isArray(spell.duration?.ends) && spell.duration.ends.includes("trigger"));
+            durationEndsOnTriggerSwitch.checked = !!endsOnTrigger;
         }
         if (durationRow) {
             const showNum = durationTypeVal === "round" || durationTypeVal === "minute" || durationTypeVal === "hour" || durationTypeVal === "day";
@@ -1267,7 +1261,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         const durationTypeSel = editCardForm.querySelector("#edit-duration_type");
         const durationAmountInp = editCardForm.querySelector("#edit-duration_amount");
         const durationRow = editCardForm.querySelector(".form-field-duration .range-row");
-        const durationEndsWrap = editCardForm.querySelector("#edit-duration-ends-wrap");
+        const durationEndsOnTriggerWrap = editCardForm.querySelector("#edit-duration-ends-on-trigger-wrap");
+        const durationEndsOnTriggerSwitch = editCardForm.querySelector("#edit-duration_ends_on_trigger");
         
         if (durationTypeSel) {
             const showHideDurationNumber = () => {
@@ -1277,21 +1272,21 @@ document.addEventListener("DOMContentLoaded", async () => {
                     durationRow.classList.toggle("range-row--with-number", showNumber);
                 }
             };
-            const showHideDurationEnds = () => {
+            const showHideDurationEndsOnTrigger = () => {
                 const type = durationTypeSel.value ?? "instant";
-                if (durationEndsWrap) {
-                    durationEndsWrap.style.display = type === "permanent" ? "" : "none";
+                if (durationEndsOnTriggerWrap) {
+                    durationEndsOnTriggerWrap.style.display = type === "permanent" ? "" : "none";
                 }
             };
             const onDurationTypeChange = () => {
                 showHideDurationNumber();
-                showHideDurationEnds();
+                showHideDurationEndsOnTrigger();
                 updateEditPreview();
             };
             durationTypeSel.addEventListener("wa-change", onDurationTypeChange);
             durationTypeSel.addEventListener("change", () => {
                 showHideDurationNumber();
-                showHideDurationEnds();
+                showHideDurationEndsOnTrigger();
                 updateEditPreview();
             });
         }
@@ -1299,28 +1294,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             durationAmountInp.addEventListener("input", () => updateEditPreview());
             durationAmountInp.addEventListener("change", () => updateEditPreview());
         }
-        
-        // Duration ends chips
-        const durationEndChips = editCardForm.querySelectorAll(".duration-end-chip");
-        durationEndChips.forEach((chip) => {
-            chip.addEventListener("click", () => {
-                const container = editCardForm.querySelector("#edit-duration-ends-wrap");
-                const chips = container.querySelectorAll(".duration-end-chip");
-                const ends = Array.from(chips)
-                    .filter((c) => c.getAttribute("variant") === "brand")
-                    .map((c) => c.dataset.value);
-                const value = chip.dataset.value;
-                const idx = ends.indexOf(value);
-                if (idx >= 0) ends.splice(idx, 1);
-                else ends.push(value);
-                chips.forEach((c) => {
-                    const sel = ends.includes(c.dataset.value);
-                    c.setAttribute("variant", sel ? "brand" : "neutral");
-                    c.setAttribute("aria-pressed", sel ? "true" : "false");
-                });
-                updateEditPreview();
-            });
-        });
+        if (durationEndsOnTriggerSwitch) {
+            durationEndsOnTriggerSwitch.addEventListener("change", () => updateEditPreview());
+        }
 
         // Components handlers
         const componentsDescInp = editCardForm.querySelector("#edit-components_description");
@@ -1704,16 +1680,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         const durationType = spell.duration.type;
         if (durationType === "permanent") {
-            const endsWrap = editCardForm.querySelector(
-                "#edit-duration-ends-wrap"
+            const endsOnTriggerSwitch = editCardForm.querySelector(
+                "#edit-duration_ends_on_trigger"
             );
-            spell.duration.ends = endsWrap
-                ? Array.from(endsWrap.querySelectorAll(".duration-end-chip"))
-                      .filter((c) => c.getAttribute("variant") === "brand")
-                      .map((c) => c.dataset.value)
-                : [];
+            spell.duration.endsOnTrigger = endsOnTriggerSwitch?.checked ?? false;
         } else {
-            spell.duration.ends = [];
+            spell.duration.endsOnTrigger = false;
         }
         spell.description =
             editCardForm.querySelector("#edit-description")?.value ?? "";

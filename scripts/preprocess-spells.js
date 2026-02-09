@@ -1068,7 +1068,7 @@ function processRange(rawRange, requiresSight, areaTags, entries, entriesHigherL
 }
 
 /**
- * Processes raw duration data into a flat structure with type, amount, unit, ends.
+ * Processes raw duration data into a flat structure with type, amount, unit, endsOnTrigger.
  * @param {Object} rawDuration - The raw duration data.
  * @returns {Object} Processed duration data with flat structure.
  */
@@ -1076,18 +1076,18 @@ function processDuration(rawDuration) {
     const type = rawDuration.type;
     let amount = 0;
     let unit = "";
-    let ends = [];
+    let endsOnTrigger = false;
 
     if (type === "timed" && rawDuration.duration) {
         amount = rawDuration.duration.amount || 0;
         unit = rawDuration.duration.type || "";
     }
 
-    if (rawDuration.ends) {
-        ends = rawDuration.ends;
+    if (rawDuration.ends && Array.isArray(rawDuration.ends)) {
+        endsOnTrigger = rawDuration.ends.includes("trigger");
     }
 
-    return { type, amount, unit, ends };
+    return { type, amount, unit, endsOnTrigger };
 }
 
 /**

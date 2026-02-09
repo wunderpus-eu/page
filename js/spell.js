@@ -135,9 +135,9 @@ export class Range {
 
 /**
  * Represents the duration of a spell (flattened structure).
- * @example { type: "instant", amount: 0, unit: "", ends: [] }
- * @example { type: "timed", amount: 1, unit: "minute", ends: [] }
- * @example { type: "permanent", amount: 0, unit: "", ends: ["dispel", "trigger"] }
+ * @example { type: "instant", amount: 0, unit: "", endsOnTrigger: false }
+ * @example { type: "timed", amount: 1, unit: "minute", endsOnTrigger: false }
+ * @example { type: "permanent", amount: 0, unit: "", endsOnTrigger: true }
  */
 export class Duration {
     /**
@@ -145,9 +145,10 @@ export class Duration {
      * @param {string} data.type - The duration type: "instant", "timed", "permanent", "special".
      * @param {number} [data.amount] - For "timed" type: the numeric amount.
      * @param {string} [data.unit] - For "timed" type: the time unit ("round", "minute", "hour", "day").
-     * @param {string[]} [data.ends] - How the spell ends (for "permanent"): "dispel", "trigger", etc.
+     * @param {boolean} [data.endsOnTrigger] - For "permanent": true if the spell also ends when triggered.
+     * @param {string[]} [data.ends] - Deprecated. If present, endsOnTrigger is derived from ends.includes("trigger").
      */
-    constructor({ type, amount, unit, ends }) {
+    constructor({ type, amount, unit, endsOnTrigger, ends }) {
         if (!DURATION_TYPES.includes(type)) {
             throw new Error(
                 `Invalid duration type: "${type}". Expected one of: ${DURATION_TYPES.join(
@@ -165,7 +166,9 @@ export class Duration {
         this.type = type;
         this.amount = amount || 0;
         this.unit = unit || "";
-        this.ends = ends || [];
+        this.endsOnTrigger =
+            endsOnTrigger === true ||
+            (Array.isArray(ends) && ends.includes("trigger"));
     }
 
     toJSON() {
@@ -173,13 +176,21 @@ export class Duration {
             type: this.type,
             amount: this.amount,
             unit: this.unit,
-            ends: this.ends,
+            endsOnTrigger: this.endsOnTrigger,
         };
     }
 
     static fromJSON(json) {
         if (!json) return undefined;
-        return new Duration(json);
+        const endsOnTrigger =
+            json.endsOnTrigger === true ||
+            (Array.isArray(json.ends) && json.ends.includes("trigger"));
+        return new Duration({
+            type: json.type,
+            amount: json.amount,
+            unit: json.unit,
+            endsOnTrigger,
+        });
     }
 }
 
