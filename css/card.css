@@ -80,7 +80,7 @@
 
 .spell-source-text {
     position: absolute;
-    bottom: 5pt;
+    bottom: 4pt;
     right: 9.5pt;
     font-size: 5pt;
     color: var(--font-color-light);
@@ -277,6 +277,9 @@ body.grayscale {
     display: flex;
     flex-direction: column;
 }
+.spell-card-front {
+    padding-top: 5.5pt;  /* we account for this in spell-level-outer-circle */
+}
 
 /* Earmark: small triangle in spell-school color at top-right of front face */
 .spell-card.always-prepared .spell-card-front::after {
@@ -321,6 +324,7 @@ body.grayscale {
     height: 33pt;
     box-sizing: border-box;
     border-radius: 50%;
+    margin-top: 3pt; /* account for padding-top in spell-card-front */
     padding: 2pt;
     display: flex;
     justify-content: center;
@@ -350,13 +354,17 @@ body.grayscale {
 }
 
 .spell-name-container {
+    align-self: stretch;
     padding-left: 1pt; /* for visual balance */
-    padding-top: 3pt;
-    padding-bottom: 3pt;
+    padding-bottom: 5.5pt; /* accounting for overlap of next row */
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
     box-sizing: border-box;
     min-height: 26pt;
+    max-height: 36pt;
+    overflow: hidden;
 }
 
 /* Spell name is displayed directly from spell.name (WYSIWYG) */
@@ -370,6 +378,17 @@ body.grayscale {
     line-height: 10pt;
     text-align: left;
     vertical-align: middle;
+}
+
+.spell-name-subtitle {
+    font-family: var(--main-font);
+    font-size: 7pt; /* Same as card body content */
+    font-weight: bold;
+    font-style: italic;
+    line-height: 7pt;
+    margin-top: 2pt;
+    margin-bottom: 1pt;
+    text-align: left;
 }
 
 .casting-time-container {
@@ -535,7 +554,7 @@ body.grayscale {
 
 .spell-class-icons {
     position: absolute;
-    bottom: 4pt;
+    bottom: 3pt;
     left: 9.5pt;
     height: var(--icon-size);
     white-space: nowrap;

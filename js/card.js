@@ -339,7 +339,7 @@ function render_spell_level(spell, computedColor) {
     return outerCircle;
 }
 
-/** Renders the spell name heading. Shows the spell name as stored in the data (WYSIWYG). */
+/** Renders the spell name heading and optional subtitle. Shows the spell name as stored in the data (WYSIWYG). */
 function render_spell_name(spell) {
     const spellNameContainer = document.createElement("div");
     spellNameContainer.className = "spell-name-container";
@@ -349,6 +349,14 @@ function render_spell_name(spell) {
     spellNameElement.textContent = spell.name;
 
     spellNameContainer.appendChild(spellNameElement);
+
+    if (spell.subtitle && String(spell.subtitle).trim()) {
+        const subtitleElement = document.createElement("div");
+        subtitleElement.className = "spell-name-subtitle";
+        subtitleElement.textContent = spell.subtitle.trim();
+        spellNameContainer.appendChild(subtitleElement);
+    }
+
     return spellNameContainer;
 }
 
@@ -1302,7 +1310,7 @@ export class SpellCard {
 
         const row2 = document.createElement("div");
         row2.className = "header-row";
-        row2.style.marginTop = "-7pt";
+        row2.style.marginTop = "-5.5pt";
         row2.style.marginBottom = "2pt";
         row2.style.alignItems = "center";
         const castingTime = render_casting_time(
