@@ -719,6 +719,11 @@ header:not(.header--spell-cards) {
     min-width: 0;
 }
 
+.dimension-row > .edit-area-height-unit-text {
+    flex: 0 0 auto;
+    color: var(--wa-input-label-color, #666);
+}
+
 .form-field-area-dims .dimension-row + .form-field-label {
     margin-top: 8px;
 }

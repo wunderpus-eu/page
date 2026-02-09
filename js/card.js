@@ -410,6 +410,10 @@ async function render_range(spell, foregroundColor, backgroundColor) {
     const area = range.area;
     const areaDistance = range.areaDistance;
     const areaUnit = range.areaUnit;
+    const areaHeight = range.areaHeight ?? 0;
+    const areaHeightUnit = range.areaHeightUnit || areaUnit || "feet";
+    const targets = range.targets ?? 0;
+    const targetsScale = range.targetsScale === true;
 
     const validAreaTypes = [
         "line",
@@ -426,97 +430,80 @@ async function render_range(spell, foregroundColor, backgroundColor) {
     const hasArea = validAreaTypes.includes(area) && areaDistance > 0;
     const unitAbbrev = { feet: "ft", miles: "mi" };
 
+    /** Area size string: for cylinder "radius×height ft", otherwise "N ft" */
+    function getAreaSizeText() {
+        const u = unitAbbrev[areaUnit] || areaUnit;
+        if (area === "cylinder" && areaHeight > 0) {
+            const hUnit = unitAbbrev[areaHeightUnit] || areaHeightUnit;
+            return `${areaDistance}×${areaHeight} ${hUnit}`;
+        }
+        return `${areaDistance} ${u}`;
+    }
+
     const iconName = range.requiresSight ? "icon-range-los-inv" : "icon-range";
-    // Range icons have transparent backgrounds, so bg param doesn't matter - use white
     const iconUrl = await load_icon(iconName, "white", "white");
     if (iconUrl) {
         const icon = document.createElement("img");
         icon.src = iconUrl;
-        icon.className = "spell-range-icon";
+        icon.className = "spell-range-icon range";
         rangeContainer.appendChild(icon);
     }
 
-    // Case 1: Self with area - just show area size and type
+    const isUnlimited = unit === "unlimited";
+
+    // Range text or unlimited icon. Self+area shows only area (no "Self").
     if (origin === "self" && hasArea) {
-        const areaText = `${areaDistance} ${unitAbbrev[areaUnit] || areaUnit}`;
-        rangeContainer.appendChild(document.createTextNode(areaText));
-
-        // Area icons have no background in SVG, so bg param doesn't matter - use white
-        const areaIconURL = await load_icon(
-            `icon-${area}`,
-            "white",
-            "white"
-        );
-        if (areaIconURL) {
-            const areaIcon = document.createElement("img");
-            areaIcon.src = areaIconURL;
-            areaIcon.className = "spell-range-icon area";
-            rangeContainer.appendChild(areaIcon);
+        // Case: Self with area — show only area size and icon (no "Self" text)
+    } else if (origin === "self") {
+        rangeContainer.appendChild(document.createTextNode("Self"));
+    } else if (origin === "touch") {
+        rangeContainer.appendChild(document.createTextNode("Touch"));
+    } else if (origin === "special") {
+        rangeContainer.appendChild(document.createTextNode("Special"));
+    } else if (isUnlimited) {
+        const permUrl = await load_icon("icon-permanent", "white", "white");
+        if (permUrl) {
+            const permImg = document.createElement("img");
+            permImg.src = permUrl;
+            permImg.className = "spell-range-icon inline";
+            rangeContainer.appendChild(permImg);
         }
-    }
-    // Case 2: Point with distance and area - show range, then area size and icon
-    else if (origin === "point" && distance > 0 && hasArea) {
-        const rangeText = `${distance} ${unitAbbrev[unit] || unit}`;
-        const areaText = `, ${areaDistance} ${
-            unitAbbrev[areaUnit] || areaUnit
-        }`;
+    } else if (origin === "point" && distance > 0 && unit) {
         rangeContainer.appendChild(
-            document.createTextNode(rangeText + areaText)
+            document.createTextNode(`${distance} ${unitAbbrev[unit] || unit}`)
         );
+    } else {
+        rangeContainer.appendChild(document.createTextNode("Self"));
+    }
 
-        // Area icons have no background in SVG, so bg param doesn't matter - use white
-        const areaIconURL = await load_icon(
-            `icon-${area}`,
-            "white",
-            "white"
+    // Area: ", <size> <area icon>" — space after size so inline area icon has no margin
+    if (hasArea) {
+        const areaSizeText = getAreaSizeText();
+        const prefix = origin === "self" ? "" : ", ";
+        rangeContainer.appendChild(
+            document.createTextNode(prefix + areaSizeText + " ")
         );
+        const areaIconURL = await load_icon(`icon-${area}`, "white", "white");
         if (areaIconURL) {
             const areaIcon = document.createElement("img");
             areaIcon.src = areaIconURL;
-            areaIcon.className = "spell-range-icon area";
+            areaIcon.className = "spell-range-icon inline area";
             rangeContainer.appendChild(areaIcon);
         }
     }
-    // Case 3: Other cases - show origin/distance as before, optionally with area size and icon
-    else {
-        let rangeText = "";
-        if (origin === "self") {
-            rangeText = "Self";
-        } else if (origin === "touch") {
-            rangeText = "Touch";
-        } else if (origin === "special") {
-            rangeText = "Special";
-        } else if (origin === "point" && unit && unit !== "unlimited") {
-            rangeText = `${distance} ${unitAbbrev[unit] || unit}`;
-        } else if (unit === "unlimited") {
-            rangeText = "Unlimited";
-        } else if (distance > 0) {
-            rangeText = `${distance} ${unitAbbrev[unit] || unit}`;
-        } else {
-            rangeText = "Self";
-        }
-        rangeContainer.appendChild(document.createTextNode(rangeText));
 
-        // If there's an area type, always show ", <area size> <unit>" then the area icon
-        if (validAreaTypes.includes(area)) {
-            const areaSize = areaDistance > 0 ? areaDistance : 0;
-            const areaUnitStr = areaUnit || "feet";
-            const areaText = `, ${areaSize} ${
-                unitAbbrev[areaUnitStr] || areaUnitStr
-            }`;
-            rangeContainer.appendChild(document.createTextNode(areaText));
-            const areaIconURL = await load_icon(
-                `icon-${area}`,
-                "white",
-                foregroundColor
-            );
-            if (areaIconURL) {
-                const areaIcon = document.createElement("img");
-                areaIcon.src = areaIconURL;
-                areaIcon.className = "spell-range-icon area";
-                rangeContainer.appendChild(areaIcon);
-            }
+    // Targets: <icon-targets> N+ (spacing from icon margins, no comma/space in text)
+    if (targets > 1) {
+        const targetsIconURL = await load_icon("icon-targets", "white", "white");
+        if (targetsIconURL) {
+            const targetsIcon = document.createElement("img");
+            targetsIcon.src = targetsIconURL;
+            targetsIcon.className = "spell-range-icon targets";
+            rangeContainer.appendChild(targetsIcon);
         }
+        rangeContainer.appendChild(
+            document.createTextNode(`${targets}${targetsScale ? "+" : ""}`)
+        );
     }
 
     return rangeContainer;

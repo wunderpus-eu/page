@@ -957,6 +957,11 @@
       "bg": "ffffff"
     },
     {
+      "icon": "icon-targets",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
       "icon": "icon-duration",
       "fg": "ffffff",
       "bg": "ffffff"

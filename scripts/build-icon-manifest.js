@@ -103,6 +103,7 @@ function main() {
     // --- Range icons: white foreground only (now transparent backgrounds, so bg doesn't matter)
     icons.push({ icon: "icon-range", fg: "ffffff", bg: BG_WHITE });
     icons.push({ icon: "icon-range-los-inv", fg: "ffffff", bg: BG_WHITE });
+    icons.push({ icon: "icon-targets", fg: "ffffff", bg: BG_WHITE });
     // --- Duration/permanent: white foreground only (no background in SVG, so bg doesn't matter)
     icons.push({ icon: "icon-duration", fg: "ffffff", bg: BG_WHITE });
     icons.push({ icon: "icon-permanent", fg: "ffffff", bg: BG_WHITE });

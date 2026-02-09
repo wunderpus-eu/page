@@ -446,14 +446,26 @@ body.grayscale {
     object-fit: contain;
     vertical-align: middle;
     margin-top: -1pt;
-    margin-right: 3pt;
+    margin-bottom: 1pt;
     border-radius: 0;
     pointer-events: none;
 }
 
-.spell-range-icon.area {
+/* Initial range icon: keep right margin after it */
+.spell-range-icon.range {
+    margin-right: 3pt;
+}
+
+/* Inline icons (permanent, area): no margins; spacing from text/spaces */
+.spell-range-icon.inline {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* Targets icon: double left margin, half right */
+.spell-range-icon.targets {
     margin-left: 3pt;
-    margin-right: -1pt;
+    margin-right: 1.5pt;
 }
 
 .spell-duration {

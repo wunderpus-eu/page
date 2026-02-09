@@ -883,7 +883,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const areaDistInp = editCardForm.querySelector("#edit-area_distance");
         const areaUnitSel = editCardForm.querySelector("#edit-area_unit");
         const areaHeightInp = editCardForm.querySelector("#edit-area_height");
-        const areaHeightUnitSel = editCardForm.querySelector("#edit-area_height_unit");
+        const areaHeightUnitText = editCardForm.querySelector("#edit-area-height-unit-text");
         const areaHeightLab = editCardForm.querySelector("#edit-area-height-label");
         const areaHeightRow = editCardForm.querySelector("#edit-area-height-row");
         const areaPrimaryLab = editCardForm.querySelector("#edit-area-primary-label");
@@ -899,10 +899,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (areaHeightInp) {
             areaHeightInp.value = String(Math.max(1, spell.range?.areaHeight ?? 30));
         }
-        if (areaHeightUnitSel) {
-            const areaHeightUnitVal = spell.range?.areaHeightUnit || "feet";
-            areaHeightUnitSel.value = areaHeightUnitVal;
-            areaHeightUnitSel.dataset.initialValue = areaHeightUnitVal;
+        if (areaHeightUnitText) {
+            const areaUnitVal = spell.range?.areaUnit || "feet";
+            areaHeightUnitText.textContent = areaUnitVal === "miles" ? "Miles" : "Feet";
         }
         if (areaDimsWrap && areaPrimaryLab) {
             const show = areaVal !== "";
@@ -1195,11 +1194,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         const areaDistInp = editCardForm.querySelector("#edit-area_distance");
         const areaUnitSel = editCardForm.querySelector("#edit-area_unit");
         const areaHeightInp = editCardForm.querySelector("#edit-area_height");
-        const areaHeightUnitSel = editCardForm.querySelector("#edit-area_height_unit");
+        const areaHeightUnitTextEl = editCardForm.querySelector("#edit-area-height-unit-text");
         const areaHeightLab = editCardForm.querySelector("#edit-area-height-label");
         const areaHeightRow = editCardForm.querySelector("#edit-area-height-row");
         const areaPrimaryLab = editCardForm.querySelector("#edit-area-primary-label");
         
+        const syncHeightUnitText = () => {
+            if (areaHeightUnitTextEl && areaUnitSel) {
+                const u = areaUnitSel.value ?? "feet";
+                areaHeightUnitTextEl.textContent = u === "miles" ? "Miles" : "Feet";
+            }
+        };
         if (areaSel && areaDimsWrap) {
             const showHideAreaDims = () => {
                 const area = areaSel.value ?? "";
@@ -1226,16 +1231,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             areaDistInp.addEventListener("change", () => updateEditPreview());
         }
         if (areaUnitSel) {
-            areaUnitSel.addEventListener("wa-change", () => updateEditPreview());
-            areaUnitSel.addEventListener("change", () => updateEditPreview());
+            areaUnitSel.addEventListener("wa-change", () => {
+                syncHeightUnitText();
+                updateEditPreview();
+            });
+            areaUnitSel.addEventListener("change", () => {
+                syncHeightUnitText();
+                updateEditPreview();
+            });
         }
         if (areaHeightInp) {
             areaHeightInp.addEventListener("input", () => updateEditPreview());
             areaHeightInp.addEventListener("change", () => updateEditPreview());
-        }
-        if (areaHeightUnitSel) {
-            areaHeightUnitSel.addEventListener("wa-change", () => updateEditPreview());
-            areaHeightUnitSel.addEventListener("change", () => updateEditPreview());
         }
 
         // Targets handlers
@@ -1624,8 +1631,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     10
                 );
                 spell.range.areaHeight = Math.max(1, isNaN(areaHeightVal) ? 1 : areaHeightVal);
-                const areaHeightUnitSelect = editCardForm.querySelector("#edit-area_height_unit");
-                spell.range.areaHeightUnit = areaHeightUnitSelect?.value ?? "feet";
+                spell.range.areaHeightUnit = areaUnitSelect?.value ?? "feet";
             } else {
                 spell.range.areaHeight = 0;
                 spell.range.areaHeightUnit = "";
