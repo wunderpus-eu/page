@@ -409,17 +409,18 @@ async function render_range(spell, foregroundColor, backgroundColor) {
         "cube",
         "cylinder",
         "sphere",
-        "emanation",
         "hemisphere",
-        "wall",
+        "emanation",
         "circle",
         "square",
+        "wall",
     ];
     const hasArea = validAreaTypes.includes(area) && areaDistance > 0;
     const unitAbbrev = { feet: "ft", miles: "mi" };
 
     const iconName = range.requiresSight ? "icon-range-los-inv" : "icon-range";
-    const iconUrl = await load_icon(iconName, "white", foregroundColor);
+    // Range icons have transparent backgrounds, so bg param doesn't matter - use white
+    const iconUrl = await load_icon(iconName, "white", "white");
     if (iconUrl) {
         const icon = document.createElement("img");
         icon.src = iconUrl;
@@ -432,10 +433,11 @@ async function render_range(spell, foregroundColor, backgroundColor) {
         const areaText = `${areaDistance} ${unitAbbrev[areaUnit] || areaUnit}`;
         rangeContainer.appendChild(document.createTextNode(areaText));
 
+        // Area icons have no background in SVG, so bg param doesn't matter - use white
         const areaIconURL = await load_icon(
             `icon-${area}`,
             "white",
-            foregroundColor
+            "white"
         );
         if (areaIconURL) {
             const areaIcon = document.createElement("img");
@@ -454,10 +456,11 @@ async function render_range(spell, foregroundColor, backgroundColor) {
             document.createTextNode(rangeText + areaText)
         );
 
+        // Area icons have no background in SVG, so bg param doesn't matter - use white
         const areaIconURL = await load_icon(
             `icon-${area}`,
             "white",
-            foregroundColor
+            "white"
         );
         if (areaIconURL) {
             const areaIcon = document.createElement("img");
@@ -530,7 +533,8 @@ async function render_duration(spell, foregroundColor, backgroundColor) {
 
     const iconName =
         durationType === "timed" ? "icon-duration" : "icon-permanent";
-    const iconUrl = await load_icon(iconName, "white", foregroundColor);
+    // Duration/permanent icons have no background in SVG, so bg param doesn't matter - use white
+    const iconUrl = await load_icon(iconName, "white", "white");
     if (iconUrl) {
         const icon = document.createElement("img");
         icon.src = iconUrl;
@@ -1214,28 +1218,22 @@ export class SpellCard {
         return newCard;
     }
 
-    /** Sets foregroundColor (school or grayscale) and backgroundColor (prepared highlight). */
+    /** Sets foregroundColor (school or grayscale) and backgroundColor (always white; earmark uses a corner triangle). */
     _updateColors() {
         if (document.body.classList.contains("grayscale")) {
             this.foregroundColor = resolveCssVariable("var(--font-color)");
         } else {
             this.foregroundColor = getSpellSchoolColor(this.spell);
         }
-        if (this.isAlwaysPrepared) {
-            const hslColor = colord(this.foregroundColor).toHsl();
-            hslColor.l = 90;
-            this.backgroundColor = colord(hslColor).toRgbString();
-        } else {
-            this.backgroundColor = "white";
-        }
+        this.backgroundColor = "white";
     }
 
-    /** Sets always-prepared state and updates the card's class and background. No re-render. */
+    /** Sets always-prepared (earmark) state and updates the card's class and earmark triangle color. No re-render. */
     setAlwaysPrepared(isPrepared) {
         this.isAlwaysPrepared = isPrepared;
         if (this.frontElement) {
             this._updateColors();
-            this.frontElement.style.backgroundColor = this.backgroundColor;
+            this.frontElement.style.setProperty("--earmark-color", this.foregroundColor);
             this.frontElement.classList.toggle("always-prepared", isPrepared);
             const earmarkBtn = this.frontElement.querySelector(".earmark-btn");
             if (earmarkBtn) {
@@ -1275,6 +1273,7 @@ export class SpellCard {
         card.dataset.cardId = this.id;
         card.dataset.spellName = spell.name;
         card.style.backgroundColor = this.backgroundColor;
+        card.style.setProperty("--earmark-color", this.foregroundColor);
 
         const front = document.createElement("div");
         front.className = "spell-card-front";
@@ -1498,7 +1497,11 @@ export async function createGlossaryCard() {
                 { icon: "icon-cube", text: "Cube" },
                 { icon: "icon-cylinder", text: "Cylinder" },
                 { icon: "icon-sphere", text: "Sphere" },
+                { icon: "icon-hemisphere", text: "Hemisphere" },
                 { icon: "icon-emanation", text: "Emanation" },
+                { icon: "icon-circle", text: "Circle" },
+                { icon: "icon-square", text: "Square" },
+                { icon: "icon-wall", text: "Wall" },
             ],
         },
         {
@@ -1589,10 +1592,10 @@ export async function createGlossaryCard() {
     const iconColor = resolveCssVariable("var(--font-color)");
 
     const columnLayout = {
-        0: [glossaryData[0], glossaryData[1], glossaryData[2]],
-        1: [glossaryData[3], glossaryData[4]],
-        2: [glossaryData[5]],
-        3: [glossaryData[6]],
+        0: [glossaryData[0], glossaryData[1]], // Casting Time, Target & Range
+        1: [glossaryData[2], glossaryData[3], glossaryData[4]], // Duration, Tags, Components
+        2: [glossaryData[5]], // Damage Types
+        3: [glossaryData[6]], // Classes
     };
 
     const allColumns = [...frontColumns, ...backColumns];

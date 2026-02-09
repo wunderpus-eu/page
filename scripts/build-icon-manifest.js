@@ -27,34 +27,26 @@ const SCHOOLS = [
     "8172b3", // Necromancy
     "ccb974", // Transmutation
 ];
-// Lightened (L=90) versions for "prepared" card background
-const LIGHTENED = [
-    "d4edd9", "fae9e0", "e0f4fa", "faf0f7", "f9e3e4", "dde8f4", "eae8f4", "faf6e8",
-];
 const ABSENT_CLASS_FG = "cccccc";
 
 const FOREGROUNDS = [FONT, ...SCHOOLS]; // 9
 const BG_WHITE = "ffffff";
-const BG_LIGHTENED = LIGHTENED; // 8
 
-// (fg, bg) pairs that actually occur on a card: (font, white), (school, white), (school, lightened[i])
+// (fg, bg) pairs on a card: (font, white) and (school, white) only (earmark is a corner triangle, no lightened bg)
 const CARD_FG_BG = [
     { fg: FONT, bg: BG_WHITE },
-    ...SCHOOLS.map((fg, i) => ({ fg, bg: BG_WHITE })),
-    ...SCHOOLS.map((fg, i) => ({ fg, bg: BG_LIGHTENED[i] })),
+    ...SCHOOLS.map((fg) => ({ fg, bg: BG_WHITE })),
 ];
-// Absent class icon: (#cccccc, any bg)
-const ABSENT_CLASS_BG = [BG_WHITE, ...BG_LIGHTENED];
-
-// (white, fg) for range/area/duration icons
-const WHITE_ON_FG = FOREGROUNDS.map((fg) => ({ fg: "ffffff", bg: fg }));
+// Absent class icon: (#cccccc, white)
+const ABSENT_CLASS_BG = [BG_WHITE];
 
 const CLASS_NAMES = [
     "artificer", "bard", "cleric", "druid", "paladin", "ranger", "sorcerer", "warlock", "wizard",
 ];
 
 // Area icons used in render_range (icon-${area}); only those that exist in assets
-const AREA_ICONS = ["cone", "cube", "cylinder", "emanation", "hemisphere", "line", "sphere", "square", "circle", "wall"];
+// Order: line, cone, cube, cylinder, sphere, hemisphere, emanation, circle, square, wall
+const AREA_ICONS = ["line", "cone", "cube", "cylinder", "sphere", "hemisphere", "emanation", "circle", "square", "wall"];
 
 const INLINE_ICONS = [
     "icon-gold", "icon-silver", "icon-copper",
@@ -78,13 +70,20 @@ function main() {
         icons.push({ icon: `icon-${c}`, fg: "transparent", bg: "612692" });
     }
 
-    // --- Spell card: border, chips, class row
-    const CARD_SECTION_ICONS = [
-        "border-front",
-        "chip-v", "chip-s", "chip-m", "chip-m-req", "chip-m-cons",
-        "chip-c", "chip-r", "chip-plus",
-    ];
-    for (const icon of CARD_SECTION_ICONS) {
+    // --- Border and component chips (v, s, m, m-req, m-cons): transparent backgrounds, only need fg variants
+    // Background doesn't matter since SVG has no background fill, but use white for consistency
+    for (const fg of FOREGROUNDS) {
+        icons.push({ icon: "border-front", fg, bg: BG_WHITE });
+        icons.push({ icon: "chip-v", fg, bg: BG_WHITE });
+        icons.push({ icon: "chip-s", fg, bg: BG_WHITE });
+        icons.push({ icon: "chip-m", fg, bg: BG_WHITE });
+        icons.push({ icon: "chip-m-req", fg, bg: BG_WHITE });
+        icons.push({ icon: "chip-m-cons", fg, bg: BG_WHITE });
+    }
+    
+    // --- Chips with opaque backgrounds (c, r, plus): need fg and bg variants
+    const CHIPS_WITH_BG = ["chip-c", "chip-r", "chip-plus"];
+    for (const icon of CHIPS_WITH_BG) {
         for (const { fg, bg } of CARD_FG_BG) {
             icons.push({ icon, fg, bg });
         }
@@ -101,17 +100,17 @@ function main() {
         }
     }
 
-    // --- Range / area / duration: white on fg
-    for (const { fg, bg } of WHITE_ON_FG) {
-        icons.push({ icon: "icon-range", fg, bg });
-        icons.push({ icon: "icon-range-los-inv", fg, bg });
-        icons.push({ icon: "icon-duration", fg, bg });
-        icons.push({ icon: "icon-permanent", fg, bg });
-    }
+    // --- Range icons: white foreground only (now transparent backgrounds, so bg doesn't matter)
+    icons.push({ icon: "icon-range", fg: "ffffff", bg: BG_WHITE });
+    icons.push({ icon: "icon-range-los-inv", fg: "ffffff", bg: BG_WHITE });
+    // --- Duration/permanent: white foreground only (no background in SVG, so bg doesn't matter)
+    icons.push({ icon: "icon-duration", fg: "ffffff", bg: BG_WHITE });
+    icons.push({ icon: "icon-permanent", fg: "ffffff", bg: BG_WHITE });
+    // --- Area icons: white foreground only (no background in SVG, so bg doesn't matter)
+    // Area icons are stroke-only with transparent backgrounds. Background color has no effect.
+    // Generate one variant per area icon (white fg, white bg) - the bg value doesn't matter since SVG has no background.
     for (const area of AREA_ICONS) {
-        for (const { fg, bg } of WHITE_ON_FG) {
-            icons.push({ icon: `icon-${area}`, fg, bg });
-        }
+        icons.push({ icon: `icon-${area}`, fg: "ffffff", bg: BG_WHITE });
     }
 
     // --- Inline and glossary: fg on white (var(--font-color), var(--font-color-light), or school when in description?)
@@ -128,7 +127,8 @@ function main() {
     }
 
     // --- Edit form area dropdown: area icons with (font-color, white)
-    const EDIT_AREA_ICONS = ["icon-line", "icon-cone", "icon-cube", "icon-cylinder", "icon-sphere", "icon-emanation", "icon-hemisphere", "icon-wall", "icon-circle", "icon-square"];
+    // Order: line, cone, cube, cylinder, sphere, hemisphere, emanation, circle, square, wall
+    const EDIT_AREA_ICONS = ["icon-line", "icon-cone", "icon-cube", "icon-cylinder", "icon-sphere", "icon-hemisphere", "icon-emanation", "icon-circle", "icon-square", "icon-wall"];
     for (const icon of EDIT_AREA_ICONS) {
         icons.push({ icon, fg: FONT, bg: BG_WHITE });
     }
@@ -140,7 +140,7 @@ function main() {
     }
 
     const manifest = {
-        comment: "List of (icon, fg, bg) to pre-generate. Covers class filter chips and all spell-card icons (border, range, area, duration, components, class row, inline/glossary). fg/bg: 6-char hex (no #), or 'transparent' for filter chips. Re-run build-icon-manifest.js when adding icon usages; then run generate-icons.js.",
+        comment: "List of (icon, fg, bg) to pre-generate. Card uses white bg only (earmark = corner triangle). Re-run build-icon-manifest.js when adding icon usages; then run generate-icons.js.",
         icons,
     };
 

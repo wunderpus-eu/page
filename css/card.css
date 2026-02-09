@@ -277,6 +277,20 @@ body.grayscale {
     flex-direction: column;
 }
 
+/* Earmark: small triangle in spell-school color at top-right of front face */
+.spell-card.always-prepared .spell-card-front::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 10pt 10pt 0;
+    border-color: transparent var(--earmark-color, #333333) transparent transparent;
+    pointer-events: none;
+}
+
 .spell-card-front-border {
     position: absolute;
     top: 42.5pt;
@@ -400,6 +414,7 @@ body.grayscale {
     vertical-align: middle;
     margin-top: -1pt;
     margin-right: 3pt;
+    border-radius: 0;
 }
 
 .spell-range-icon.area {
@@ -426,6 +441,7 @@ body.grayscale {
     vertical-align: middle;
     margin-top: -1pt;
     margin-right: 3pt;
+    border-radius: 0;
 }
 
 .spell-duration-icon:last-child {
@@ -442,6 +458,7 @@ body.grayscale {
 .spell-component-icons img {
     display: inline-block;
     vertical-align: top;
+    border-radius: 0;
 }
 
 .spell-component-text {
@@ -466,6 +483,10 @@ body.grayscale {
     justify-content: center;
     align-items: center;
     gap: 2pt;
+}
+
+.spell-concentration-and-ritual img {
+    border-radius: 0;
 }
 
 .spell-school-container {
@@ -506,6 +527,7 @@ body.grayscale {
     display: inline-block;
     vertical-align: top;
     margin-right: 2pt;
+    border-radius: 0;
 }
 
 .spell-class-icons img:last-child {
@@ -648,6 +670,7 @@ body.grayscale {
     width: 10pt;
     height: 10pt;
     object-fit: contain;
+    border-radius: 0;
 }
 
 .higher-level-plus {
@@ -683,6 +706,7 @@ body.use-inline-text .inline-icon-wrapper .inline-icon-alt {
 .inline-icon {
     height: 100%;
     width: 100%;
+    border-radius: 0;
 }
 
 .dice-formula {
@@ -726,4 +750,5 @@ body.use-inline-text .inline-icon-wrapper .inline-icon-alt {
     height: 0.85em;
     margin-right: 0.5em;
     transform: translateY(0.25em);
+    border-radius: 0;
 }

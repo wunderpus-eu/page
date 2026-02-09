@@ -41,10 +41,18 @@ function ensureDir(dir) {
     }
 }
 
+/** Remove existing generated icons and recreate folder so we regenerate from scratch. */
+function clearGeneratedDir() {
+    if (fs.existsSync(GENERATED)) {
+        fs.rmSync(GENERATED, { recursive: true });
+    }
+    ensureDir(GENERATED);
+}
+
 const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, "utf8"));
 const list = manifest.icons || [];
 
-ensureDir(GENERATED);
+clearGeneratedDir();
 
 let done = 0;
 let failed = 0;
@@ -61,8 +69,46 @@ for (const { icon, fg, bg } of list) {
     }
 
     let svg = fs.readFileSync(inPath, "utf8");
-    svg = svg.replace(/#333333/g, fgVal);
-    svg = svg.replace(/#ffffff/g, bgVal);
+    const hasBackground = svg.includes("#ffffff");
+    const hasForeground = svg.includes("#333333");
+
+    // Use a placeholder so we don't double-replace when fg or bg equals #333333 or #ffffff.
+    // E.g. "white on green": replace #333333→white first would create more #ffffff, then #ffffff→green would turn everything green.
+    const PLACEHOLDER_FG = "__ICON_FG_PLACEHOLDER__";
+    if (hasForeground) {
+        svg = svg.replace(/#333333/g, PLACEHOLDER_FG);
+    }
+    if (hasBackground) {
+        svg = svg.replace(/#ffffff/g, bgVal);
+    }
+    if (hasForeground) {
+        svg = svg.replaceAll(PLACEHOLDER_FG, fgVal);
+    }
+
+    // If icon only has foreground (no background) and we need a background,
+    // add a background rectangle
+    if (!hasBackground && bgVal !== "transparent" && bgVal !== "#ffffff") {
+        // Extract viewBox from SVG
+        const viewBoxMatch = svg.match(/viewBox=["']([^"']+)["']/);
+        if (viewBoxMatch) {
+            const viewBox = viewBoxMatch[1];
+            const [x, y, width, height] = viewBox.split(/\s+/).map(parseFloat);
+            
+            // Find the first <g> or <svg> opening tag to insert background after
+            // We'll insert it right after the opening <svg> tag or first <defs>
+            const defsEndMatch = svg.match(/<\/defs>/);
+            const firstGMatch = svg.match(/<g[^>]*>/);
+            const insertAfter = defsEndMatch 
+                ? defsEndMatch.index + defsEndMatch[0].length
+                : firstGMatch 
+                    ? firstGMatch.index 
+                    : svg.indexOf(">", svg.indexOf("<svg")) + 1;
+            
+            // Create background rectangle
+            const bgRect = `\n<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${bgVal}"/>`;
+            svg = svg.slice(0, insertAfter) + bgRect + svg.slice(insertAfter);
+        }
+    }
 
     const outName = slug(icon, fg, bg);
     const outPath = path.join(GENERATED, outName);

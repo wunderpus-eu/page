@@ -529,6 +529,7 @@ header:not(.header--spell-cards) {
     object-fit: contain;
     display: block;
     vertical-align: middle;
+    border-radius: 0;
 }
 
 /* Edit card dialog */
@@ -599,6 +600,12 @@ header:not(.header--spell-cards) {
 
 .edit-overlay-form wa-number-input::part(input) {
     padding: 0;
+}
+
+.edit-area-option-icon,
+.edit-overlay-form wa-select img,
+#edit-card-form wa-select img {
+    border-radius: 0;
 }
 
 .edit-area-option-icon {

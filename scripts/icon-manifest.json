@@ -1,5 +1,5 @@
 {
-  "comment": "List of (icon, fg, bg) to pre-generate. Covers class filter chips and all spell-card icons (border, range, area, duration, components, class row, inline/glossary). fg/bg: 6-char hex (no #), or 'transparent' for filter chips. Re-run build-icon-manifest.js when adding icon usages; then run generate-icons.js.",
+  "comment": "List of (icon, fg, bg) to pre-generate. Card uses white bg only (earmark = corner triangle). Re-run build-icon-manifest.js when adding icon usages; then run generate-icons.js.",
   "icons": [
     {
       "icon": "icon-artificer",
@@ -97,208 +97,248 @@
       "bg": "ffffff"
     },
     {
+      "icon": "chip-v",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
       "icon": "border-front",
       "fg": "55a868",
       "bg": "ffffff"
     },
     {
+      "icon": "chip-v",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
       "icon": "border-front",
       "fg": "dd8452",
       "bg": "ffffff"
     },
     {
+      "icon": "chip-v",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
       "icon": "border-front",
       "fg": "64b5cd",
       "bg": "ffffff"
     },
     {
+      "icon": "chip-v",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
       "icon": "border-front",
       "fg": "da8bc3",
       "bg": "ffffff"
     },
     {
+      "icon": "chip-v",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
       "icon": "border-front",
       "fg": "c44e52",
       "bg": "ffffff"
     },
     {
+      "icon": "chip-v",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
       "icon": "border-front",
       "fg": "4c72b0",
       "bg": "ffffff"
     },
     {
+      "icon": "chip-v",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
       "icon": "border-front",
       "fg": "8172b3",
       "bg": "ffffff"
     },
     {
+      "icon": "chip-v",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
       "icon": "border-front",
       "fg": "ccb974",
       "bg": "ffffff"
     },
     {
-      "icon": "border-front",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "border-front",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "border-front",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "border-front",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "border-front",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "border-front",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "border-front",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "border-front",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "333333",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "55a868",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "dd8452",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "64b5cd",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "da8bc3",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "c44e52",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "4c72b0",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "8172b3",
-      "bg": "ffffff"
-    },
-    {
       "icon": "chip-v",
       "fg": "ccb974",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "chip-v",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "333333",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "55a868",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "dd8452",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "64b5cd",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "da8bc3",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "c44e52",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "4c72b0",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "8172b3",
       "bg": "ffffff"
     },
     {
@@ -307,168 +347,8 @@
       "bg": "ffffff"
     },
     {
-      "icon": "chip-s",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "chip-s",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "333333",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "55a868",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "dd8452",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "64b5cd",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "da8bc3",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "c44e52",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "4c72b0",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "8172b3",
-      "bg": "ffffff"
-    },
-    {
       "icon": "chip-m",
       "fg": "ccb974",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "chip-m",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "333333",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "55a868",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "dd8452",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "64b5cd",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "da8bc3",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "c44e52",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "4c72b0",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "8172b3",
       "bg": "ffffff"
     },
     {
@@ -477,129 +357,9 @@
       "bg": "ffffff"
     },
     {
-      "icon": "chip-m-req",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "chip-m-req",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "333333",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "55a868",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "dd8452",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "64b5cd",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "da8bc3",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "c44e52",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "4c72b0",
-      "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "8172b3",
-      "bg": "ffffff"
-    },
-    {
       "icon": "chip-m-cons",
       "fg": "ccb974",
       "bg": "ffffff"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "chip-m-cons",
-      "fg": "ccb974",
-      "bg": "faf6e8"
     },
     {
       "icon": "chip-c",
@@ -647,46 +407,6 @@
       "bg": "ffffff"
     },
     {
-      "icon": "chip-c",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "chip-c",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "chip-c",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "chip-c",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "chip-c",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "chip-c",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "chip-c",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "chip-c",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
       "icon": "chip-r",
       "fg": "333333",
       "bg": "ffffff"
@@ -732,46 +452,6 @@
       "bg": "ffffff"
     },
     {
-      "icon": "chip-r",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "chip-r",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "chip-r",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "chip-r",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "chip-r",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "chip-r",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "chip-r",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "chip-r",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
       "icon": "chip-plus",
       "fg": "333333",
       "bg": "ffffff"
@@ -815,46 +495,6 @@
       "icon": "chip-plus",
       "fg": "ccb974",
       "bg": "ffffff"
-    },
-    {
-      "icon": "chip-plus",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "chip-plus",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "chip-plus",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "chip-plus",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "chip-plus",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "chip-plus",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "chip-plus",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "chip-plus",
-      "fg": "ccb974",
-      "bg": "faf6e8"
     },
     {
       "icon": "icon-artificer",
@@ -903,88 +543,8 @@
     },
     {
       "icon": "icon-artificer",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "icon-artificer",
       "fg": "cccccc",
       "bg": "ffffff"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "cccccc",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "cccccc",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "cccccc",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "cccccc",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "cccccc",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "cccccc",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "cccccc",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-artificer",
-      "fg": "cccccc",
-      "bg": "faf6e8"
     },
     {
       "icon": "icon-bard",
@@ -1033,88 +593,8 @@
     },
     {
       "icon": "icon-bard",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "icon-bard",
       "fg": "cccccc",
       "bg": "ffffff"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "cccccc",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "cccccc",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "cccccc",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "cccccc",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "cccccc",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "cccccc",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "cccccc",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-bard",
-      "fg": "cccccc",
-      "bg": "faf6e8"
     },
     {
       "icon": "icon-cleric",
@@ -1163,88 +643,8 @@
     },
     {
       "icon": "icon-cleric",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "icon-cleric",
       "fg": "cccccc",
       "bg": "ffffff"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "cccccc",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "cccccc",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "cccccc",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "cccccc",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "cccccc",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "cccccc",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "cccccc",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-cleric",
-      "fg": "cccccc",
-      "bg": "faf6e8"
     },
     {
       "icon": "icon-druid",
@@ -1293,88 +693,8 @@
     },
     {
       "icon": "icon-druid",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "icon-druid",
       "fg": "cccccc",
       "bg": "ffffff"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "cccccc",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "cccccc",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "cccccc",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "cccccc",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "cccccc",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "cccccc",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "cccccc",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-druid",
-      "fg": "cccccc",
-      "bg": "faf6e8"
     },
     {
       "icon": "icon-paladin",
@@ -1423,88 +743,8 @@
     },
     {
       "icon": "icon-paladin",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "icon-paladin",
       "fg": "cccccc",
       "bg": "ffffff"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "cccccc",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "cccccc",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "cccccc",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "cccccc",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "cccccc",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "cccccc",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "cccccc",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-paladin",
-      "fg": "cccccc",
-      "bg": "faf6e8"
     },
     {
       "icon": "icon-ranger",
@@ -1553,88 +793,8 @@
     },
     {
       "icon": "icon-ranger",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "icon-ranger",
       "fg": "cccccc",
       "bg": "ffffff"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "cccccc",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "cccccc",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "cccccc",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "cccccc",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "cccccc",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "cccccc",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "cccccc",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-ranger",
-      "fg": "cccccc",
-      "bg": "faf6e8"
     },
     {
       "icon": "icon-sorcerer",
@@ -1683,88 +843,8 @@
     },
     {
       "icon": "icon-sorcerer",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "icon-sorcerer",
       "fg": "cccccc",
       "bg": "ffffff"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "cccccc",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "cccccc",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "cccccc",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "cccccc",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "cccccc",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "cccccc",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "cccccc",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-sorcerer",
-      "fg": "cccccc",
-      "bg": "faf6e8"
     },
     {
       "icon": "icon-warlock",
@@ -1813,88 +893,8 @@
     },
     {
       "icon": "icon-warlock",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "icon-warlock",
       "fg": "cccccc",
       "bg": "ffffff"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "cccccc",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "cccccc",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "cccccc",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "cccccc",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "cccccc",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "cccccc",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "cccccc",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-warlock",
-      "fg": "cccccc",
-      "bg": "faf6e8"
     },
     {
       "icon": "icon-wizard",
@@ -1943,718 +943,78 @@
     },
     {
       "icon": "icon-wizard",
-      "fg": "55a868",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "dd8452",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "64b5cd",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "da8bc3",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "c44e52",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "4c72b0",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "8172b3",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "ccb974",
-      "bg": "faf6e8"
-    },
-    {
-      "icon": "icon-wizard",
       "fg": "cccccc",
       "bg": "ffffff"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "cccccc",
-      "bg": "d4edd9"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "cccccc",
-      "bg": "fae9e0"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "cccccc",
-      "bg": "e0f4fa"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "cccccc",
-      "bg": "faf0f7"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "cccccc",
-      "bg": "f9e3e4"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "cccccc",
-      "bg": "dde8f4"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "cccccc",
-      "bg": "eae8f4"
-    },
-    {
-      "icon": "icon-wizard",
-      "fg": "cccccc",
-      "bg": "faf6e8"
     },
     {
       "icon": "icon-range",
       "fg": "ffffff",
-      "bg": "333333"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-range-los-inv",
       "fg": "ffffff",
-      "bg": "333333"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-duration",
       "fg": "ffffff",
-      "bg": "333333"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-permanent",
       "fg": "ffffff",
-      "bg": "333333"
-    },
-    {
-      "icon": "icon-range",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-range-los-inv",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-duration",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-permanent",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-range",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-range-los-inv",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-duration",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-permanent",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-range",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-range-los-inv",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-duration",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-permanent",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-range",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-range-los-inv",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-duration",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-permanent",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-range",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-range-los-inv",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-duration",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-permanent",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-range",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-range-los-inv",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-duration",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-permanent",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-range",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-range-los-inv",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-duration",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-permanent",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-range",
-      "fg": "ffffff",
-      "bg": "ccb974"
-    },
-    {
-      "icon": "icon-range-los-inv",
-      "fg": "ffffff",
-      "bg": "ccb974"
-    },
-    {
-      "icon": "icon-duration",
-      "fg": "ffffff",
-      "bg": "ccb974"
-    },
-    {
-      "icon": "icon-permanent",
-      "fg": "ffffff",
-      "bg": "ccb974"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-cone",
       "fg": "ffffff",
-      "bg": "333333"
-    },
-    {
-      "icon": "icon-cone",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-cone",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-cone",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-cone",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-cone",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-cone",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-cone",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-cone",
-      "fg": "ffffff",
-      "bg": "ccb974"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-cube",
       "fg": "ffffff",
-      "bg": "333333"
-    },
-    {
-      "icon": "icon-cube",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-cube",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-cube",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-cube",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-cube",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-cube",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-cube",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-cube",
-      "fg": "ffffff",
-      "bg": "ccb974"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-cylinder",
       "fg": "ffffff",
-      "bg": "333333"
-    },
-    {
-      "icon": "icon-cylinder",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-cylinder",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-cylinder",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-cylinder",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-cylinder",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-cylinder",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-cylinder",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-cylinder",
-      "fg": "ffffff",
-      "bg": "ccb974"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-emanation",
       "fg": "ffffff",
-      "bg": "333333"
-    },
-    {
-      "icon": "icon-emanation",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-emanation",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-emanation",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-emanation",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-emanation",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-emanation",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-emanation",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-emanation",
-      "fg": "ffffff",
-      "bg": "ccb974"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-hemisphere",
       "fg": "ffffff",
-      "bg": "333333"
-    },
-    {
-      "icon": "icon-hemisphere",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-hemisphere",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-hemisphere",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-hemisphere",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-hemisphere",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-hemisphere",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-hemisphere",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-hemisphere",
-      "fg": "ffffff",
-      "bg": "ccb974"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-line",
       "fg": "ffffff",
-      "bg": "333333"
-    },
-    {
-      "icon": "icon-line",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-line",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-line",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-line",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-line",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-line",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-line",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-line",
-      "fg": "ffffff",
-      "bg": "ccb974"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-sphere",
       "fg": "ffffff",
-      "bg": "333333"
-    },
-    {
-      "icon": "icon-sphere",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-sphere",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-sphere",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-sphere",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-sphere",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-sphere",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-sphere",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-sphere",
-      "fg": "ffffff",
-      "bg": "ccb974"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-square",
       "fg": "ffffff",
-      "bg": "333333"
-    },
-    {
-      "icon": "icon-square",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-square",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-square",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-square",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-square",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-square",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-square",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-square",
-      "fg": "ffffff",
-      "bg": "ccb974"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-circle",
       "fg": "ffffff",
-      "bg": "333333"
-    },
-    {
-      "icon": "icon-circle",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-circle",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-circle",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-circle",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-circle",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-circle",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-circle",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-circle",
-      "fg": "ffffff",
-      "bg": "ccb974"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-wall",
       "fg": "ffffff",
-      "bg": "333333"
-    },
-    {
-      "icon": "icon-wall",
-      "fg": "ffffff",
-      "bg": "55a868"
-    },
-    {
-      "icon": "icon-wall",
-      "fg": "ffffff",
-      "bg": "dd8452"
-    },
-    {
-      "icon": "icon-wall",
-      "fg": "ffffff",
-      "bg": "64b5cd"
-    },
-    {
-      "icon": "icon-wall",
-      "fg": "ffffff",
-      "bg": "da8bc3"
-    },
-    {
-      "icon": "icon-wall",
-      "fg": "ffffff",
-      "bg": "c44e52"
-    },
-    {
-      "icon": "icon-wall",
-      "fg": "ffffff",
-      "bg": "4c72b0"
-    },
-    {
-      "icon": "icon-wall",
-      "fg": "ffffff",
-      "bg": "8172b3"
-    },
-    {
-      "icon": "icon-wall",
-      "fg": "ffffff",
-      "bg": "ccb974"
+      "bg": "ffffff"
     },
     {
       "icon": "icon-gold",
