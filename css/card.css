@@ -329,7 +329,7 @@ body.grayscale {
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
+    background-clip: content-box;
     flex-shrink: 0;
     position: relative;
     /* Use box-shadow to create white gap ring and colored outer border ring.
@@ -339,20 +339,7 @@ body.grayscale {
         0 0 0 2pt var(--border-color, currentColor);
 }
 
-/* Fill circle (avoids background-clip which html2canvas can render incorrectly) */
-.spell-level-fill-circle {
-    position: absolute;
-    top: 3pt;
-    left: 3pt;
-    width: 27pt;
-    height: 27pt;
-    border-radius: 50%;
-    pointer-events: none;
-}
-
 .spell-level-text {
-    position: relative;
-    z-index: 1;
     font-family: var(--main-font);
     font-weight: 900;
     font-size: 20pt;
@@ -360,8 +347,6 @@ body.grayscale {
 }
 
 .cantrip-circle {
-    position: relative;
-    z-index: 1;
     width: 5pt;
     height: 5pt;
     background-color: white;
@@ -959,9 +944,4 @@ body.use-inline-text .inline-icon-wrapper .inline-icon-alt {
     object-fit: contain;
     border-radius: 0;
     pointer-events: none;
-}
-
-/* During PDF export, hide UI-only elements so they don't appear in the PDF */
-body.exporting-pdf .no-print {
-    display: none !important;
 }
