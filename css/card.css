@@ -320,12 +320,11 @@ body.grayscale {
 }
 
 .spell-level-outer-circle {
-    width: 33pt;
-    height: 33pt;
+    width: 31pt;
+    height: 31pt;
     box-sizing: border-box;
     border-radius: 50%;
-    margin-top: 3pt; /* account for padding-top in spell-card-front */
-    padding: 2pt;
+    margin: 3pt 1pt 1.5pt 1pt; /* account for padding-top in spell-card-front */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -335,8 +334,8 @@ body.grayscale {
     /* Use box-shadow to create white gap ring and colored outer border ring.
        Slight overlap (2.2pt) so inner edge of color doesn’t align with white edge. */
     box-shadow:
-        0 0 0 1pt white,
-        0 0 0 2pt var(--border-color, currentColor);
+        0 0 0 2pt white,
+        0 0 0 3pt var(--border-color, currentColor);
 }
 
 .spell-level-text {
