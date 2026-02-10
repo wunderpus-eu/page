@@ -1,0 +1,967 @@
+/* Spell card layout and print styling (card faces, pages, glossary) */
+
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("../assets/fonts/SourceSans3-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("../assets/fonts/SourceSans3-Italic.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("../assets/fonts/SourceSans3-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("../assets/fonts/SourceSans3-ExtraBold.ttf") format("truetype");
+    font-weight: 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("../assets/fonts/SourceSans3-Black.ttf") format("truetype");
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("../assets/fonts/SourceSans3-BoldItalic.ttf") format("truetype");
+    font-weight: 700;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("../assets/fonts/SourceSans3-ExtraBoldItalic.ttf") format("truetype");
+    font-weight: 800;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("../assets/fonts/SourceSans3-BlackItalic.ttf") format("truetype");
+    font-weight: 900;
+    font-style: italic;
+}
+
+:root {
+    --main-font: "Source Sans 3", sans-serif;
+    --font-color: #333;
+    --font-color-light: #7f7f7f;
+    --graphic-color: #333;
+    --card-border-color: #ccc;
+    --abjuration-color: #55a868;
+    --conjuration-color: #dd8452;
+    --divination-color: #64b5cd;
+    --enchantment-color: #da8bc3;
+    --evocation-color: #c44e52;
+    --illusion-color: #4c72b0;
+    --necromancy-color: #8172b3;
+    --transmutation-color: #ccb974;
+    --margin-size: 3mm;
+    --level-size: 33pt;
+    --casting-time-size: 17pt;
+    --casting-time-overlap: -7pt;
+    --icon-size: 8pt;
+    --chip-size: 10pt;
+}
+
+.spell-source-text {
+    position: absolute;
+    bottom: 4pt;
+    right: 9.5pt;
+    font-size: 5pt;
+    color: var(--font-color-light);
+    text-align: right;
+}
+
+/* Source is displayed directly from spell.source via SOURCE_MAP */
+
+/* Spell-cards page: overscroll matches light grey (layout in style.css) */
+html.spell-cards-page {
+    background-color: #f0f0f0;
+}
+
+#main-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0 2rem;
+    min-height: 0;
+}
+/* Single scroll for spell-cards: overflow on .spell-cards-scroll in style.css */
+.spell-cards-page .spell-cards-scroll #main-container {
+    overflow: visible;
+}
+
+#printable-area-wrapper {
+    margin: 0;
+}
+
+#printable-area {
+    transform-origin: top left;
+    transition: transform 0.1s ease-out;
+}
+
+body {
+    font-family: var(--main-font);
+    margin: 0;
+    background-color: #f0f0f0;
+    color: var(--font-color);
+}
+
+body.grayscale {
+    --abjuration-color: var(--font-color);
+    --conjuration-color: var(--font-color);
+    --divination-color: var(--font-color);
+    --enchantment-color: var(--font-color);
+    --evocation-color: var(--font-color);
+    --illusion-color: var(--font-color);
+    --necromancy-color: var(--font-color);
+    --transmutation-color: var(--font-color);
+}
+
+/* Default card back (cross-hatch) when "Card back" is on and card has no back */
+.spell-card-default-back {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    background-color: #f5f5f5;
+    background-image: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 3px,
+            rgba(0, 0, 0, 0.08) 3px,
+            rgba(0, 0, 0, 0.08) 6px
+        ),
+        repeating-linear-gradient(
+            -45deg,
+            transparent,
+            transparent 3px,
+            rgba(0, 0, 0, 0.08) 3px,
+            rgba(0, 0, 0, 0.08) 6px
+        );
+}
+
+.page {
+    background: white;
+    width: 297mm;
+    height: 210mm;
+    margin: 10px 0;
+    overflow: hidden;
+    position: relative;
+    page-break-after: always;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.page-content {
+    position: relative;
+    flex-shrink: 0;
+}
+
+/* Cut marks: thin black lines at card edges for printing */
+.cut-marks {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.cut-mark {
+    position: absolute;
+    background-color: black;
+    box-sizing: border-box;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+}
+
+.card-container {
+    position: absolute;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    row-gap: 0;
+}
+
+/* Fixed size per slot so fronts and default backs don’t collapse or misalign in flex layout */
+.card-container > .spell-card,
+.card-container > .spell-card-spacer {
+    flex: 0 0 auto;
+    width: 63mm;
+    height: 88mm;
+    min-width: 63mm;
+    min-height: 88mm;
+}
+
+.spell-card-spacer {
+    visibility: hidden;
+}
+
+.page-letter {
+    width: 11in;
+    height: 8.5in;
+}
+
+.spell-card {
+    width: 63mm;
+    height: 88mm;
+    float: left;
+    overflow: visible;
+    position: relative;
+}
+
+.spell-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--wa-color-overlay-inline);
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+
+.spell-card:hover::before,
+.spell-card.card-hover-pair::before {
+    opacity: 1;
+}
+
+.card-actions {
+    position: absolute;
+    top: 4pt;
+    right: 4pt;
+    z-index: 11;
+    display: flex;
+    flex-direction: column;
+    gap: 2pt;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.spell-card:hover .card-actions,
+.spell-card.card-hover-pair .card-actions {
+    opacity: 1;
+}
+
+.card-action-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.spell-card-front,
+.spell-card-back {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 8.5pt;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+.spell-card-front {
+    padding-top: 5.5pt;  /* we account for this in spell-level-outer-circle */
+}
+
+/* Earmark: small triangle in spell-school color at top-right of front face */
+.spell-card.always-prepared .spell-card-front::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 10pt 10pt 0;
+    border-color: transparent var(--earmark-color, #333333) transparent transparent;
+    pointer-events: none;
+}
+
+.spell-card-front-border {
+    position: absolute;
+    top: 42.5pt;
+    right: 8.5pt;
+    bottom: 8pt;
+    left: 7.5pt;
+    pointer-events: none;
+}
+
+.spell-card-front-border img {
+    border-radius: 0;
+}
+
+.card-header {
+    position: relative;
+    margin-right: 1pt;
+}
+
+.header-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 4pt;
+}
+
+.spell-level-outer-circle {
+    width: 33pt;
+    height: 33pt;
+    box-sizing: border-box;
+    border-radius: 50%;
+    margin-top: 3pt; /* account for padding-top in spell-card-front */
+    padding: 2pt;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+    position: relative;
+    /* Use box-shadow to create white gap ring and colored outer border ring.
+       Slight overlap (2.2pt) so inner edge of color doesn’t align with white edge. */
+    box-shadow:
+        0 0 0 1pt white,
+        0 0 0 2pt var(--border-color, currentColor);
+}
+
+/* Fill circle (avoids background-clip which html2canvas can render incorrectly) */
+.spell-level-fill-circle {
+    position: absolute;
+    top: 3pt;
+    left: 3pt;
+    width: 27pt;
+    height: 27pt;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.spell-level-text {
+    position: relative;
+    z-index: 1;
+    font-family: var(--main-font);
+    font-weight: 900;
+    font-size: 20pt;
+    color: white;
+}
+
+.cantrip-circle {
+    position: relative;
+    z-index: 1;
+    width: 5pt;
+    height: 5pt;
+    background-color: white;
+    border-radius: 50%;
+}
+
+.spell-name-container {
+    align-self: stretch;
+    padding-left: 1pt; /* for visual balance */
+    padding-bottom: 5.5pt; /* accounting for overlap of next row */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    box-sizing: border-box;
+    min-height: 26pt;
+    max-height: 36pt;
+    overflow: hidden;
+}
+
+/* Spell name is displayed directly from spell.name (WYSIWYG) */
+
+.spell-card h3 {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-family: var(--main-font);
+    font-weight: 900;
+    font-size: 10pt;
+    line-height: 10pt;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.spell-name-subtitle {
+    font-family: var(--main-font);
+    font-size: 7pt; /* Same as card body content */
+    font-weight: bold;
+    font-style: italic;
+    line-height: 7pt;
+    margin-top: 2pt;
+    margin-bottom: 1pt;
+    margin-left: 1pt;
+    text-align: left;
+}
+
+.casting-time-container {
+    width: 33pt;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1; /* Above spell level circle when overlapping */
+}
+
+.spell-casting-time {
+    height: 15pt; /* Match spell-range and spell-duration height */
+    line-height: 15pt;
+    padding: 0 4pt;
+    border-radius: var(--casting-time-size);
+    color: white;
+    font-weight: bold;
+    white-space: nowrap;
+    box-sizing: border-box;
+    background-clip: padding-box;
+    text-align: center;
+    /* Use box-shadow for white border around colored casting time */
+    box-shadow: 0 0 0 1pt var(--border-color, white);
+}
+
+.spell-casting-time.is-circular {
+    width: 15pt; /* Match height for a perfect circle */
+    padding: 0;
+}
+
+.spell-range-and-duration {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spell-range {
+    height: 15pt;
+    margin-right: 4pt;
+    padding: 0 5pt 0 4pt;
+    justify-self: center;
+    border-radius: 15pt;
+    color: white;
+    font-size: 8pt;
+    white-space: nowrap;
+    box-sizing: border-box;
+    line-height: 15pt;
+}
+
+.spell-range-icon {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    object-fit: contain;
+    vertical-align: middle;
+    margin-top: -1pt;
+    margin-bottom: 1pt;
+    border-radius: 0;
+    pointer-events: none;
+}
+
+/* Initial range icon: keep right margin after it */
+.spell-range-icon.range {
+    margin-right: 3pt;
+}
+
+/* Inline icons (permanent, area): no margins; spacing from text/spaces */
+.spell-range-icon.inline {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* Targets icon: double left margin, half right */
+.spell-range-icon.targets {
+    margin-left: 3pt;
+    margin-right: 1.5pt;
+}
+
+.spell-duration {
+    height: 15pt;
+    padding: 0 5pt 0 5pt;
+    justify-self: center;
+    border-radius: 15pt;
+    color: white;
+    font-size: 8pt;
+    white-space: nowrap;
+    box-sizing: border-box;
+    line-height: 15pt;
+}
+
+.spell-duration-icon {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    object-fit: contain;
+    vertical-align: middle;
+    margin-top: -1pt;
+    margin-bottom: 1pt;
+    border-radius: 0;
+    pointer-events: none;
+}
+
+.spell-duration-icon:first-child {
+    margin-right: 1.5pt;
+}
+
+.spell-component-icons {
+    height: var(--chip-size);
+    width: 33pt;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.spell-component-icons img {
+    display: inline-block;
+    vertical-align: top;
+    border-radius: 0;
+    pointer-events: none;
+}
+
+.spell-component-text {
+    font-size: 7pt;
+    line-height: 7pt;
+    color: var(--font-color-light);
+    font-style: italic;
+    font-family: var(--main-font);
+    font-weight: 400;
+    text-align: justify;
+    padding-top: 2pt;
+    padding-right: 4pt;
+}
+
+.spell-concentration-and-ritual {
+    position: absolute;
+    top: 71.5pt;
+    left: 4pt;
+    width: var(--chip-size);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2pt;
+}
+
+.spell-concentration-and-ritual img {
+    border-radius: 0;
+    pointer-events: none;
+}
+
+.spell-school-container {
+    position: absolute;
+    top: 141pt;
+    left: 6.5pt;
+    width: 5pt;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.spell-school {
+    transform: rotate(-90deg);
+    font-size: 5pt;
+    line-height: 5pt;
+    padding-left: 1pt;
+    padding-right: 1pt;
+    text-transform: uppercase;
+    font-weight: 900;
+    font-style: italic;
+    font-family: var(--main-font);
+}
+
+.spell-school span {
+    padding: 0 0.25pt;
+}
+
+.spell-class-icons {
+    position: absolute;
+    bottom: 3pt;
+    left: 9.5pt;
+    height: var(--icon-size);
+    white-space: nowrap;
+}
+
+.spell-class-icons img {
+    display: inline-block;
+    vertical-align: top;
+    margin-right: 2pt;
+    border-radius: 0;
+    pointer-events: none;
+}
+
+.spell-class-icons img:last-child {
+    margin-right: 0;
+}
+
+.card-body {
+    margin-left: 4pt;
+    margin-right: 1pt;
+    margin-bottom: 5.5pt;
+    padding: 3.5pt 4pt;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    font-size: 7pt;
+    line-height: 7pt;
+    color: var(--font-color);
+    min-height: 0;
+}
+
+.card-body.back {
+    margin-left: 4pt;
+    margin-right: 1pt;
+    margin-bottom: 5.5pt;
+    padding: 3.5pt 4pt;
+    color: var(--font-color);
+    background-color: white;
+    /* Border in spell-school color (set via --back-border-color in JS) */
+    box-shadow: inset 0 0 0 1pt var(--back-border-color, var(--card-border-color));
+}
+
+/* Match front description/list styling on the back for consistent bullets and spacing */
+.card-body.back .description-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.card-body.back .description-text p {
+    text-align: justify;
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+.card-body.back .description-text p:last-child {
+    margin-bottom: 0;
+}
+
+.card-body.back .description-text .spell-description-list {
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+    padding-left: 0;
+    list-style-type: none;
+    text-align: justify;
+}
+
+.card-body.back .description-text .spell-description-list:last-child {
+    margin-bottom: 0;
+}
+
+.card-body.back .description-text .spell-description-list li {
+    position: relative;
+    margin-left: 0.25em;
+    padding-left: 0.5em;
+    margin-bottom: 0.25em;
+    text-align: justify;
+}
+
+.card-body.back .description-text .spell-description-list li:last-child {
+    margin-bottom: 0;
+}
+
+.card-body.back .description-text .spell-description-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    top: -0.05em;
+}
+
+.spell-condition-text {
+    text-align: justify;
+    font-style: italic;
+    margin-top: 0;
+    margin-bottom: 0.5em;
+}
+
+.description-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Front and back: paragraphs and lists in card body description (bullet position, spacing, justify) */
+.card-body .description-text p {
+    text-align: justify;
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+.card-body .description-text p:last-child {
+    margin-bottom: 0;
+}
+
+.spell-entry-name {
+    font-weight: bold;
+    padding-right: 0.5em;
+}
+
+.card-body .spell-description-list {
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+    padding-left: 0;
+    list-style-type: none;
+    text-align: justify;
+}
+
+.card-body .spell-description-list:last-child {
+    margin-bottom: 0;
+}
+
+.card-body .spell-description-list li {
+    position: relative;
+    margin-left: 0.25em;
+    padding-left: 0.5em;
+    margin-bottom: 0.25em;
+    text-align: justify;
+}
+
+.card-body .spell-description-list li:last-child {
+    margin-bottom: 0;
+}
+
+.card-body .spell-description-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    top: -0.05em;
+}
+
+.spell-description-list-hang-term {
+    font-weight: bold;
+    padding-right: 0.5em;
+}
+
+.spell-table {
+    text-align: left;
+    width: 100%;
+    margin-bottom: 0.5em;
+    border-collapse: separate;
+    border-spacing: 0 0em;
+    line-height: 1.2;
+}
+
+.spell-table th,
+.spell-table td {
+    padding: 0 0.25em;
+    vertical-align: top;
+    line-height: inherit;
+}
+
+.spell-table th:first-child,
+.spell-table td:first-child {
+    width: 1%;
+}
+
+.spell-table thead th {
+    padding-top: 0;
+    padding-bottom: 0;
+    vertical-align: bottom;
+}
+
+.spell-table tbody td {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.spell-table thead {
+    vertical-align: bottom;
+}
+
+.spell-table:last-child {
+    margin-bottom: 0;
+}
+
+.spell-table caption {
+    color: var(--font-color-light);
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: left;
+    margin-left: 0.2em;
+    font-size: 0.8em;
+    line-height: 0.8em;
+}
+
+.spell-higher-level-text {
+    text-align: justify;
+    margin-top: 0;
+    padding-top: 4pt; /* single value for consistent preview/print (was 3.5pt margin + 4.5pt padding) */
+    position: relative;
+}
+
+/* Match description-text paragraph/list spacing so higher-level block doesn’t look loose */
+.card-body .spell-higher-level-text p {
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+.card-body .spell-higher-level-text p:last-child {
+    margin-bottom: 0;
+}
+
+.card-body .spell-higher-level-text .spell-description-list {
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+.card-body .spell-higher-level-text .spell-description-list:last-child {
+    margin-bottom: 0;
+}
+
+.card-body .spell-higher-level-text .spell-description-list li {
+    margin-bottom: 0.25em;
+}
+
+.card-body .spell-higher-level-text .spell-description-list li:last-child {
+    margin-bottom: 0;
+}
+
+/* Line above higher-level text: box-shadow for consistent thickness (like spell-level ring) */
+.spell-higher-level-text::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -7pt;
+    right: -4pt;
+    height: 0;
+    box-shadow: 0 0 0 0.5pt var(--higher-level-line-color, currentColor);
+}
+
+.higher-level-circle {
+    position: absolute;
+    top: -4.5pt;
+    left: -12.5pt;
+    width: 10pt;
+    height: 10pt;
+    object-fit: contain;
+    border-radius: 0;
+    pointer-events: none;
+}
+
+.higher-level-plus {
+    padding-top: 0.5pt;
+}
+
+/* Back: line and plus need different offsets (layout differs from front) */
+.card-body.back .spell-higher-level-text::before {
+    right: -3pt;
+}
+
+.card-body.back .higher-level-circle {
+    left: -8.5pt;
+    top: -5pt;
+}
+
+.inline-icon-wrapper {
+    display: inline-block;
+    vertical-align: middle;
+    transform: translateY(-0.1em);
+    width: 0.8em;
+    height: 0.8em;
+}
+
+.inline-icon-wrapper .inline-icon-alt {
+    display: none;
+}
+
+body.use-inline-text .inline-icon-wrapper {
+    width: auto;
+    height: auto;
+    transform: none;
+}
+
+body.use-inline-text .inline-icon-wrapper .inline-icon {
+    display: none;
+}
+
+body.use-inline-text .inline-icon-wrapper .inline-icon-alt {
+    display: inline;
+}
+
+.inline-icon {
+    height: 100%;
+    width: 100%;
+    border-radius: 0;
+    pointer-events: none;
+}
+
+.dice-formula {
+    font-weight: bold;
+}
+
+.glossary-card .spell-card-front,
+.glossary-card .spell-card-back {
+    display: flex;
+    flex-direction: row;
+    gap: 4pt;
+    justify-content: space-between;
+    padding: 9.5pt;
+}
+
+.glossary-column {
+    width: 50%;
+}
+
+.glossary-section {
+    margin-bottom: 0.5em;
+}
+
+.glossary-section h4 {
+    margin-top: 0;
+    margin-bottom: 0.25em;
+    font-size: 10pt;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.35em;
+}
+
+.glossary-section h4 .glossary-section-title-icon {
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+    vertical-align: middle;
+    border-radius: 0;
+}
+
+.glossary-item {
+    display: flex;
+    align-items: flex-start;
+    margin-left: 0.2em;
+    margin-bottom: 0em;
+    font-size: 8pt;
+    --glossary-line-height: 1.2;
+    line-height: var(--glossary-line-height);
+}
+
+/* One-line-tall wrapper so the icon is centered on the first line regardless of icon size */
+.glossary-item-icon-wrap {
+    height: calc(var(--glossary-line-height) * 1em);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-right: 0.5em;
+}
+
+.glossary-item-icon-wrap img {
+    width: 0.85em;
+    height: 0.85em;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 0;
+    pointer-events: none;
+}
+
+/* During PDF export, hide UI-only elements so they don't appear in the PDF */
+body.exporting-pdf .no-print {
+    display: none !important;
+}

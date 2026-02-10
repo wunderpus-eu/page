@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Wunderpus - Free, game-ready DnD assets.</title>
+        <meta
+            name="description"
+            content="Discover polished DnD assets, starting with an improved 5e character sheet. Designed for improved gameplay while staying faithful to the original layout."
+        />
+        <link rel="icon" href="assets/logo_color.svg" type="image/svg+xml" />
+        <link
+            rel="alternate icon"
+            href="assets/favicon.png"
+            type="image/png"
+            sizes="48x48"
+        />
+        <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+        <link rel="stylesheet" href="css/style.css" />
+        <link rel="stylesheet" href="css/character-sheet.css" />
+        <script
+            src="https://kit.webawesome.com/09159e6f02cb41ba.js"
+            crossorigin="anonymous"
+        ></script>
+        <!-- Google tag (gtag.js) -->
+        <script
+            async
+            src="https://www.googletagmanager.com/gtag/js?id=G-G95Y9F34JV"
+        ></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag("js", new Date());
+
+            gtag("config", "G-G95Y9F34JV");
+        </script>
+    </head>
+    <body>
+        <header class="header">
+            <div class="container">
+                <a href="index.html">
+                    <img
+                        src="assets/wordmark_color.svg"
+                        alt="Wunderpus Wordmark"
+                        class="wordmark"
+                    />
+                </a>
+                <nav class="header-nav" aria-label="Main">
+                    <wa-button
+                        id="header-nav-toggle"
+                        class="header-nav-toggle on-hero"
+                        appearance="plain"
+                        variant="neutral"
+                        size="small"
+                        pill
+                        aria-expanded="false"
+                        aria-label="Open menu"
+                    >
+                        <wa-icon
+                            class="header-nav-toggle-icon"
+                            name="bars"
+                            aria-hidden="true"
+                        ></wa-icon>
+                    </wa-button>
+                    <div id="header-nav-menu" class="header-nav-menu header-nav-menu--inline">
+                        <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="character-sheet.html">Character sheet</wa-button>
+                        <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="spell-cards.html">Spell cards</wa-button>
+                        <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="https://ko-fi.com/wunderpus" target="_blank" rel="noopener noreferrer">Support me</wa-button>
+                    </div>
+                    <wa-popover for="header-nav-toggle" placement="bottom-end" without-arrow class="header-nav-popover">
+                        <div class="header-nav-menu header-nav-menu--popover">
+                            <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="character-sheet.html">Character sheet</wa-button>
+                            <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="spell-cards.html">Spell cards</wa-button>
+                            <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="https://ko-fi.com/wunderpus" target="_blank" rel="noopener noreferrer">Support me</wa-button>
+                        </div>
+                    </wa-popover>
+                </nav>
+            </div>
+        </header>
+
+        <main class="container">
+            <section class="downloads">
+                <h2>An improved character sheet for DnD 5e</h2>
+                <p>
+                    Faithful to the original, but featuring many additional
+                    fields and trackers, more space for notes, and a clearer
+                    layout. Fillable with rich text and ready to print. Perfect
+                    for 2014 and 2024 rules.
+                </p>
+                <div class="download-buttons">
+                    <wa-button
+                        size="medium"
+                        appearance="accent"
+                        variant="brand"
+                        href="sheets/wunderpus-character-sheet-a4.pdf"
+                        target="_blank"
+                        pill
+                        onclick="gtag('event', 'download', {'file_name': 'wunderpus-character-sheet-a4.pdf'});"
+                    >
+                        <wa-icon slot="start" name="download"></wa-icon>
+                        Download A4
+                    </wa-button>
+                    <wa-button
+                        size="medium"
+                        appearance="accent"
+                        variant="brand"
+                        href="sheets/wunderpus-character-sheet-letter.pdf"
+                        target="_blank"
+                        pill
+                        onclick="gtag('event', 'download', {'file_name': 'wunderpus-character-sheet-letter.pdf'});"
+                    >
+                        <wa-icon slot="start" name="download"></wa-icon>
+                        Download Letter
+                    </wa-button>
+                </div>
+                <wa-callout class="printing-tip" appearance="filled" variant="brand">
+                    <wa-icon slot="icon" name="star"></wa-icon>
+                    For best results, print with "Fit to paper" or "Scale to
+                    fit".
+                </wa-callout>
+            </section>
+            <section class="sheets">
+                <h2>Combat-ready design</h2>
+                <div class="sheet-item">
+                    <img
+                        src="sheets/sheet-front.png"
+                        alt="Character sheet front"
+                        class="sheet-image"
+                    />
+                    <div class="sheet-text">
+                        <p class="list-heading">
+                            <strong>Complete status bar with:</strong>
+                        </p>
+                        <ul>
+                            <li>Resistances &amp; immunities</li>
+                            <li>Hit point dice tracker</li>
+                            <li>Conditions &amp; exhaustion tracker</li>
+                            <li>
+                                Line for death saving throw notes like Advantage
+                            </li>
+                        </ul>
+                        <p class="list-heading">
+                            <strong
+                                >Ability scores with corresponding skills,
+                                featuring:</strong
+                            >
+                        </p>
+                        <ul>
+                            <li>
+                                Proficiency &amp; Expertise and a line for short
+                                notes
+                            </li>
+                            <li>
+                                Additional stats: carrying capacity, age,
+                                height, weight
+                            </li>
+                        </ul>
+                        <p class="list-heading">
+                            <strong>Improved core stats:</strong>
+                        </p>
+                        <ul>
+                            <li>Line for Initiative notes like Advantage</li>
+                            <li>Additional speeds like climbing or swimming</li>
+                            <li>Long &amp; high jump</li>
+                            <li>
+                                Additional senses like blindsight or tremorsense
+                            </li>
+                        </ul>
+                        <p class="list-heading">
+                            <strong
+                                >More lines for weapons, more love for
+                                martials:</strong
+                            >
+                        </p>
+                        <ul>
+                            <li>
+                                Equipment Training includes weapon masteries
+                            </li>
+                            <li>Checkboxes for main hand and off-hand</li>
+                            <li>Ammunition tracker</li>
+                        </ul>
+                        <p class="list-heading">
+                            <strong
+                                >Better class overview with more space:</strong
+                            >
+                        </p>
+                        <ul>
+                            <li>Save DC and tracker for main class resource</li>
+                            <li>Round counter</li>
+                        </ul>
+                    </div>
+                </div>
+                <h2>More space for loot & magic</h2>
+                <div class="sheet-item">
+                    <img
+                        src="sheets/sheet-back.png"
+                        alt="Character sheet back"
+                        class="sheet-image"
+                    />
+                    <div class="sheet-text">
+                        <p class="list-heading">
+                            <strong
+                                >Larger appearance &amp; backstory sections,
+                                including:</strong
+                            >
+                        </p>
+                        <ul>
+                            <li>Field to add a portrait</li>
+                            <li>Section for languages</li>
+                        </ul>
+                        <wa-callout class="printing-tip" appearance="filled" variant="brand">
+                            <wa-icon slot="icon" name="circle-info"></wa-icon>
+                            Use Acrobat Reader to add a portrait PDF (must be
+                            cut to a circle with transparent background).
+                        </wa-callout>
+                        <br />
+                        <p class="list-heading">
+                            <strong>Larger equipment section with:</strong>
+                        </p>
+                        <ul>
+                            <li>Consumable trackers</li>
+                            <li>Space for non-attuned magic items</li>
+                        </ul>
+                        <p class="list-heading">
+                            <strong
+                                >More space for spells, more love for
+                                casters:</strong
+                            >
+                        </p>
+                        <ul>
+                            <li>Line for number of prepared spells</li>
+                            <li>Better-arranged spell slot trackers</li>
+                            <li>Checkboxes for prepared spells</li>
+                            <li>
+                                Checkboxes for required &amp; consumed material
+                                components
+                            </li>
+                            <li>Trackers for free spellcasts</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <p>
+                    © 2025 Wunderpus. The Wunderpus logo and character sheet are
+                    copyright Wunderpus.
+                </p>
+                <p>
+                    The character sheet is licensed under a
+                    <a
+                        href="http://creativecommons.org/licenses/by/4.0/"
+                        target="_blank"
+                        >Creative Commons Attribution 4.0 International
+                        License</a
+                    >.
+                    <br />
+                    This work is not affiliated with, endorsed, or sponsored
+                    by Wizards of the Coast LLC.
+                </p>
+            </div>
+        </footer>
+
+        <script src="js/nav.js"></script>
+    </body>
+</html>

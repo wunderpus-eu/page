@@ -1,0 +1,280 @@
+/* General page styling: layout, nav, footer (every page) */
+
+:root {
+    --container-width: 960px;
+    --border-radius: 8px;
+
+    /* Web Awesome purple palette (hero / brand) */
+    --wa-color-purple-95: #f7f0ff;
+    --wa-color-purple-90: #eedfff;
+    --wa-color-purple-80: #ddbdff;
+    --wa-color-purple-70: #ca99ff;
+    --wa-color-purple-60: #b678f5;
+    --wa-color-purple-50: #9951db;
+    --wa-color-purple-40: #7936b3;
+    --wa-color-purple-30: #612692;
+    --wa-color-purple-20: #491870;
+    --wa-color-purple-10: #2d0b48;
+    --wa-color-purple-05: #1e0532;
+    --wa-color-purple: var(--wa-color-purple-50);
+    --wa-color-purple-key: 50;
+
+    --hero-color: var(--wa-color-purple);
+
+    /* Brand = purple (same scale, starts at 05) */
+    --wa-color-brand-05: var(--wa-color-purple-05);
+    --wa-color-brand-10: var(--wa-color-purple-10);
+    --wa-color-brand-20: var(--wa-color-purple-20);
+    --wa-color-brand-30: var(--wa-color-purple-30);
+    --wa-color-brand-40: var(--wa-color-purple-40);
+    --wa-color-brand-50: var(--wa-color-purple-50);
+    --wa-color-brand-60: var(--wa-color-purple-60);
+    --wa-color-brand-70: var(--wa-color-purple-70);
+    --wa-color-brand-80: var(--wa-color-purple-80);
+    --wa-color-brand-90: var(--wa-color-purple-90);
+    --wa-color-brand-95: var(--wa-color-purple-95);
+
+    /* Map to WA semantic tokens (same as WA reference) */
+    --wa-color-focus: var(--wa-color-brand-70);
+    --wa-color-mix-hover: black 10%;
+    --wa-color-mix-active: black 20%;
+    --wa-form-control-activated-color: var(--hero-color);
+    --wa-color-brand-fill-quiet: var(--wa-color-brand-95);
+    --wa-color-brand-fill-normal: var(--wa-color-brand-90);
+    --wa-color-brand-fill-loud: var(--wa-color-brand-50);
+    --wa-color-brand-border-quiet: var(--wa-color-brand-90);
+    --wa-color-brand-border-normal: var(--wa-color-brand-80);
+    --wa-color-brand-border-loud: var(--wa-color-brand-60);
+    --wa-color-brand-on-quiet: var(--wa-color-brand-40);
+    --wa-color-brand-on-normal: var(--wa-color-brand-30);
+    --wa-color-brand-on-loud: white;
+}
+
+/* Overscroll/bounce area matches main page background */
+html {
+    background-color: var(--wa-color-surface-default);
+}
+/* Spell-cards: scroll is in .spell-cards-scroll only; prevent document scroll and gutter */
+html.spell-cards-page {
+    overflow: hidden;
+    scrollbar-gutter: auto;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+        "Segoe UI Symbol";
+    margin: 0;
+    color: var(--wa-color-text-normal);
+    background-color: var(--wa-color-surface-default);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+h2 {
+    margin-top: 0;
+}
+
+/* Header / nav – same height and look on every page */
+.header {
+    background-color: var(--hero-color) !important;
+    margin-bottom: 2rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif;
+}
+
+/* Inversion tied to class .on-hero (not location): use on nav, spell search, filter trigger – not in dropdowns (white). */
+wa-button.on-hero {
+    --wa-color-neutral-fill-quiet: var(--wa-color-brand-60);
+    --wa-color-neutral-fill-normal: var(--hero-color);
+    --wa-color-neutral-fill-loud: #fff;
+    --wa-color-neutral-on-quiet: #fff;
+    --wa-color-neutral-on-normal: #fff;
+    --wa-color-neutral-on-loud: var(--hero-color);
+    --wa-color-neutral-border-loud: #fff;
+}
+wa-button.on-hero wa-icon,
+wa-button.on-hero i {
+    color: inherit;
+}
+wa-input.on-hero {
+    --wa-color-neutral-fill-quiet: #fff;
+}
+
+/* Top row: wordmark + nav (same on character sheet and spell cards) */
+.header .container,
+.header__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    min-height: 48px;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    box-sizing: border-box;
+}
+
+.wordmark {
+    height: 38px;
+    width: auto;
+    filter: brightness(0) invert(1);
+    flex-shrink: 0;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+
+.header-nav-toggle {
+    display: none;
+}
+
+.header-nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Spell cards page: header contains nav + controls */
+.header--spell-cards {
+    margin-bottom: 0;
+}
+
+.header--spell-cards .header__top {
+    flex: 1 1 auto;
+    position: relative;
+    z-index: 20;
+}
+
+.header__controls {
+    width: 100%;
+    padding: 0.75rem 1.5rem 1rem;
+    box-sizing: border-box;
+    background: transparent;
+    position: relative;
+    z-index: 0;
+}
+
+.header__controls .controls {
+    max-width: none;
+}
+
+/* Footer – same on every page (all footer styling here) */
+.footer {
+    margin-top: 2rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--wa-color-surface-border, #eee);
+    text-align: center;
+    color: var(--wa-color-text-quiet);
+}
+
+/* Spell-cards page: main area fills viewport so footer sits below the fold when empty when there’s little or no content */
+body.spell-cards-page {
+    overflow: hidden;
+    height: 100vh;
+}
+.spell-cards-viewport {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+}
+.spell-cards-viewport .header {
+    flex-shrink: 0;
+}
+.spell-cards-scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+    scrollbar-gutter: auto;
+    display: flex;
+    flex-direction: column;
+}
+/* Content (main + footer) fills at least the scroll area so footer sits at bottom when empty */
+.spell-cards-content {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+.spell-cards-content #main-container {
+    flex: 1 1 0;
+    min-height: auto; /* grow with content so pages don’t cover footer */
+    box-sizing: border-box;
+}
+.spell-cards-content .footer {
+    flex-shrink: 0;
+    margin-top: 0;
+}
+/* Scroll room after footer so pages can be scrolled up enough */
+.spell-cards-scroll-spacer {
+    flex-shrink: 0;
+    min-height: 50vh;
+}
+
+.footer a {
+    color: var(--wa-color-text-link);
+    text-decoration: underline;
+}
+
+.footer a:hover {
+    color: var(--wa-color-text-normal);
+}
+
+/* Header: hamburger + wa-popover when nav links don’t fit (under 900px) */
+@media (max-width: 650px) {
+    .header-nav-toggle {
+        display: flex;
+    }
+
+    .header-nav-menu--inline {
+        display: none;
+    }
+
+    .header-nav-popover {
+        --max-width: 100vw;
+    }
+
+    .header-nav-popover::part(popup__popup) {
+        border: none;
+        width: 100vw;
+        max-width: 100vw;
+        box-sizing: border-box;
+        left: 0 !important;
+        right: 0 !important;
+        margin: 0 !important;
+    }
+
+    .header-nav-popover::part(body) {
+        border: none;
+        background: var(--hero-color);
+        border-radius: 0 0 var(--border-radius) var(--border-radius);
+        box-shadow: var(--wa-shadow-l);
+        padding: 0.5rem 1.5rem 1rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .header-nav-menu--popover {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+    }
+}
+
+@media (min-width: 900px) {
+    .header-nav-toggle {
+        display: none !important;
+    }
+}

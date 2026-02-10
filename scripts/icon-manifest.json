@@ -1,0 +1,2360 @@
+{
+  "comment": "List of (icon, fg, bg) to pre-generate. Card uses white bg only (earmark = corner triangle). Re-run build-icon-manifest.js when adding icon usages; then run generate-icons.js.",
+  "icons": [
+    {
+      "icon": "icon-artificer",
+      "fg": "transparent",
+      "bg": "374151"
+    },
+    {
+      "icon": "icon-artificer",
+      "fg": "transparent",
+      "bg": "612692"
+    },
+    {
+      "icon": "icon-bard",
+      "fg": "transparent",
+      "bg": "374151"
+    },
+    {
+      "icon": "icon-bard",
+      "fg": "transparent",
+      "bg": "612692"
+    },
+    {
+      "icon": "icon-cleric",
+      "fg": "transparent",
+      "bg": "374151"
+    },
+    {
+      "icon": "icon-cleric",
+      "fg": "transparent",
+      "bg": "612692"
+    },
+    {
+      "icon": "icon-druid",
+      "fg": "transparent",
+      "bg": "374151"
+    },
+    {
+      "icon": "icon-druid",
+      "fg": "transparent",
+      "bg": "612692"
+    },
+    {
+      "icon": "icon-paladin",
+      "fg": "transparent",
+      "bg": "374151"
+    },
+    {
+      "icon": "icon-paladin",
+      "fg": "transparent",
+      "bg": "612692"
+    },
+    {
+      "icon": "icon-ranger",
+      "fg": "transparent",
+      "bg": "374151"
+    },
+    {
+      "icon": "icon-ranger",
+      "fg": "transparent",
+      "bg": "612692"
+    },
+    {
+      "icon": "icon-sorcerer",
+      "fg": "transparent",
+      "bg": "374151"
+    },
+    {
+      "icon": "icon-sorcerer",
+      "fg": "transparent",
+      "bg": "612692"
+    },
+    {
+      "icon": "icon-warlock",
+      "fg": "transparent",
+      "bg": "374151"
+    },
+    {
+      "icon": "icon-warlock",
+      "fg": "transparent",
+      "bg": "612692"
+    },
+    {
+      "icon": "icon-wizard",
+      "fg": "transparent",
+      "bg": "374151"
+    },
+    {
+      "icon": "icon-wizard",
+      "fg": "transparent",
+      "bg": "612692"
+    },
+    {
+      "icon": "border-front",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-v",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "border-front",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-v",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "border-front",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-v",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "border-front",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-v",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "border-front",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-v",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "border-front",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-v",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "border-front",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-v",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "border-front",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-v",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "border-front",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-v",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-s",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-req",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-m-cons",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-c",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-c",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-c",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-c",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-c",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-c",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-c",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-c",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-c",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-r",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-r",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-r",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-r",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-r",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-r",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-r",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-r",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-r",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-plus",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-plus",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-plus",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-plus",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-plus",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-plus",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-plus",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-plus",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "chip-plus",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-artificer",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-artificer",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-artificer",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-artificer",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-artificer",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-artificer",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-artificer",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-artificer",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-artificer",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-artificer",
+      "fg": "cccccc",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bard",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bard",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bard",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bard",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bard",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bard",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bard",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bard",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bard",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bard",
+      "fg": "cccccc",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cleric",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cleric",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cleric",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cleric",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cleric",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cleric",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cleric",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cleric",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cleric",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cleric",
+      "fg": "cccccc",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-druid",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-druid",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-druid",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-druid",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-druid",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-druid",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-druid",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-druid",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-druid",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-druid",
+      "fg": "cccccc",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-paladin",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-paladin",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-paladin",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-paladin",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-paladin",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-paladin",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-paladin",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-paladin",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-paladin",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-paladin",
+      "fg": "cccccc",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-ranger",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-ranger",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-ranger",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-ranger",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-ranger",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-ranger",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-ranger",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-ranger",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-ranger",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-ranger",
+      "fg": "cccccc",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sorcerer",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sorcerer",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sorcerer",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sorcerer",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sorcerer",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sorcerer",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sorcerer",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sorcerer",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sorcerer",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sorcerer",
+      "fg": "cccccc",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-warlock",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-warlock",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-warlock",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-warlock",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-warlock",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-warlock",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-warlock",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-warlock",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-warlock",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-warlock",
+      "fg": "cccccc",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wizard",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wizard",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wizard",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wizard",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wizard",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wizard",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wizard",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wizard",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wizard",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wizard",
+      "fg": "cccccc",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-range",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-range-los-inv",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-targets",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-duration",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-permanent",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-permanent-triggered",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-hemisphere",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-circle",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-square",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wall",
+      "fg": "ffffff",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-gold",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-gold",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-gold",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-gold",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-gold",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-gold",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-gold",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-gold",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-gold",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-gold",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-silver",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-silver",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-silver",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-silver",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-silver",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-silver",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-silver",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-silver",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-silver",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-silver",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-copper",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-copper",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-copper",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-copper",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-copper",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-copper",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-copper",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-copper",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-copper",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-copper",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-acid",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-acid",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-acid",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-acid",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-acid",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-acid",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-acid",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-acid",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-acid",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-acid",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cold",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cold",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cold",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cold",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cold",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cold",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cold",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cold",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cold",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cold",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-fire",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-fire",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-fire",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-fire",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-fire",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-fire",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-fire",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-fire",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-fire",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-fire",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-lightning",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-lightning",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-lightning",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-lightning",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-lightning",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-lightning",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-lightning",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-lightning",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-lightning",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-lightning",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-necrotic",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-necrotic",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-necrotic",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-necrotic",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-necrotic",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-necrotic",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-necrotic",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-necrotic",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-necrotic",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-necrotic",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-poison",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-poison",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-poison",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-poison",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-poison",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-poison",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-poison",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-poison",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-poison",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-poison",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-psychic",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-psychic",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-psychic",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-psychic",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-psychic",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-psychic",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-psychic",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-psychic",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-psychic",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-psychic",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-radiant",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-radiant",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-radiant",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-radiant",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-radiant",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-radiant",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-radiant",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-radiant",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-radiant",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-radiant",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-slashing",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-slashing",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-slashing",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-slashing",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-slashing",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-slashing",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-slashing",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-slashing",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-slashing",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-slashing",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bludgeoning",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bludgeoning",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bludgeoning",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bludgeoning",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bludgeoning",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bludgeoning",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bludgeoning",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bludgeoning",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bludgeoning",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-bludgeoning",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-piercing",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-piercing",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-piercing",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-piercing",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-piercing",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-piercing",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-piercing",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-piercing",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-piercing",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-piercing",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-thunder",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-thunder",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-thunder",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-thunder",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-thunder",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-thunder",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-thunder",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-thunder",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-thunder",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-thunder",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-force",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-force",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-force",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-force",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-force",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-force",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-force",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-force",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-force",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-force",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-b",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-b",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-b",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-b",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-b",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-b",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-b",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-b",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-b",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-b",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-r",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-r",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-r",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-r",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-r",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-r",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-r",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-r",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-r",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-r",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-a",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-a",
+      "fg": "55a868",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-a",
+      "fg": "dd8452",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-a",
+      "fg": "64b5cd",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-a",
+      "fg": "da8bc3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-a",
+      "fg": "c44e52",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-a",
+      "fg": "4c72b0",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-a",
+      "fg": "8172b3",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-a",
+      "fg": "ccb974",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-a",
+      "fg": "7f7f7f",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-line",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cone",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cube",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-cylinder",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-sphere",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-hemisphere",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-emanation",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-circle",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-square",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-wall",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-range",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-range-los",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-targets",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-duration",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-permanent",
+      "fg": "333333",
+      "bg": "ffffff"
+    },
+    {
+      "icon": "icon-permanent-triggered",
+      "fg": "333333",
+      "bg": "ffffff"
+    }
+  ]
+}

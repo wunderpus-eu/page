@@ -1,10 +1,13 @@
 {
-    "name": "spell-card-generator",
+    "name": "wunderpus-site",
     "version": "1.0.0",
-    "description": "A web app to generate spell cards for D&D.",
+    "description": "Wunderpus – free D&D 5e assets: character sheet and spell card generator.",
     "type": "module",
     "scripts": {
-        "start": "npx serve . -p 3000",
-        "dev": "npx serve . -p 3000"
+        "start": "serve . -p 3000",
+        "dev": "serve . -p 3000"
+    },
+    "devDependencies": {
+        "serve": "^14.2.4"
     }
 }

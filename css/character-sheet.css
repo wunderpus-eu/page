@@ -1,0 +1,66 @@
+/* Character sheet page: downloads, sheet preview, printing tips */
+
+.sheets {
+    margin-bottom: 3rem;
+}
+
+.sheet-item {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    align-items: flex-start;
+}
+
+wa-callout.printing-tip {
+    margin-top: 1rem;
+}
+
+.sheet-image {
+    flex: 1;
+    max-width: 50%;
+    border-radius: var(--border-radius);
+    box-shadow: var(--wa-shadow-m);
+}
+
+.sheet-text {
+    flex: 1;
+}
+
+.sheet-text p.list-heading {
+    margin-bottom: 0;
+}
+
+.sheet-text ul {
+    margin-top: 0;
+    margin-bottom: 0.8rem;
+}
+
+.sheets > h2 {
+    text-align: center;
+}
+
+/* Downloads */
+.downloads {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 3rem;
+}
+
+.download-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .sheet-item {
+        flex-direction: column;
+    }
+
+    .sheet-image {
+        max-width: 100%;
+        width: 100%;
+        height: auto;
+    }
+}

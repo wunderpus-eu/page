@@ -1,0 +1,834 @@
+/* Spell card editor – layout and Web Awesome controls */
+header:not(.header--spell-cards) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+}
+
+#header-content {
+    padding: 0.75rem 0 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Menu constrained by .container (same width as header__top: logo to nav) */
+#header-content .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+.controls {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.controls-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Row 1: search grows, filter fixed – center-aligned */
+.controls-row--search {
+    gap: 0.5rem;
+}
+
+.spell-search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 200px;
+    flex: 1;
+}
+
+.spell-search-wrapper .spell-combobox-dropdown {
+    flex: 1;
+    min-width: 0;
+}
+
+.spell-search-wrapper #spell-combobox {
+    flex: 1;
+    min-width: 0;
+}
+
+.spell-search-wrapper #spell-search-input {
+    width: 100%;
+}
+
+.spell-search-wrapper .filter-dropdown {
+    flex-shrink: 0;
+}
+
+/* Match filter button size to search bar; necessary to avoid flicker when switching between filter menu and spell selection dropdown. */
+.spell-search-wrapper #spell-search-input::part(base) {
+    min-height: 43px;
+}
+.filter-trigger-wrap,
+.download-options-trigger-wrap {
+    display: inline-flex;
+    align-items: center;
+}
+
+.filter-trigger-btn::part(base) {
+    height: 43px;
+    min-height: 43px;
+    width: 43px;
+    min-width: 43px;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Dropdown panels: same width as menu content (container minus 24px padding each side, minus panels’ own 4px padding each side) */
+.spell-list-popover,
+.filter-menu-content {
+    width: min(calc(var(--container-width) - 56px), calc(100vw - 56px));
+    box-sizing: border-box;
+}
+
+.spell-list-popover {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 70vh;
+    min-height: 0;
+}
+
+.spell-list-popover .spell-list-header,
+.spell-list-popover .spell-list-chips,
+.spell-list-popover .srd-banner,
+.spell-list-popover .spell-list-footer,
+.spell-list-popover wa-divider {
+    flex-shrink: 0;
+}
+
+
+.spell-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.spell-list-count {
+    font-style: italic;
+    min-width: 0;
+}
+
+/* Inline text buttons in spell list (Add all, Details): bold text, no background, nav-bar-style hover/active */
+.spell-list-popover .spell-list-inline-btn::part(base) {
+    background: transparent;
+    border: none;
+    color: var(--wa-color-neutral-700);
+    font-size: inherit;
+    font-weight: 600;
+    font-style: normal;
+    min-height: auto;
+    height: auto;
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--wa-border-radius-small, 4px);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.spell-list-popover .spell-list-inline-btn::part(base):hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--wa-color-neutral-900);
+}
+.spell-list-popover .spell-list-inline-btn::part(base):active,
+.spell-list-popover .spell-list-inline-btn::part(base):focus-visible {
+    background: rgba(0, 0, 0, 0.14);
+    color: var(--wa-color-neutral-900);
+}
+.spell-list-popover .spell-list-inline-btn i,
+.spell-list-popover .spell-list-inline-btn wa-icon {
+    font-size: 0.875em;
+    color: inherit;
+}
+
+.spell-list-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.spell-list-chips:empty {
+    display: none;
+}
+
+/* Spell list filter chips: wa-tag with-remove, size=small, variant=neutral, appearance=filled (built-in) */
+
+.srd-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--wa-color-neutral-600);
+    font-style: italic;
+}
+#srd-banner-text {
+    min-width: 0;
+}
+.srd-banner .spell-list-inline-btn::part(base) {
+    color: var(--wa-color-neutral-600);
+}
+.srd-banner .spell-list-inline-btn::part(base):hover {
+    color: var(--wa-color-neutral-800);
+}
+.srd-banner.hidden {
+    display: none;
+}
+
+.spell-list.hidden {
+    display: none;
+}
+
+.spell-list-popover wa-divider.hidden {
+    display: none;
+}
+
+.spell-list {
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin-top: 0;
+}
+
+/* wa-dropdown-item rows: use WA hover/focus styling; full width and label layout */
+.spell-list .spell-list-item {
+    width: 100%;
+    box-sizing: border-box;
+}
+.spell-list .spell-list-item::part(label) {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.spell-list .spell-list-item::part(details) {
+    flex-shrink: 0;
+}
+
+.spell-list-item-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.spell-list-item-source {
+    margin-left: 0.35em;
+    font-size: 0.85em;
+    font-weight: normal;
+    font-variant: small-caps;
+    color: var(--wa-color-neutral-on-quiet);
+}
+
+.spell-list-count-btn {
+    flex-shrink: 0;
+    margin: -0.2rem 0;
+}
+
+.spell-list-count-btn::part(base) {
+    min-width: 1.35rem;
+    height: 1.25rem;
+    min-height: 1.25rem;
+    padding: 0 4px;
+    font-size: 0.7rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Selected row: visible when item has .selected (e.g. on open before focus); WA provides hover/focus when focused */
+.spell-list .spell-list-item.selected {
+    background: var(--wa-color-neutral-fill-quiet);
+}
+.spell-list .spell-list-item.selected::part(label) {
+    font-weight: 600;
+}
+
+.spell-list-more {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    color: var(--wa-color-neutral-600);
+}
+
+.spell-list-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-around;
+    gap: 0.5rem 1rem;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--wa-color-neutral-600);
+}
+
+.spell-list-footer-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.spell-list-footer-hint kbd {
+    display: inline-block;
+    padding: 2px 5px;
+    font-size: 0.7rem;
+    font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+    line-height: 1;
+    color: var(--wa-color-neutral-700);
+    background: var(--wa-color-neutral-fill-quiet);
+    border-radius: 4px;
+    border: 1px solid var(--wa-color-neutral-300);
+}
+
+@media (max-width: 768px) {
+    .spell-list-popover .spell-list-footer,
+    .spell-list-popover .spell-list + wa-divider {
+        display: none;
+    }
+}
+
+/* Row 2: actions – left group (upload/download), right group (add/clear), space-between */
+.controls-row--actions {
+    justify-content: space-between;
+}
+
+.controls-row__group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* File input never visible – only the upload button opens the dialog */
+.visually-hidden-file-input {
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.controls-row--print {
+    justify-content: space-between;
+}
+
+.controls-select-with-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.controls-select-with-icon wa-icon,
+.controls-select-with-icon i {
+    flex-shrink: 0;
+    color: var(--wa-color-neutral-600);
+}
+
+.filter-menu-content {
+    padding: 12px;
+    max-height: 70vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+}
+
+.filter-chip-group__header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+/* Reserve space when hidden so the header row doesn’t shift when the button appears */
+/* Reserve space when hidden so the header row doesn't shift when the button appears */
+.filter-clear-btn.hidden {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Clear-all confirmation dialog: no header, footer buttons. */
+.clear-all-confirm-dialog__footer {
+    display: flex;
+    gap: var(--wa-spacing-2, 0.5rem);
+    justify-content: flex-end;
+}
+
+/* Hide entire clear-all when no cards. */
+.clear-all-btn-wrapper.hidden {
+    display: none;
+}
+
+/* Wide: show text button, hide icon-only. */
+.clear-all-btn--icon-only {
+    display: none;
+}
+
+/* Narrow: show icon-only (circle), hide text button. */
+@media (max-width: 500px) {
+    .clear-all-btn--with-text {
+        display: none;
+    }
+    .clear-all-btn--icon-only {
+        display: inline-flex;
+    }
+    .clear-all-btn--icon-only::part(base) {
+        height: 43px;
+        min-height: 43px;
+        width: 43px;
+        min-width: 43px;
+        padding: 0;
+        box-sizing: border-box;
+    }
+}
+
+/* Settings button: same responsive pattern as clear-all. */
+.settings-trigger-wrapper {
+    display: inline-flex;
+}
+.settings-btn--icon-only {
+    display: none;
+}
+@media (max-width: 500px) {
+    .settings-btn--with-text {
+        display: none;
+    }
+    .settings-btn--icon-only {
+        display: inline-flex;
+    }
+    .settings-btn--icon-only::part(base) {
+        height: 43px;
+        min-height: 43px;
+        width: 43px;
+        min-width: 43px;
+        padding: 0;
+        box-sizing: border-box;
+    }
+}
+
+.settings-menu-content {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 200px;
+    max-width: min(calc(var(--container-width) - 56px), calc(100vw - 56px));
+    box-sizing: border-box;
+}
+.settings-menu__section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.settings-menu__section .controls-select-with-icon {
+    width: 100%;
+}
+.settings-menu__section wa-select {
+    flex: 1;
+    min-width: 0;
+}
+.settings-menu__section .controls-select-with-icon wa-radio-group {
+    flex: 1;
+    min-width: 0;
+}
+.settings-menu__section wa-radio-group {
+    width: 100%;
+}
+.settings-menu__section wa-radio-group::part(form-control-label) {
+    display: none;
+}
+.settings-menu__section wa-radio-group::part(radios) {
+    display: flex;
+    gap: 6px;
+}
+
+.filter-menu-content .filter-chip-group:first-of-type {
+    margin-top: 0;
+}
+
+.filter-chip-group--source .filter-menu-row--toggle {
+    margin-top: 6px;
+}
+
+.filter-menu-upload-btn {
+    width: 100%;
+    justify-content: flex-start;
+}
+
+.filter-menu-row__label {
+    color: var(--wa-color-neutral-800);
+}
+
+.filter-menu-row {
+    display: flex;
+    align-items: center;
+}
+
+.filter-chip-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-chip-label {
+    font-weight: 500;
+    color: var(--wa-color-neutral-700);
+}
+
+.filter-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* Same scale as style.css but from --chip-school-color so library hover/focus works */
+.filter-chip-list .filter-chip.filter-chip--school[variant="brand"] {
+    --wa-color-brand-fill-normal: color-mix(in srgb, var(--chip-school-color) 18%, white);
+    --wa-color-brand-on-normal: color-mix(in srgb, var(--chip-school-color) 55%, black);
+}
+
+.filter-chip.filter-chip--class {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.filter-chip.filter-chip--class .filter-class-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25em;
+    height: 1.25em;
+    flex-shrink: 0;
+}
+
+.filter-chip.filter-chip--class .filter-class-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    vertical-align: middle;
+    border-radius: 0;
+}
+
+/* Edit card dialog */
+.edit-card-dialog {
+    --width: min(95vw, 900px);
+}
+
+.edit-card-dialog .edit-overlay-panel {
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+    max-height: min(80vh, 700px);
+}
+
+@media (max-width: 650px) {
+    .edit-card-dialog .edit-overlay-panel {
+        flex-direction: column;
+        max-height: none;
+    }
+}
+
+.edit-overlay-preview {
+    flex-shrink: 0;
+    padding: 24px;
+    background: var(--wa-color-neutral-100);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+#edit-card-preview {
+    transform-origin: top left;
+    transform: scale(0.85);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+}
+
+.edit-overlay-form-wrapper {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.edit-overlay-form {
+    overflow-y: auto;
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.edit-overlay-form wa-input,
+.edit-overlay-form wa-number-input,
+.edit-overlay-form wa-textarea,
+.edit-overlay-form wa-select {
+    width: 100%;
+}
+
+.edit-overlay-form wa-number-input::part(start),
+.edit-overlay-form wa-number-input::part(end) {
+    display: none;
+}
+
+.edit-overlay-form wa-number-input::part(input) {
+    padding: 0;
+}
+
+.edit-area-option-icon,
+.edit-overlay-form wa-select img,
+#edit-card-form wa-select img {
+    border-radius: 0;
+}
+
+.edit-area-option-icon {
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.rich-text-hint-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 0.875rem;
+    color: var(--wa-color-neutral-600, #6b7280);
+}
+
+.rich-text-info-content {
+    max-width: 420px;
+}
+.rich-text-info-content h4 {
+    margin: 16px 0 8px;
+    font-size: 0.9375rem;
+}
+.rich-text-info-content h4:first-child {
+    margin-top: 0;
+}
+.rich-text-info-content ul {
+    margin: 0 0 8px;
+    padding-left: 1.25em;
+}
+.rich-text-info-content li {
+    margin-bottom: 4px;
+}
+.rich-text-info-content code {
+    font-size: 0.8125rem;
+    background: var(--wa-color-neutral-100, #f3f4f6);
+    padding: 1px 4px;
+    border-radius: 4px;
+}
+
+.form-field--switch,
+.form-field-components-material,
+.form-field-components-consumed {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.casting-time-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.casting-time-row > wa-number-input {
+    display: none;
+    flex: 0 0 130px;
+    min-width: 130px;
+}
+
+.casting-time-row--with-number > wa-number-input {
+    display: block;
+}
+
+.casting-time-row > wa-select {
+    flex: 1;
+    min-width: 0;
+}
+
+.range-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.range-row > wa-number-input {
+    display: none;
+    flex: 0 0 120px;
+    min-width: 120px;
+}
+
+.range-row--with-number > wa-number-input {
+    display: block;
+}
+
+.range-row > wa-select {
+    flex: 1;
+    min-width: 0;
+}
+
+.dimension-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dimension-row > wa-number-input {
+    display: none;
+    flex: 0 0 120px;
+    min-width: 120px;
+}
+
+.dimension-row--with-number > wa-number-input {
+    display: block;
+}
+
+.dimension-row > wa-select {
+    flex: 1;
+    min-width: 0;
+}
+
+.dimension-row > .edit-area-height-unit-text {
+    flex: 0 0 auto;
+    color: var(--wa-input-label-color, #666);
+}
+
+.form-field-area-dims .dimension-row + .form-field-label {
+    margin-top: 8px;
+}
+
+@media (max-width: 400px) {
+    .casting-time-row,
+    .range-row,
+    .dimension-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .casting-time-row > wa-number-input,
+    .range-row > wa-number-input,
+    .dimension-row > wa-number-input {
+        flex: none;
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .casting-time-row > wa-select,
+    .range-row > wa-select,
+    .dimension-row > wa-select {
+        flex: none;
+        width: 100%;
+    }
+}
+
+.form-field-label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.edit-classes-tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.edit-classes-tokens .edit-class-tag {
+    margin: 0;
+    cursor: pointer;
+}
+
+.edit-overlay-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Non-SRD excluded dialog */
+.srd-excluded-list {
+    max-height: 50vh;
+    overflow-y: auto;
+    margin: 12px 0;
+}
+.srd-excluded-list .srd-section-title {
+    font-weight: 700;
+    margin: 16px 0 8px;
+}
+.srd-excluded-list .srd-section-title:first-child {
+    margin-top: 0;
+}
+.srd-excluded-list .srd-source-group {
+    margin-bottom: 12px;
+}
+.srd-excluded-list .srd-source-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.srd-excluded-list .srd-spell-name {
+    margin-left: 12px;
+    padding: 2px 0;
+}
+.srd-excluded-dialog::part(close-button__base) {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    border-radius: 9999px;
+}
+
+.printing-instructions-content p {
+    margin: 0 0 0.75rem;
+}
+.printing-instructions-content p:last-child {
+    margin-bottom: 0;
+}
+
+/* Toast (easter egg) */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    background: var(--wa-color-neutral-fill-loud);
+    color: var(--wa-color-neutral-on-loud);
+    border-radius: var(--wa-border-radius-large, 12px);
+    font-style: italic;
+    z-index: 9999;
+    box-shadow: var(--wa-shadow-large);
+}
+.toast.hidden {
+    display: none;
+}
