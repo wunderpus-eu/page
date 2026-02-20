@@ -2184,6 +2184,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         `;
 
         const contentHtml = printableArea.innerHTML;
+        const useInlineTextClass =
+            !inlineIconsToggle.checked ? " use-inline-text" : "";
         const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2193,7 +2195,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 <link rel="stylesheet" href="${printHref}">
 <style>${inlinePrintStyle}</style>
 </head>
-<body>
+<body class="${useInlineTextClass}">
 <div id="printable-area">${contentHtml}</div>
 <script>
 window.onload = function() {
