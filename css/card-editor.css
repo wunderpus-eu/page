@@ -107,7 +107,6 @@ header:not(.header--spell-cards) {
     flex-shrink: 0;
 }
 
-
 .spell-list-header {
     display: flex;
     align-items: center;
@@ -119,38 +118,6 @@ header:not(.header--spell-cards) {
     min-width: 0;
 }
 
-/* Inline text buttons in spell list (Add all, Details): bold text, no background, nav-bar-style hover/active */
-.spell-list-popover .spell-list-inline-btn::part(base) {
-    background: transparent;
-    border: none;
-    color: var(--wa-color-neutral-700);
-    font-size: inherit;
-    font-weight: 600;
-    font-style: normal;
-    min-height: auto;
-    height: auto;
-    padding: 0.2rem 0.4rem;
-    border-radius: var(--wa-border-radius-small, 4px);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    transition: background 0.15s ease, color 0.15s ease;
-}
-.spell-list-popover .spell-list-inline-btn::part(base):hover {
-    background: rgba(0, 0, 0, 0.08);
-    color: var(--wa-color-neutral-900);
-}
-.spell-list-popover .spell-list-inline-btn::part(base):active,
-.spell-list-popover .spell-list-inline-btn::part(base):focus-visible {
-    background: rgba(0, 0, 0, 0.14);
-    color: var(--wa-color-neutral-900);
-}
-.spell-list-popover .spell-list-inline-btn i,
-.spell-list-popover .spell-list-inline-btn wa-icon {
-    font-size: 0.875em;
-    color: inherit;
-}
-
 .spell-list-chips {
     display: flex;
     flex-wrap: wrap;
@@ -159,8 +126,6 @@ header:not(.header--spell-cards) {
 .spell-list-chips:empty {
     display: none;
 }
-
-/* Spell list filter chips: wa-tag with-remove, size=small, variant=neutral, appearance=filled (built-in) */
 
 .srd-banner {
     display: flex;
@@ -173,12 +138,7 @@ header:not(.header--spell-cards) {
 #srd-banner-text {
     min-width: 0;
 }
-.srd-banner .spell-list-inline-btn::part(base) {
-    color: var(--wa-color-neutral-600);
-}
-.srd-banner .spell-list-inline-btn::part(base):hover {
-    color: var(--wa-color-neutral-800);
-}
+
 .srd-banner.hidden {
     display: none;
 }
@@ -287,7 +247,9 @@ header:not(.header--spell-cards) {
     display: inline-block;
     padding: 2px 5px;
     font-size: 0.7rem;
-    font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+    font-family:
+        ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+        monospace;
     line-height: 1;
     color: var(--wa-color-neutral-700);
     background: var(--wa-color-neutral-fill-quiet);
@@ -504,8 +466,16 @@ header:not(.header--spell-cards) {
 
 /* Same scale as style.css but from --chip-school-color so library hover/focus works */
 .filter-chip-list .filter-chip.filter-chip--school[variant="brand"] {
-    --wa-color-brand-fill-normal: color-mix(in srgb, var(--chip-school-color) 18%, white);
-    --wa-color-brand-on-normal: color-mix(in srgb, var(--chip-school-color) 55%, black);
+    --wa-color-brand-fill-normal: color-mix(
+        in srgb,
+        var(--chip-school-color) 18%,
+        white
+    );
+    --wa-color-brand-on-normal: color-mix(
+        in srgb,
+        var(--chip-school-color) 55%,
+        black
+    );
 }
 
 .filter-chip.filter-chip--class {
