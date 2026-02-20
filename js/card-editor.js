@@ -837,7 +837,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         if (timeConditionWrap) {
             const unit = spell.time?.unit ?? "action";
-            timeConditionWrap.style.display = unit === "reaction" ? "block" : "none";
+            const showCondition = unit === "reaction" || unit === "bonus";
+            timeConditionWrap.style.display = showCondition ? "block" : "none";
         }
 
         // Concentration & Ritual
@@ -1126,7 +1127,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             };
             const showHideTimeCondition = () => {
                 const unit = String(timeUnitSel.value ?? "action");
-                const show = unit === "reaction";
+                const show = unit === "reaction" || unit === "bonus";
                 if (timeConditionWrap) {
                     timeConditionWrap.style.display = show ? "block" : "none";
                 }
@@ -1564,13 +1565,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         spell.time.number = Math.max(1, isNaN(timeNumberVal) ? 1 : timeNumberVal);
         const timeUnitSelect = editCardForm.querySelector("#edit-time_unit");
         spell.time.unit = timeUnitSelect?.value ?? "action";
-        spell.time.condition =
-            spell.time.unit === "reaction"
-                ? normalizeConditionText(
-                      editCardForm.querySelector("#edit-time_condition")
-                          ?.value ?? ""
-                  )
-                : "";
+        const hasConditionField =
+            spell.time.unit === "reaction" || spell.time.unit === "bonus";
+        spell.time.condition = hasConditionField
+            ? normalizeConditionText(
+                  editCardForm.querySelector("#edit-time_condition")?.value ?? ""
+              )
+            : "";
         spell.range = spell.range || {};
         const rangeTypeSelect = editCardForm.querySelector("#edit-range_type");
         const rangeType = rangeTypeSelect?.value ?? "touch";
