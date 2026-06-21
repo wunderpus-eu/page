@@ -1,16 +1,16 @@
 {
   "name": "Battle Master",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "manifest_version": 2,
   "description": "Command combat encounters: track initiative, health, AC, and conditions.",
   "author": "wunderpus.eu",
   "homepage_url": "https://github.com/wunderpus-eu/battle-master",
-  "icon": "icon.svg",
-  "background_url": "src/background/background.html",
+  "icon": "https://wunderpus.eu/battle-master/icon.png",
+  "background_url": "https://wunderpus.eu/battle-master/src/background/background.html",
   "action": {
     "title": "Battle Master",
-    "icon": "action-icon.svg",
-    "popover": "src/settings/settings.html",
+    "icon": "https://wunderpus.eu/battle-master/action-icon.svg",
+    "popover": "https://wunderpus.eu/battle-master/src/settings/settings.html",
     "height": 121,
     "width": 420
   }
