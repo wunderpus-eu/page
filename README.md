@@ -1,11 +1,13 @@
 # Wunderpus
 
-Free, game-ready D&D 5e assets: an improved character sheet and a spell card generator.
+Free, game-ready D&D 5e assets: an improved character sheet, a spell card generator, and the Battle Master Owlbear Rodeo extension.
 
 ## What’s here
 
+- **Home** – Overview of all offerings.
 - **Character sheet** – Fillable PDF character sheet (A4 & Letter) with extra trackers and layout improvements for 2014 and 2024 rules.
 - **Spell cards** – Web app to search and filter spells, add cards (including custom/empty), edit content, and print or save as PDF.
+- **Battle Master** – Owlbear Rodeo extension for initiative, HP, AC, and condition tracking (extension assets under `battle-master/`; docs page at `battle-master.html`).
 
 ## Run locally
 
@@ -22,9 +24,10 @@ Use a static file server so the spell card app can load `data/spells.json` and m
    ```
    Serves the site at **http://localhost:3000**.
 
-- **http://localhost:3000** → redirects to character sheet  
+- **http://localhost:3000** → home page  
 - **http://localhost:3000/character-sheet.html** → character sheet  
 - **http://localhost:3000/spell-cards.html** → spell card generator  
+- **http://localhost:3000/battle-master.html** → Battle Master docs  
 
 ## Deploy
 
@@ -44,9 +47,10 @@ This branch is intended to be the **published static site**. It does not include
 
 ## Project layout
 
-- `index.html` – Redirects to character sheet.
+- `index.html` – Home page with product overview.
 - `character-sheet.html` – Character sheet page.
 - `spell-cards.html` – Spell card generator (main app entry).
+- `battle-master.html` – Battle Master docs shell (body loaded from `battle-master/docs/page-content.html`, maintained in the [battle-master](https://github.com/wunderpus-eu/battle-master) repo).
 - `css/` – Site layout and nav/footer (`style.css`), character sheet page (`character-sheet.css`), spell card editor (`card-editor.css`), spell card layout (`card.css`) and print (`card-print.css`).
 - `js/` – Spell card app: card rendering and data (`card.js`), card editor UI (`card-editor.js`), layout (`card-layout.js`), spell model (`spell.js`); nav bar (`nav.js`). `preprocess-spells.js` uses `js/spell.js`.
 - `assets/` – Icons, wordmark, favicon.

@@ -1,0 +1,142 @@
+/* Home page: hero and product offerings carousel */
+
+.home-hero {
+    text-align: center;
+    margin: 0 auto 2.5rem;
+}
+
+.home-hero h1 {
+    margin: 0 0 0.75rem;
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    line-height: 1.2;
+    color: var(--wa-color-text-normal);
+}
+
+.home-hero p {
+    margin: 0;
+    color: var(--wa-color-text-quiet);
+    font-size: 1.05rem;
+}
+
+.home-offerings {
+    margin-bottom: 2rem;
+}
+
+.home-offerings h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.home-carousel {
+    --aspect-ratio: 3 / 2;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.home-carousel::part(scroll-container) {
+    border-radius: var(--border-radius);
+}
+
+.home-carousel wa-carousel-item {
+    flex: 0 0 100%;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.offering-card {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.offering-card__visual {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 14rem;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    background: var(--wa-color-brand-30);
+}
+
+.offering-card__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+}
+
+.offering-card__content {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.5rem;
+    color: #fff;
+    border-radius: inherit;
+}
+
+.offering-card__content::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+        to top,
+        rgba(20, 8, 36, 0.88) 0%,
+        rgba(20, 8, 36, 0.55) 42%,
+        rgba(20, 8, 36, 0.12) 72%,
+        transparent 100%
+    );
+    pointer-events: none;
+}
+
+.offering-card__content::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    mask-image: linear-gradient(to top, black 0%, black 38%, transparent 68%);
+    -webkit-mask-image: linear-gradient(
+        to top,
+        black 0%,
+        black 38%,
+        transparent 68%
+    );
+    pointer-events: none;
+}
+
+.offering-card__content > * {
+    position: relative;
+    z-index: 1;
+}
+
+.offering-card__content h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    line-height: 1.2;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.offering-card__content p {
+    margin: 0.5rem 0 1rem;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 42rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.offering-card__content wa-button {
+    align-self: flex-end;
+}

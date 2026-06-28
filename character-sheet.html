@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="site-page">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -37,8 +37,9 @@
             gtag("config", "G-G95Y9F34JV");
         </script>
     </head>
-    <body>
-        <header class="header">
+    <body class="site-page">
+        <div class="site-viewport">
+            <header class="header">
             <div class="container">
                 <a href="index.html">
                     <img
@@ -64,22 +65,28 @@
                             aria-hidden="true"
                         ></wa-icon>
                     </wa-button>
-                    <div id="header-nav-menu" class="header-nav-menu header-nav-menu--inline">
-                        <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="character-sheet.html">Character sheet</wa-button>
-                        <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="spell-cards.html">Spell cards</wa-button>
-                        <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="https://ko-fi.com/wunderpus" target="_blank" rel="noopener noreferrer">Support me</wa-button>
-                    </div>
-                    <wa-popover for="header-nav-toggle" placement="bottom-end" without-arrow class="header-nav-popover">
-                        <div class="header-nav-menu header-nav-menu--popover">
-                            <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="character-sheet.html">Character sheet</wa-button>
-                            <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="spell-cards.html">Spell cards</wa-button>
-                            <wa-button class="on-hero" appearance="plain" variant="neutral" size="small" href="https://ko-fi.com/wunderpus" target="_blank" rel="noopener noreferrer">Support me</wa-button>
-                        </div>
+                    <div
+                        id="header-nav-menu"
+                        class="header-nav-menu header-nav-menu--inline"
+                        data-nav-menu
+                    ></div>
+                    <wa-popover
+                        for="header-nav-toggle"
+                        placement="bottom-end"
+                        without-arrow
+                        class="header-nav-popover"
+                    >
+                        <div
+                            class="header-nav-menu header-nav-menu--popover"
+                            data-nav-menu
+                        ></div>
                     </wa-popover>
                 </nav>
             </div>
-        </header>
+            </header>
 
+            <div class="site-scroll">
+                <div class="site-scroll-content">
         <main class="container">
             <section class="downloads">
                 <h2>An improved character sheet for DnD 5e</h2>
@@ -265,6 +272,9 @@
                 </p>
             </div>
         </footer>
+                </div>
+            </div>
+        </div>
 
         <script src="js/nav.js"></script>
     </body>

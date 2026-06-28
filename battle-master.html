@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" class="site-page">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Battle Master – Owlbear Rodeo extension | Wunderpus</title>
+        <meta
+            name="description"
+            content="Battle Master is a Wunderpus Owlbear Rodeo extension for D&amp;D 5e initiative, HP, AC, and condition tracking."
+        />
+        <link rel="icon" href="assets/logo_color.svg" type="image/svg+xml" />
+        <link
+            rel="alternate icon"
+            href="assets/favicon.png"
+            type="image/png"
+            sizes="48x48"
+        />
+        <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+        <link rel="stylesheet" href="css/style.css" />
+        <link rel="stylesheet" href="css/battle-master-docs.css" />
+        <script
+            src="https://kit.webawesome.com/09159e6f02cb41ba.js"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            async
+            src="https://www.googletagmanager.com/gtag/js?id=G-G95Y9F34JV"
+        ></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag("js", new Date());
+            gtag("config", "G-G95Y9F34JV");
+        </script>
+    </head>
+    <body class="site-page">
+        <div class="site-viewport">
+            <header class="header">
+            <div class="container">
+                <a href="index.html">
+                    <img
+                        src="assets/wordmark_color.svg"
+                        alt="Wunderpus Wordmark"
+                        class="wordmark"
+                    />
+                </a>
+                <nav class="header-nav" aria-label="Main">
+                    <wa-button
+                        id="header-nav-toggle"
+                        class="header-nav-toggle on-hero"
+                        appearance="plain"
+                        variant="neutral"
+                        size="small"
+                        pill
+                        aria-expanded="false"
+                        aria-label="Open menu"
+                    >
+                        <wa-icon
+                            class="header-nav-toggle-icon"
+                            name="bars"
+                            aria-hidden="true"
+                        ></wa-icon>
+                    </wa-button>
+                    <div
+                        id="header-nav-menu"
+                        class="header-nav-menu header-nav-menu--inline"
+                        data-nav-menu
+                    ></div>
+                    <wa-popover
+                        for="header-nav-toggle"
+                        placement="bottom-end"
+                        without-arrow
+                        class="header-nav-popover"
+                    >
+                        <div
+                            class="header-nav-menu header-nav-menu--popover"
+                            data-nav-menu
+                        ></div>
+                    </wa-popover>
+                </nav>
+            </div>
+            </header>
+
+            <div class="site-scroll">
+                <div class="site-scroll-content">
+        <div id="bm-docs-root">
+            <p class="container bm-docs-loading">Loading…</p>
+        </div>
+
+        <footer class="footer">
+            <div class="container">
+                <p>© 2025 Wunderpus.</p>
+                <p>
+                    Battle Master is an Owlbear Rodeo extension by Wunderpus.
+                    This work is not affiliated with, endorsed, or sponsored by
+                    Wizards of the Coast LLC.
+                </p>
+            </div>
+        </footer>
+                </div>
+            </div>
+        </div>
+
+        <script src="js/nav.js"></script>
+        <script src="js/battle-master-docs.js"></script>
+    </body>
+</html>

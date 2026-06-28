@@ -1,19 +1,50 @@
 /**
- * nav.js – Site nav: active link, mobile menu (wa-popover).
+ * nav.js – Site nav: link config, rendering, active state, mobile menu.
  */
 (function () {
+    var NAV_LINKS = [
+        { href: "character-sheet.html", label: "Character sheet" },
+        { href: "spell-cards.html", label: "Spell cards" },
+        { href: "battle-master.html", label: "Battle Master" },
+        {
+            href: "https://ko-fi.com/wunderpus",
+            label: "Support me",
+            external: true,
+        },
+    ];
+
+    function createNavButton(link) {
+        var btn = document.createElement("wa-button");
+        btn.className = "on-hero";
+        btn.setAttribute("appearance", "plain");
+        btn.setAttribute("variant", "neutral");
+        btn.setAttribute("size", "small");
+        btn.setAttribute("href", link.href);
+        btn.textContent = link.label;
+        if (link.external) {
+            btn.setAttribute("target", "_blank");
+            btn.setAttribute("rel", "noopener noreferrer");
+        }
+        return btn;
+    }
+
     var nav = document.querySelector(".header-nav");
     if (!nav) return;
 
-    // Mark the nav button(s) for the current page as active (inline menu + popover menu)
+    nav.querySelectorAll("[data-nav-menu]").forEach(function (menu) {
+        NAV_LINKS.forEach(function (link) {
+            menu.appendChild(createNavButton(link));
+        });
+    });
+
     var path = window.location.pathname;
     var file = path.slice(path.lastIndexOf("/") + 1) || "index.html";
     var activeLinks = nav.querySelectorAll('wa-button[href="' + file + '"]');
     activeLinks.forEach(function (el) {
         el.classList.add("active");
+        el.setAttribute("variant", "brand");
     });
 
-    // Mobile: sync toggle icon and aria with popover open state
     var toggle = document.getElementById("header-nav-toggle");
     var popover = nav.querySelector(".header-nav-popover");
     var icon = toggle && toggle.querySelector(".header-nav-toggle-icon");

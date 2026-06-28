@@ -60,6 +60,12 @@ html.spell-cards-page {
     scrollbar-gutter: auto;
 }
 
+/* Standard pages: fixed header, scrollable main + footer */
+html.site-page {
+    overflow: hidden;
+    scrollbar-gutter: auto;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
         Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
@@ -177,6 +183,58 @@ wa-input.on-hero {
     color: var(--wa-color-text-quiet);
 }
 
+/* Fixed header + scrollable content (home, character sheet, battle master) */
+body.site-page {
+    overflow: hidden;
+    height: 100vh;
+}
+
+.site-viewport {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.site-viewport .header {
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+.site-scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: auto;
+}
+
+.site-scroll-content {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding-top: 2rem;
+    box-sizing: border-box;
+}
+
+.site-scroll-content > main {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: var(--container-width);
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+.site-scroll-content > #bm-docs-root {
+    flex: 1 1 auto;
+    width: 100%;
+}
+
+.site-scroll-content .footer {
+    flex-shrink: 0;
+}
+
 /* Spell-cards page: main area fills viewport so footer sits below the fold when empty when there’s little or no content */
 body.spell-cards-page {
     overflow: hidden;
@@ -231,8 +289,8 @@ body.spell-cards-page {
     color: var(--wa-color-text-normal);
 }
 
-/* Header: hamburger + wa-popover when nav links don’t fit (under 900px) */
-@media (max-width: 650px) {
+/* Header: hamburger + wa-popover when nav links don’t fit */
+@media (max-width: 820px) {
     .header-nav-toggle {
         display: flex;
     }

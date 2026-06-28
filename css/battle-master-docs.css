@@ -1,0 +1,81 @@
+/* Battle Master docs page (content classes used in battle-master/docs/page-content.html) */
+
+.bm-docs {
+    padding-bottom: 2rem;
+}
+
+.bm-docs-hero {
+    margin: 0 -1.5rem 1.5rem;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    background: var(--wa-color-brand-10);
+}
+
+.bm-docs-hero img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    object-position: top center;
+}
+
+.bm-docs-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+}
+
+.bm-docs-header h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    line-height: 1.2;
+}
+
+.bm-docs-header .bm-docs-install-button {
+    flex-shrink: 0;
+    --wa-color-brand-fill-loud: var(--hero-color);
+}
+
+.bm-docs-tagline {
+    margin: 0 0 2rem;
+    font-size: 1.125rem;
+    color: var(--wa-color-text-quiet);
+    font-style: italic;
+}
+
+.bm-docs-sections h2 {
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+}
+
+.bm-docs-sections p,
+.bm-docs-sections ul {
+    margin-top: 0;
+    color: var(--wa-color-text-normal);
+}
+
+.bm-docs-loading {
+    text-align: center;
+    color: var(--wa-color-text-quiet);
+    padding: 3rem 0;
+}
+
+.bm-docs-error {
+    color: var(--wa-color-danger-on-quiet, #b42318);
+}
+
+@media (max-width: 600px) {
+    .bm-docs-hero {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .bm-docs-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
