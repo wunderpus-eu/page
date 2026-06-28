@@ -1,1 +1,0 @@
-import{O as t,aZ as n}from"./loadSettings-X54FRjj8.js";async function s(){return await n(),await t.player.getSelection()??[]}async function i(){const e=await s();return e.length===0?[]:t.scene.items.getItems(e)}export{i as g};

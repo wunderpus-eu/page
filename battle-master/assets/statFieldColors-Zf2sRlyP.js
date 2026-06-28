@@ -1,0 +1,1 @@
+import{k as e}from"./loadSettings-BsFJzBo0.js";function m(){new URLSearchParams(location.search).get("themeMode")==="DARK"?document.body.classList.add("dark"):document.body.classList.remove("dark")}const a="#f85552",t=e.tempHpColor;function c(o){return{hp:a,tempHp:o.hpSegments.tempHpColor??t,ac:o.acBadgeColor}}export{m as a,c as s};
